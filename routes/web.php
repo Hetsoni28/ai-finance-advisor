@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| CONTROLLERS
+| 📥 CONTROLLER REGISTRY
 |--------------------------------------------------------------------------
 */
 
@@ -12,26 +12,23 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 
-use App\Http\Controllers\User\{
-    DashboardController,
-    IncomeController,
-    ExpenseController,
-    FamilyController,
-    ProfileController,
-    ReportController,
-    AiChatController,
-    NotificationController
-};
+use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\User\IncomeController;
+use App\Http\Controllers\User\ExpenseController;
+use App\Http\Controllers\User\FamilyController;
+use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\ReportController;
+use App\Http\Controllers\User\AiChatController;
+use App\Http\Controllers\User\NotificationController;
 
-use App\Http\Controllers\Admin\{
-    DashboardController as AdminDashboardController,
-    UserController as AdminUserController,
-    SecurityController as AdminSecurityController
-};
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\SecurityController as AdminSecurityController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES
+| 🌍 PUBLIC PERIMETER
 |--------------------------------------------------------------------------
 */
 
@@ -42,7 +39,6 @@ Route::view('/pricing', 'pages.pricing')->name('pricing');
 Route::view('/about', 'pages.about')->name('about');
 Route::view('/privacy', 'pages.privacy')->name('privacy');
 Route::view('/terms', 'pages.terms')->name('terms');
-
 Route::view('/contact', 'pages.contact')->name('contact');
 
 Route::post('/contact', [ContactController::class, 'store'])
@@ -51,190 +47,143 @@ Route::post('/contact', [ContactController::class, 'store'])
 
 /*
 |--------------------------------------------------------------------------
-| AUTH (Guest Only)
+| 🔐 AUTHENTICATION GATEWAY
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('guest')->group(function () {
 
-    Route::controller(AuthController::class)->group(function () {
-        Route::get('/login', 'loginPage')->name('login');
-        Route::post('/login', 'login')->name('login.attempt');
+    Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
+    
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,1')
+        ->name('login.attempt');
 
-        Route::get('/register', 'registerPage')->name('register');
-        Route::post('/register', 'register')->name('register.store');
-    });
-
+    Route::get('/register', [AuthController::class, 'registerPage'])->name('register');
+    
+    Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 });
 
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATED ROUTES
+| 🔓 HYBRID ROUTES (Magic Links & Webhooks)
+|--------------------------------------------------------------------------
+| Routes that require controller-level intelligence rather than strict 
+| route-level auth blocks.
+*/
+
+Route::prefix('user')->name('user.')->group(function () {
+    // 🔥 BEAST MODE: 1-Click Magic Link Entry Point
+    Route::get('families/{family}/accept/{token}', [FamilyController::class, 'acceptInvite'])
+        ->name('families.accept');
+});
+
+/*
+|--------------------------------------------------------------------------
+| 🛡️ SECURE INTERNAL NETWORK (AUTHENTICATED)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth')->group(function () {
 
-    Route::post('/logout', [AuthController::class, 'logout'])
-        ->name('logout');
+    // Global Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     /*
-    |--------------------------------------------------------------------------
-    | USER PANEL
-    |--------------------------------------------------------------------------
+    |========================================================================
+    | 👤 USER HUB
+    |========================================================================
     */
+    Route::prefix('user')->name('user.')->group(function () {
 
-    Route::prefix('user')
-        ->as('user.')
-        ->scopeBindings()
-        ->group(function () {
+        // --- DASHBOARD ---
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-            Route::get('/dashboard', [DashboardController::class, 'index'])
-                ->name('dashboard');
+        // --- EXPENSES ---
+        Route::get('/expenses/export/pdf', [ExpenseController::class, 'exportPdf'])->name('expenses.export.pdf');
+        Route::resource('expenses', ExpenseController::class);
 
-            /*
-            |----------------------------------
-            | Expenses
-            |----------------------------------
-            */
-            Route::get('expenses/export/pdf',
-                [ExpenseController::class, 'exportPdf'])
-                ->name('expenses.export.pdf');
+        // --- INCOMES ---
+        Route::get('/incomes/export/pdf', [IncomeController::class, 'exportPdf'])->name('incomes.export.pdf');
+        Route::resource('incomes', IncomeController::class)->except('show');
 
-            Route::resource('expenses', ExpenseController::class);
+        // --- COLLABORATIVE WORKSPACES (FAMILIES) ---
+        Route::resource('families', FamilyController::class)->only(['index', 'create', 'store', 'show']);
 
-            /*
-            |----------------------------------
-            | Incomes
-            |----------------------------------
-            */
-            Route::resource('incomes', IncomeController::class)
-                ->except(['show']);
+        // Access Management UI
+        Route::get('families/{family}/access', [FamilyController::class, 'accessManagement'])->name('families.access');
 
-            /*
-            |----------------------------------
-            | Families
-            |----------------------------------
-            */
-            Route::resource('families', FamilyController::class)
-                ->only(['index','create','store','show']);
+        // Secure Handshakes (Invites)
+        Route::post('families/{family}/invite', [FamilyController::class, 'invite'])
+            ->middleware('throttle:5,1')
+            ->name('families.invite');
 
-            Route::post('families/{family}/invite',
-                [FamilyController::class, 'invite'])
-                ->middleware('throttle:5,1')
-                ->name('families.invite');
+        // IAM & Access Revocation Routes
+        Route::delete('families/{family}/members/{member}', [FamilyController::class, 'removeMember'])
+            ->name('families.removeMember');
 
-            Route::post('families/{family}/accept/{token}',
-                [FamilyController::class, 'acceptInvite'])
-                ->name('families.accept');
+        Route::delete('families/{family}/invites/{invite}', [FamilyController::class, 'destroyInvite'])
+            ->name('families.invites.destroy');
 
-            /*
-            |----------------------------------
-            | AI Chat
-            |----------------------------------
-            */
-            Route::prefix('ai')->as('ai.')->group(function () {
+        Route::delete('families/{family}/invites-bulk', [FamilyController::class, 'bulkDestroyInvites'])
+            ->middleware('throttle:5,1') 
+            ->name('families.invites.bulkDestroy');
 
-                Route::get('/chat',
-                    [AiChatController::class, 'index'])
-                    ->name('chat');
-
-                Route::post('/chat/send',
-                    [AiChatController::class, 'sendMessage'])
-                    ->middleware('throttle:30,1')
-                    ->name('chat.send');
-            });
-
-            /*
-            |----------------------------------
-            | Notifications
-            |----------------------------------
-            */
-            Route::get('/notifications',
-                [NotificationController::class, 'index'])
-                ->name('notifications.index');
-
-            Route::post('/notifications/{notification}/read',
-                [NotificationController::class, 'markAsRead'])
-                ->name('notifications.read');
-
-            /*
-            |----------------------------------
-            | Reports
-            |----------------------------------
-            */
-            Route::middleware('role:admin,manager')
-                ->get('/reports',
-                    [ReportController::class, 'index'])
-                ->name('reports.index');
-
-            /*
-            |----------------------------------
-            | Profile
-            |----------------------------------
-            */
-            Route::prefix('profile')
-                ->as('profile.')
-                ->controller(ProfileController::class)
-                ->group(function () {
-
-                    Route::get('/', 'index')->name('index');
-                    Route::get('/edit', 'edit')->name('edit');
-                    Route::post('/update', 'update')->name('update');
-
-                    Route::get('/password', 'passwordForm')
-                        ->name('password.form');
-
-                    Route::post('/password', 'updatePassword')
-                        ->name('password.update');
-
-                    Route::view('/subscription',
-                        'user.subscription.index')
-                        ->name('subscription');
-                });
-
+        // --- FINANCE AI ENGINE ---
+        Route::prefix('ai')->name('ai.')->group(function () {
+            Route::get('/chat', [AiChatController::class, 'index'])->name('chat');
+            Route::post('/chat/send', [AiChatController::class, 'sendMessage'])
+                ->middleware('throttle:30,1')
+                ->name('chat.send');
         });
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN PANEL
-    |--------------------------------------------------------------------------
-    */
+        // --- NOTIFICATIONS ---
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
+        // --- REPORTS ---
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+        // --- PROFILE & BILLING ---
+        Route::prefix('profile')->name('profile.')->group(function () {
+            Route::get('/', [ProfileController::class, 'index'])->name('index');
+            Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
+            
+            // 🚨 RESTful Upgrade: Updates use PATCH
+            Route::patch('/update', [ProfileController::class, 'update'])->name('update');
+
+            Route::get('/password', [ProfileController::class, 'passwordForm'])->name('password.form');
+            Route::patch('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+
+            Route::view('/subscription', 'user.profile.subscription')->name('subscription');
+        });
+    });
+
+    /*
+    |========================================================================
+    | 👑 MASTER ADMIN NODE
+    |========================================================================
+    */
     Route::prefix('admin')
         ->middleware('admin')
-        ->as('admin.')
+        ->name('admin.')
         ->group(function () {
 
-            Route::get('/dashboard',
-                [AdminDashboardController::class, 'index'])
-                ->name('dashboard');
+        // --- SYSTEM DASHBOARD ---
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-            Route::get('/users',
-                [AdminUserController::class, 'index'])
-                ->name('users.index');
+        // --- USER MANAGEMENT ---
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::patch('/users/{user}/block', [AdminUserController::class, 'block'])->name('users.block');
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
-            Route::patch('/users/{user}/block',
-                [AdminUserController::class, 'block'])
-                ->name('users.block');
+        // --- SECURITY LOGS ---
+        Route::get('/activities', [AdminSecurityController::class, 'index'])->name('activities.index');
 
-            Route::delete('/users/{user}',
-                [AdminUserController::class, 'destroy'])
-                ->name('users.destroy');
+        // --- GLOBAL REPORTS ---
+        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/pdf', [AdminReportController::class, 'exportPdf'])->name('reports.pdf');
+        
+    });
 
-            Route::get('/activities',
-                [AdminSecurityController::class, 'index'])
-                ->name('activities.index');
-        });
-
-});
-
-/*
-|--------------------------------------------------------------------------
-| FALLBACK
-|--------------------------------------------------------------------------
-*/
-
-Route::fallback(function () {
-    return view('errors.404');
 });

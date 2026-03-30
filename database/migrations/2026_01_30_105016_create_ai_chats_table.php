@@ -11,27 +11,27 @@ class CreateAiChatsTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('ai_chats', function (Blueprint $table) {
             $table->id();
 
-            // 🔗 User reference
-            $table->unsignedBigInteger('user_id');
+            // 🔗 User reference (Modern Laravel 8+ strict constraints)
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
-            // 💬 Chat message
+            // 🔥 BEAST MODE: Groups messages together for context windowing
+            $table->string('session_id')->index();
+
+            // 💬 Stores the actual Markdown message
             $table->text('message');
 
-            // 🤖 Who sent the message
-            $table->enum('sender', ['user', 'ai']);
+            // 🤖 Identifies if the message is from 'user' or 'ai'
+            $table->string('sender');
+
+            // 💰 BEAST MODE: Tracks API cost/usage per message
+            $table->integer('tokens')->default(0);
 
             $table->timestamps();
-
-            // 🔐 Foreign key
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade');
         });
     }
 
@@ -40,7 +40,7 @@ class CreateAiChatsTable extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('ai_chats');
     }

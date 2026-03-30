@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 | Related Models
 |--------------------------------------------------------------------------
 */
+
 use App\Models\User;
 
 class Activity extends Model
@@ -25,14 +26,25 @@ class Activity extends Model
     |--------------------------------------------------------------------------
     */
 
-    public const TYPE_EXPENSE_CREATED   = 'expense_created';
-    public const TYPE_EXPENSE_UPDATED   = 'expense_updated';
-    public const TYPE_EXPENSE_DELETED   = 'expense_deleted';
-    public const TYPE_INCOME_CREATED    = 'income_created';
-    public const TYPE_FAMILY_CREATED    = 'family_created';
-    public const TYPE_INVITE_SENT       = 'invite_sent';
-    public const TYPE_INVITE_ACCEPTED   = 'invite_accepted';
-    public const TYPE_ROLE_CHANGED      = 'role_changed';
+    public const TYPE_EXPENSE_CREATED  = 'expense_created';
+    public const TYPE_EXPENSE_UPDATED  = 'expense_updated';
+    public const TYPE_EXPENSE_DELETED  = 'expense_deleted';
+
+    public const TYPE_INCOME_CREATED   = 'income_created';
+    public const TYPE_INCOME_UPDATED   = 'income_updated';
+
+    public const TYPE_FAMILY_CREATED   = 'family_created';
+
+    public const TYPE_INVITE_SENT      = 'invite_sent';
+    public const TYPE_INVITE_ACCEPTED  = 'invite_accepted';
+
+    public const TYPE_ROLE_CHANGED     = 'role_changed';
+
+    public const TYPE_LOGIN            = 'login';
+    public const TYPE_LOGOUT           = 'logout';
+
+    public const TYPE_PROFILE_UPDATED  = 'profile_updated';
+
 
     /*
     |--------------------------------------------------------------------------
@@ -49,6 +61,7 @@ class Activity extends Model
         'meta',
     ];
 
+
     /*
     |--------------------------------------------------------------------------
     | Casts
@@ -61,6 +74,7 @@ class Activity extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
 
     /*
     |--------------------------------------------------------------------------
@@ -77,16 +91,18 @@ class Activity extends Model
     }
 
     /**
-     * Polymorphic Subject (Expense, Income, Family, etc.)
+     * Activity → Polymorphic Subject
+     * (Expense, Income, Family, etc.)
      */
     public function subject(): MorphTo
     {
         return $this->morphTo();
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | Helper Methods
+    | Activity Logger
     |--------------------------------------------------------------------------
     */
 
@@ -97,6 +113,7 @@ class Activity extends Model
         ?Model $subject = null,
         array $meta = []
     ): self {
+
         return self::create([
             'user_id'      => $user->id,
             'type'         => $type,
@@ -107,8 +124,37 @@ class Activity extends Model
         ]);
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Methods
+    |--------------------------------------------------------------------------
+    */
+
     public function isType(string $type): bool
     {
         return $this->type === $type;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Query Scopes (Admin Reports)
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeRecent($query)
+    {
+        return $query->latest();
+    }
+
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeType($query, $type)
+    {
+        return $query->where('type', $type);
     }
 }
