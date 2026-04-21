@@ -1,37 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mail;
 
 use App\Models\FamilyInvite;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\URL;
 
-class FamilyInviteMail extends Mailable implements ShouldQueue
+class FamilyInviteMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    // Public properties are automatically injected into the Blade view
     public FamilyInvite $invite;
     public string $acceptUrl;
     public string $inviterName;
+    public string $workspaceName;
 
     /**
      * Create a new message instance.
      */
     public function __construct(FamilyInvite $invite, string $inviterName)
     {
-        $this->invite = $invite->load('family');
+        // Safely load the relationship
+        $this->invite = $invite->loadMissing('family');
         $this->inviterName = $inviterName;
+        $this->workspaceName = $this->invite->family->name ?? 'Secure Workspace';
 
-        $expiresAt = $invite->expires_at ?? now()->addDays(7);
-
-        $this->acceptUrl = URL::temporarySignedRoute(
-            'user.families.invite.accept',
-            $expiresAt,
-            ['token' => $invite->token]
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | 🔗 CLEAN CRYPTOGRAPHIC URL
+        |--------------------------------------------------------------------------
+        | We need to access the raw token for URL generation.
+        | The token is hidden from JSON/API serialization but still accessible as a property.
+        */
+        $this->acceptUrl = route('user.families.accept', [
+            'family' => $this->invite->family_id,
+            'token'  => $this->invite->token,
+        ]);
     }
 
     /**
@@ -41,16 +49,10 @@ class FamilyInviteMail extends Mailable implements ShouldQueue
     {
         return $this
             ->from(
-                config('mail.from.address'),
-                config('mail.from.name')
+                config('mail.from.address', 'hello@financeai.com'), 
+                config('mail.from.name', 'FinanceAI Engine')
             )
-            ->subject('You’ve been invited to join ' . $this->invite->family->name)
-            ->view('emails.family_invite')
-            ->with([
-                'invite'      => $this->invite,
-                'family'      => $this->invite->family,
-                'acceptUrl'   => $this->acceptUrl,
-                'inviterName' => $this->inviterName,
-            ]);
+            ->subject("[FinanceAI] Secure Access Provisioned: {$this->workspaceName}")
+            ->view('emails.family_invite');
     }
 }

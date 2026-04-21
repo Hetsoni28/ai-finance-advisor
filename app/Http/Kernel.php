@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         // Custom
         'admin'             => \App\Http\Middleware\AdminMiddleware::class,
         'role'              => \App\Http\Middleware\RoleMiddleware::class,
+        'subscription'      => \App\Http\Middleware\CheckSubscription::class,
     ];
 }

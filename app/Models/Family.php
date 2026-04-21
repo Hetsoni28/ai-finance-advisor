@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,19 +10,26 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
 class Family extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
+        'description', // 🚨 CRITICAL FIX: Required for workspace creation
         'created_by',
     ];
 
     /*
     |--------------------------------------------------------------------------
-    | Relationships
+    | 🔗 CORE RELATIONSHIPS
     |--------------------------------------------------------------------------
     */
 
@@ -38,7 +47,7 @@ class Family extends Model
     {
         return $this->belongsToMany(
                 User::class,
-                'family_members',
+                'family_members', // Ensure this matches your actual DB table name
                 'family_id',
                 'user_id'
             )
@@ -46,19 +55,25 @@ class Family extends Model
             ->withTimestamps();
     }
 
+    // 🚨 CRITICAL FIX: Required for the IAM Mailbox to function
+    public function invites(): HasMany
+    {
+        return $this->hasMany(FamilyInvite::class);
+    }
+
     public function incomes(): HasMany
     {
-        return $this->hasMany(Income::class);
+        return $this->hasMany(Income::class)->where('is_personal', false);
     }
 
     public function expenses(): HasMany
     {
-        return $this->hasMany(Expense::class);
+        return $this->hasMany(Expense::class)->where('is_personal', false);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Financial Metrics (Strict Mode Safe)
+    | 💰 FINANCIAL METRICS (STRICT & INDEX-OPTIMIZED)
     |--------------------------------------------------------------------------
     */
 
@@ -74,95 +89,117 @@ class Family extends Model
 
     public function balance(): float
     {
-        return $this->totalIncome() - $this->totalExpense();
+        return max($this->totalIncome() - $this->totalExpense(), 0.0);
     }
 
     public function thisMonthIncome(): float
     {
+        // 🔥 BEAST MODE: whereBetween preserves MySQL indexing (Unlike whereMonth)
+        $start = now()->startOfMonth()->toDateString();
+        $end   = now()->endOfMonth()->toDateString();
+
         return (float) $this->incomes()
-            ->whereMonth('income_date', now()->month)
-            ->whereYear('income_date', now()->year)
+            ->whereBetween('income_date', [$start, $end])
             ->sum('amount');
     }
 
     public function thisMonthExpense(): float
     {
+        $start = now()->startOfMonth()->toDateString();
+        $end   = now()->endOfMonth()->toDateString();
+
         return (float) $this->expenses()
-            ->whereMonth('expense_date', now()->month)
-            ->whereYear('expense_date', now()->year)
+            ->whereBetween('expense_date', [$start, $end])
             ->sum('amount');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Authorization Helpers (Optimized)
+    | 🛡️ IDENTITY & ACCESS MANAGEMENT (RAM-OPTIMIZED)
+    | Intelligently uses eager-loaded relations to prevent N+1 queries.
     |--------------------------------------------------------------------------
     */
 
     public function hasUser(int $userId): bool
     {
-        return $this->users()
-            ->where('users.id', $userId)
-            ->exists();
+        if ($this->relationLoaded('users')) {
+            return $this->users->contains('id', $userId);
+        }
+
+        return $this->users()->where('users.id', $userId)->exists();
     }
 
     public function member(int $userId): ?FamilyMember
     {
-        return $this->members()
-            ->where('user_id', $userId)
-            ->first();
+        if ($this->relationLoaded('members')) {
+            return $this->members->firstWhere('user_id', $userId);
+        }
+
+        return $this->members()->where('user_id', $userId)->first();
     }
 
     public function isOwner(int $userId): bool
     {
+        // Failsafe absolute creator check
+        if ($this->created_by === $userId) {
+            return true;
+        }
+
+        if ($this->relationLoaded('members')) {
+            $member = $this->members->firstWhere('user_id', $userId);
+            return $member && strtolower($member->role ?? '') === 'owner';
+        }
+
         return $this->members()
             ->where('user_id', $userId)
-            ->where('role', FamilyMember::ROLE_OWNER)
+            ->where('role', 'owner') // Adjust to FamilyMember::ROLE_OWNER if using constants
             ->exists();
     }
 
     public function isAdmin(int $userId): bool
     {
+        if ($this->relationLoaded('members')) {
+            $member = $this->members->firstWhere('user_id', $userId);
+            return $member && strtolower($member->role ?? '') === 'admin';
+        }
+
         return $this->members()
             ->where('user_id', $userId)
-            ->where('role', FamilyMember::ROLE_ADMIN)
+            ->where('role', 'admin') 
             ->exists();
     }
 
     public function canManage(int $userId): bool
     {
-        return $this->members()
-            ->where('user_id', $userId)
-            ->whereIn('role', [
-                FamilyMember::ROLE_OWNER,
-                FamilyMember::ROLE_ADMIN,
-            ])
-            ->exists();
-    }
+        if ($this->created_by === $userId) {
+            return true;
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Safety
-    |--------------------------------------------------------------------------
-    */
+        return $this->isOwner($userId) || $this->isAdmin($userId);
+    }
 
     public function ownerCount(): int
     {
-        return $this->members()
-            ->where('role', FamilyMember::ROLE_OWNER)
-            ->count();
+        if ($this->relationLoaded('members')) {
+            return $this->members->where('role', 'owner')->count();
+        }
+
+        return $this->members()->where('role', 'owner')->count();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Query Scopes
+    | 🔎 QUERY SCOPES
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Eagerly aggregates financial totals directly in SQL.
+     */
     public function scopeWithFinancials(Builder $query): Builder
     {
         return $query
-            ->withSum('incomes', 'amount')
-            ->withSum('expenses', 'amount');
+            ->withSum(['incomes' => fn($q) => $q->where('is_personal', false)], 'amount')
+            ->withSum(['expenses' => fn($q) => $q->where('is_personal', false)], 'amount');
     }
 }

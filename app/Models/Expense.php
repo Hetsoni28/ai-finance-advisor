@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 
 class Expense extends Model
 {
@@ -17,7 +19,7 @@ class Expense extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Mass Assignment
+    | Mass Assignment Security
     |--------------------------------------------------------------------------
     */
     protected $fillable = [
@@ -34,11 +36,11 @@ class Expense extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Casts
+    | Data Casting (Strict Type Safety)
     |--------------------------------------------------------------------------
     */
     protected $casts = [
-        'amount'       => 'float',        // 🔥 safer for calculations
+        'amount'       => 'float',        // Defends against string math errors
         'expense_date' => 'date',
         'is_personal'  => 'boolean',
         'month'        => 'integer',
@@ -49,40 +51,32 @@ class Expense extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Model Events
+    | Enterprise Event Hooks (Database Defenders)
     |--------------------------------------------------------------------------
     */
     protected static function booted(): void
     {
         static::saving(function (Expense $expense) {
 
-            if (!$expense->user_id) {
-                throw ValidationException::withMessages([
-                    'user_id' => 'Expense must belong to a valid user.',
-                ]);
+            // 1. Core Ownership Guard
+            if (empty($expense->user_id)) {
+                throw new InvalidArgumentException('Data Integrity Violation: Expense must belong to a valid user_id.');
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Personal vs Family Guard
-            |--------------------------------------------------------------------------
-            */
-
+            // 2. Personal vs Family Guard
             if ($expense->is_personal) {
-                $expense->family_id = null;
+                // Force null to prevent mixed-state data corruption
+                $expense->family_id = null; 
             }
 
             if (!$expense->is_personal && empty($expense->family_id)) {
-                throw ValidationException::withMessages([
-                    'family_id' => 'Family expense requires a valid family.',
-                ]);
+                throw new InvalidArgumentException('Data Integrity Violation: Corporate/Family expense requires a valid family_id.');
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Auto Month/Year From Date
-            |--------------------------------------------------------------------------
-            */
+            // 3. Automated Chronology Indexing (Fixes Carbon::parse(null) bug)
+            if (empty($expense->expense_date)) {
+                throw new InvalidArgumentException('Data Integrity Violation: expense_date cannot be null.');
+            }
 
             $date = $expense->expense_date instanceof Carbon
                 ? $expense->expense_date
@@ -95,7 +89,7 @@ class Expense extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Relationships
+    | Relational Architecture
     |--------------------------------------------------------------------------
     */
 
@@ -111,7 +105,7 @@ class Expense extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Scopes (STRICT SEPARATION)
+    | Query Scopes (High-Performance Data Retrieval)
     |--------------------------------------------------------------------------
     */
 
@@ -148,9 +142,17 @@ class Expense extends Model
             ->orderByDesc('id');
     }
 
+    /**
+     * Identifies high-value transactions for the Security Dashboard.
+     */
+    public function scopeAnomalous(Builder $query, float $threshold = 10000.00): Builder
+    {
+        return $query->where('amount', '>', $threshold);
+    }
+
     /*
     |--------------------------------------------------------------------------
-    | Aggregation Helpers (SAFE)
+    | Static Aggregation Engines (O(1) Memory Safe)
     |--------------------------------------------------------------------------
     */
 
@@ -169,11 +171,8 @@ class Expense extends Model
             ->sum('amount');
     }
 
-    public static function monthlyPersonalTotal(
-        int $userId,
-        int $month,
-        int $year
-    ): float {
+    public static function monthlyPersonalTotal(int $userId, int $month, int $year): float 
+    {
         return (float) static::query()
             ->where('user_id', $userId)
             ->personal()
@@ -183,23 +182,26 @@ class Expense extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Accessors
+    | Data Accessors & Mutators
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Safely formats the amount for UI displays without mutating the database float.
+     */
     public function getFormattedAmountAttribute(): string
     {
-        return '-₹' . number_format($this->amount, 2);
+        return '-₹' . number_format((float) $this->amount, 2);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Security Helper
+    | Security Verification Helpers
     |--------------------------------------------------------------------------
     */
 
     public function belongsToUser(int $userId): bool
     {
-        return (int) $this->user_id === (int) $userId;
+        return (int) $this->user_id === $userId;
     }
 }
