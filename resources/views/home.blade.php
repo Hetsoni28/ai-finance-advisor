@@ -691,7 +691,7 @@
                 <div class="flex items-center gap-4 border-t border-slate-100 pt-6">
                     <img src="https://i.pravatar.cc/150?img=68" class="w-12 h-12 rounded-full object-cover" alt="Avatar">
                     <div>
-                        <p class="text-sm font-black text-slate-900">David Reynolds</p>
+                        <p class="text-sm font-black text-slate-900">Het Soni</p>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CFO, TechFlow Inc.</p>
                     </div>
                 </div>
@@ -704,9 +704,9 @@
                 </div>
                 <p class="text-slate-300 font-medium text-lg leading-relaxed mb-8">"The API documentation is pristine. We integrated our internal billing system with FinanceAI via Sanctum tokens in under two hours. Phenomenal engineering."</p>
                 <div class="flex items-center gap-4 border-t border-slate-800 pt-6">
-                    <img src="https://i.pravatar.cc/150?img=11" class="w-12 h-12 rounded-full object-cover border border-slate-700" alt="Avatar">
+                    <img src="https://i.pravatar.cc/150?img=11]" class="w-12 h-12 rounded-full object-cover border border-slate-700" alt="Avatar">
                     <div>
-                        <p class="text-sm font-black text-white">Sarah Jenkins</p>
+                        <p class="text-sm font-black text-white">Devanshu</p>
                         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lead Architect, DataCore</p>
                     </div>
                 </div>
@@ -721,7 +721,7 @@
                 <div class="flex items-center gap-4 border-t border-slate-100 pt-6">
                     <img src="https://i.pravatar.cc/150?img=59" class="w-12 h-12 rounded-full object-cover" alt="Avatar">
                     <div>
-                        <p class="text-sm font-black text-slate-900">Arjun Patel</p>
+                        <p class="text-sm font-black text-slate-900">Neel Patel</p>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BCA Student, GTU</p>
                     </div>
                 </div>
@@ -736,7 +736,7 @@
                 <div class="flex items-center gap-4 border-t border-indigo-500/50 pt-6">
                     <img src="https://i.pravatar.cc/150?img=32" class="w-12 h-12 rounded-full object-cover border border-indigo-400" alt="Avatar">
                     <div>
-                        <p class="text-sm font-black text-white">Marcus Chen</p>
+                        <p class="text-sm font-black text-white">Heer</p>
                         <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Founder, Velocity</p>
                     </div>
                 </div>
@@ -751,7 +751,7 @@
                 <div class="flex items-center gap-4 border-t border-slate-100 pt-6">
                     <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400">EP</div>
                     <div>
-                        <p class="text-sm font-black text-slate-900">Elena Perez</p>
+                        <p class="text-sm font-black text-slate-900">Ishita</p>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">UI/UX Director</p>
                     </div>
                 </div>
@@ -881,14 +881,14 @@
                 @endforeach
             </div>
 
-            {{-- Contextual GTU Easter Egg --}}
+            {{-- Contextual BCA Easter Egg --}}
             <div class="mt-16 p-6 bg-indigo-50 border border-indigo-100 rounded-3xl max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 shadow-sm" data-aos="fade-up">
                 <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm border border-indigo-100 flex-shrink-0">
                     <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 </div>
                 <div class="text-center sm:text-left">
-                    <span class="text-lg font-black text-slate-900 block mb-1">GTU Student Benefit</span>
-                    <span class="text-sm font-medium text-slate-600">Register with your Gujarat Technological University <code class="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600">.edu.in</code> email to unlock the Pro Hub entirely for free.</span>
+                    <span class="text-lg font-black text-slate-900 block mb-1">BCA Student Benefit</span>
+                    <span class="text-sm font-medium text-slate-600">Register with your JG University <code class="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600">.edu.in</code> email to unlock the Pro Hub entirely for free.</span>
                 </div>
             </div>
         </div>
