@@ -1,147 +1,132 @@
-# 🤖 AI Finance Advisor
-
 <div align="center">
 
-[![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-[![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![MySQL](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+# 🚀 FinanceAI Advisor (Enterprise Edition)
+**An AI-driven, multi-tenant financial management SaaS platform.**
 
-An **AI-powered finance advisor platform** for smart financial guidance, analytics, and personalized recommendations. Track expenses, manage collaborative family budgets, and chat with an AI agent to achieve your financial goals.
+[![Built with Laravel](https://img.shields.io/badge/Laravel-8.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
+[![Gemini AI](https://img.shields.io/badge/AI-Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
 
-[View Live Demo](https://ai-finance-advisor-ebon.vercel.app) • [Report Bug](#-support) • [Request Feature](#-support)
+[Live Demo](https://ai-finance-advisor-ebon.vercel.app) • [Report Issue](#-contact--hire-me) • [Request Feature](#-contact--hire-me)
+
+*Developed by **Het Soni** — Full Stack Web Developer.*
 
 </div>
 
 ---
 
-## ✨ Key Features
+## 🎯 Project Overview
 
-- **🧠 Intelligent AI Chat Engine:** Integrated with Gemini API for conversational financial guidance and Alpha Vantage for real-time market snapshots.
-- **📊 Comprehensive Ledger:** Track personal and family incomes, expenses, and automatically calculate monthly averages.
-- **👪 Collaborative Family Workspaces:** Secure, multi-tenant family module with magic-link email invites and role-based access control.
-- **📈 Visual Analytics & Reports:** Interactive charts (QuickChart) and automated PDF monthly report generation (DOMPDF).
-- **🛡️ Enterprise Security:** Activity logging for security events, granular access management, and secure authentication (Laravel Sanctum).
-- **💳 Subscription System:** SaaS-style billing tiers for premium features.
-- **💻 Admin Dashboard:** Master admin node for platform monitoring and user management.
+**FinanceAI Advisor** is not just another budgeting app; it is a comprehensive, AI-powered financial SaaS designed for individuals and families. It bridges the gap between manual ledger tracking and intelligent financial forecasting.
 
----
+This project was built to demonstrate **enterprise-level architecture**, focusing on scalability, secure multi-tenancy, and seamless third-party API integration.
 
-## 🛠️ Technology Stack
-
-### Backend
-- **Laravel 8.x** (PHP Framework)
-- **MySQL** (Database)
-- **Laravel Sanctum** (Authentication)
-
-### Frontend
-- **Tailwind CSS 3.4** (Utility-first CSS)
-- **Laravel Mix / Webpack** (Asset Bundling)
-- **Axios** (HTTP Client)
-
-### Integrations
-- **Google Gemini API** (AI Engine)
-- **Alpha Vantage API** (Market Data)
-- **SMTP** (Email Deliverability)
+### 💡 The Problem It Solves
+Managing shared finances across family members is often chaotic, and getting personalized financial advice requires expensive human consultants. FinanceAI solves this by providing a unified, secure ledger with role-based access, topped with a contextual AI agent that analyzes your specific spending habits and market conditions.
 
 ---
 
-## 🚀 Getting Started
+## 🔥 Enterprise Features & Technical Highlights
 
-Follow these steps to run the project locally on your machine.
+### 1. 🧠 Context-Aware AI Engine
+- **Integration:** Utilizes the **Google Gemini API** for natural language financial advice and **Alpha Vantage API** for real-time stock market data.
+- **Contextual Awareness:** The AI doesn't just give generic advice; it reads the authenticated user's specific financial goals, income metrics, and expense history to provide tailored guidance.
 
-### Prerequisites
+### 2. 🔐 Multi-Tenant Family Workspaces (RBAC)
+- **Data Isolation:** Implemented strict query scoping to ensure personal expenses are kept private, while family expenses are visible only to invited members.
+- **Magic Link Invitations:** Built a secure, tokenized email invitation system allowing users to onboard family members with a single click.
+- **Role-Based Access Control:** Granular permissions preventing standard members from modifying administrative family settings.
 
-Ensure you have the following installed:
-- [PHP 7.3 or 8.0+](https://www.php.net/) (XAMPP recommended for Windows)
-- [Composer](https://getcomposer.org/)
-- [Node.js & NPM](https://nodejs.org/)
-- MySQL/MariaDB
+### 3. 📊 Advanced Data Analytics & Reporting
+- **Dynamic Charting:** Integrated `QuickChart` to render complex financial visualizations on the fly without heavy frontend JavaScript libraries.
+- **Automated PDF Generation:** Utilized `DOMPDF` to stream heavily formatted, downloadable monthly financial statements directly to the user.
 
-### Installation
+### 4. 🛡️ Security & Auditing
+- **Activity Logging:** Integrated `spatie/laravel-activitylog` to maintain an immutable audit trail of all sensitive user actions (login, expense modification, family invitations).
+- **Sanctum Authentication:** Hardened API and session security using Laravel Sanctum.
 
-1. **Clone the repository**
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD;
+    Client[Client Browser / Mobile] -->|HTTPS| WebServer(Laravel Backend);
+    WebServer -->|Read/Write| DB[(MySQL Database)];
+    WebServer -->|Market Data| API1(Alpha Vantage API);
+    WebServer -->|AI Prompts| API2(Google Gemini API);
+    WebServer -->|Send Invites| SMTP(Mail Server);
+    WebServer -->|Generate Reports| PDF(DOMPDF Engine);
+```
+
+---
+
+## 💻 Tech Stack Deep Dive
+
+- **Core Framework:** Laravel 8 (PHP 7.3/8.0)
+- **Database Architecture:** MySQL (Managed via Doctrine DBAL & Eloquent ORM)
+- **Frontend Design System:** Tailwind CSS 3.4
+- **Asset Compilation:** Laravel Mix / Webpack
+- **Asynchronous Requests:** Axios
+- **Deployment:** Vercel (Frontend/Serverless) & Custom VPS
+
+---
+
+## 🚀 Local Development Setup
+
+If you wish to run this project locally to review the codebase or contribute:
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/HetSoni28/ai-finance-advisor.git
    cd ai-finance-advisor
    ```
 
-2. **Install PHP Dependencies**
+2. **Install Dependencies:**
    ```bash
    composer install
-   ```
-
-3. **Install Node Dependencies**
-   ```bash
    npm install
    ```
 
-4. **Environment Setup**
-   Copy the example environment file and configure your variables:
+3. **Configure Environment:**
    ```bash
    cp .env.example .env
-   ```
-   **Important Variables to set in `.env`:**
-   - `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
-   - `GEMINI_API_KEY`
-   - `ALPHA_VANTAGE_API_KEY`
-
-5. **Generate Application Key**
-   ```bash
    php artisan key:generate
    ```
+   *Note: Ensure you provision a MySQL database and populate the `DB_*`, `GEMINI_API_KEY`, and `ALPHA_VANTAGE_API_KEY` variables.*
 
-6. **Run Database Migrations**
+4. **Migrate & Serve:**
    ```bash
    php artisan migrate
-   ```
-
-7. **Compile Frontend Assets**
-   ```bash
    npm run dev
-   ```
-
-8. **Start the Development Server**
-   ```bash
    php artisan serve
    ```
-   *Visit `http://127.0.0.1:8000` in your browser.*
 
 ---
 
-## 📸 Screenshots
+## 📸 Platform Interface
 
-*(Replace these placeholders with actual screenshots of your application)*
+*(Replace these placeholders with high-quality screenshots of your work to impress clients)*
 
-| Dashboard Overview | AI Chat Interface |
+| **Dashboard Analytics** | **AI Financial Assistant** |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/600x400.png?text=Dashboard+Screenshot" alt="Dashboard" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=AI+Chat+Screenshot" alt="AI Chat" width="100%"> |
+| <img src="https://via.placeholder.com/600x400.png?text=Dashboard+Analytics" alt="Dashboard" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=AI+Financial+Assistant" alt="AI Chat" width="100%"> |
 
-| Expense Ledger | Family Workspace |
+| **Family Collaborative Workspace** | **Automated Reporting** |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/600x400.png?text=Expense+Ledger" alt="Expenses" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=Family+Workspace" alt="Family" width="100%"> |
+| <img src="https://via.placeholder.com/600x400.png?text=Family+Workspace" alt="Family" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=Automated+Reporting" alt="Reports" width="100%"> |
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contact & Hire Me
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+**Are you looking for a Full-Stack Developer to build scalable, secure, and AI-integrated web applications?** 
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+I am currently open to freelance opportunities and full-time roles. I specialize in PHP, Laravel, React/Vue, and AI integrations.
 
----
+📫 **Email:** hetsony143@gmail.com  
+💼 **GitHub:** [github.com/HetSoni28](https://github.com/HetSoni28)
 
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## 💬 Support
-
-For support, email hetsony143@gmail.com or open an issue in the repository.
+*If you like this project, please consider giving it a ⭐!*
