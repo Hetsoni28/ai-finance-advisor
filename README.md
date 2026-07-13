@@ -1,17 +1,25 @@
 <div align="center">
 
-# 🚀 FinanceAI Advisor (Enterprise Edition)
-**An AI-driven, multi-tenant financial management SaaS platform.**
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=250&section=header&text=FinanceAI%20Advisor&fontSize=50&fontAlignY=35&desc=Enterprise%20Financial%20Management%20Platform&descAlignY=55&descAlign=50&animation=twinkling" />
 
-[![Built with Laravel](https://img.shields.io/badge/Laravel-8.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-[![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
-[![Gemini AI](https://img.shields.io/badge/AI-Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=2563EB&center=true&vCenter=true&width=600&lines=AI-Powered+Financial+Assistant;Secure+Multi-Tenant+Architecture;Built+with+Laravel+8+%26+Gemini+AI;Real-Time+Market+Data+Integration)](https://git.io/typing-svg)
 
-[Live Demo](https://ai-finance-advisor-ebon.vercel.app) • [Report Issue](#-contact--hire-me) • [Request Feature](#-contact--hire-me)
+<br/>
 
-*Developed by **Het Soni** — Full Stack Web Developer.*
+[![Built with Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP 8+](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+
+<br/>
+
+**[Live Demo](https://ai-finance-advisor-ebon.vercel.app)** | **[Report Issue](#-contact--hire-me)** | **[Architecture Docs](./ARCHITECTURE.md)**
+
+<br/>
+
+<img src="https://komarev.com/ghpvc/?username=hetvi-finance-advisor&label=Profile%20Views&color=blue&style=flat-square" alt="Profile Views" />
 
 </div>
 
@@ -19,69 +27,73 @@
 
 ## 🎯 Project Overview
 
-**FinanceAI Advisor** is not just another budgeting app; it is a comprehensive, AI-powered financial SaaS designed for individuals and families. It bridges the gap between manual ledger tracking and intelligent financial forecasting.
+**FinanceAI Advisor** is an enterprise-grade, AI-driven financial SaaS platform designed to bridge the gap between traditional manual ledger tracking and intelligent, automated financial forecasting.
 
-This project was built to demonstrate **enterprise-level architecture**, focusing on scalability, secure multi-tenancy, and seamless third-party API integration.
+Instead of just tracking where your money goes, FinanceAI acts as a **context-aware financial consultant**. It reads your personal spending habits and securely combines them with real-time global market data to provide personalized, actionable financial advice via the Google Gemini engine.
 
 ### 💡 The Problem It Solves
-Managing shared finances across family members is often chaotic, and getting personalized financial advice requires expensive human consultants. FinanceAI solves this by providing a unified, secure ledger with role-based access, topped with a contextual AI agent that analyzes your specific spending habits and market conditions.
+Managing shared finances across families or teams is often chaotic, and hiring a personal financial consultant is expensive. FinanceAI solves this by providing a unified, secure ledger with strict **Role-Based Access Control (RBAC)**, topped with a mathematical AI agent that understands your specific context.
 
 ---
 
-## 🔥 Enterprise Features & Technical Highlights
+## 🔥 Core Features
 
-### 1. 🧠 Context-Aware AI Engine
-- **Integration:** Utilizes the **Google Gemini API** for natural language financial advice and **Alpha Vantage API** for real-time stock market data.
-- **Contextual Awareness:** The AI doesn't just give generic advice; it reads the authenticated user's specific financial goals, income metrics, and expense history to provide tailored guidance.
-
-### 2. 🔐 Multi-Tenant Family Workspaces (RBAC)
-- **Data Isolation:** Implemented strict query scoping to ensure personal expenses are kept private, while family expenses are visible only to invited members.
-- **Magic Link Invitations:** Built a secure, tokenized email invitation system allowing users to onboard family members with a single click.
-- **Role-Based Access Control:** Granular permissions preventing standard members from modifying administrative family settings.
-
-### 3. 📊 Advanced Data Analytics & Reporting
-- **Dynamic Charting:** Integrated `QuickChart` to render complex financial visualizations on the fly without heavy frontend JavaScript libraries.
-- **Automated PDF Generation:** Utilized `DOMPDF` to stream heavily formatted, downloadable monthly financial statements directly to the user.
-
-### 4. 🛡️ Security & Auditing
-- **Activity Logging:** Integrated `spatie/laravel-activitylog` to maintain an immutable audit trail of all sensitive user actions (login, expense modification, family invitations).
-- **Sanctum Authentication:** Hardened API and session security using Laravel Sanctum.
+<table align="center">
+  <tr>
+    <td align="center" width="50%">
+      <h3>🧠 Context-Aware AI</h3>
+      <p>Utilizes <strong>Google Gemini</strong> and <strong>CoinGecko</strong> APIs. The AI secretly injects your exact Net Worth and spending categories into the prompt to provide highly mathematical, personalized advice.</p>
+    </td>
+    <td align="center" width="50%">
+      <h3>🔐 Secure Family Workspaces</h3>
+      <p>Strict multi-tenant architecture with <strong>Magic Link Invitations</strong>. Personal expenses stay private, while shared expenses are visible only to invited family members via RBAC.</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <h3>📊 Dynamic Data Analytics</h3>
+      <p>Integrated charting engines that render complex financial visualizations (Income vs. Expenses) dynamically on the server, ensuring zero JavaScript bundle bloat.</p>
+    </td>
+    <td align="center" width="50%">
+      <h3>🛡️ Immutable Auditing</h3>
+      <p>Integrated <strong>Spatie Activitylog</strong> to maintain a cryptographic, immutable audit trail of all sensitive user actions (logins, expense modifications) to prevent data tampering.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Architecture & Documentation
 
-```mermaid
-graph TD;
-    Client[Client Browser / Mobile] -->|HTTPS| WebServer(Laravel Backend);
-    WebServer -->|Read/Write| DB[(MySQL Database)];
-    WebServer -->|Market Data| API1(Alpha Vantage API);
-    WebServer -->|AI Prompts| API2(Google Gemini API);
-    WebServer -->|Send Invites| SMTP(Mail Server);
-    WebServer -->|Generate Reports| PDF(DOMPDF Engine);
-```
+To see a deep dive into the system design, including **Mermaid Flowcharts**, **Database ERDs**, and **Service Pattern** explanations, please view the dedicated architecture files:
+
+- 🔗 **[Backend System Architecture](./ARCHITECTURE.md)**
+- 🔗 **[Frontend UI & Rendering Strategy](./FRONTEND_ARCHITECTURE.md)**
 
 ---
 
 ## 💻 Tech Stack Deep Dive
 
-- **Core Framework:** Laravel 8 (PHP 7.3/8.0)
-- **Database Architecture:** MySQL (Managed via Doctrine DBAL & Eloquent ORM)
-- **Frontend Design System:** Tailwind CSS 3.4
-- **Asset Compilation:** Laravel Mix / Webpack
-- **Asynchronous Requests:** Axios
-- **Deployment:** Vercel (Frontend/Serverless) & Custom VPS
+<div align="center">
+  <img src="https://skillicons.dev/icons?i=laravel,php,mysql,tailwind,js,git,vercel&perline=7" />
+</div>
+
+- **Core Framework:** Laravel 8 (PHP)
+- **Database Architecture:** MySQL (Managed via Eloquent ORM & Query Builder)
+- **Frontend Design System:** Tailwind CSS 3.4 (JIT Compiled via Laravel Mix)
+- **State & Async Logic:** Vanilla JS & Axios (No heavy SPA bloat)
+- **Deployment:** Vercel (Frontend / Serverless)
 
 ---
 
 ## 🚀 Local Development Setup
 
-If you wish to run this project locally to review the codebase or contribute:
+Want to run this enterprise platform locally?
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/HetSoni28/ai-finance-advisor.git
-   cd ai-finance-advisor
+   git clone https://github.com/hetvi-prajapati/finance-advisor.git
+   cd finance-advisor
    ```
 
 2. **Install Dependencies:**
@@ -95,7 +107,7 @@ If you wish to run this project locally to review the codebase or contribute:
    cp .env.example .env
    php artisan key:generate
    ```
-   *Note: Ensure you provision a MySQL database and populate the `DB_*`, `GEMINI_API_KEY`, and `ALPHA_VANTAGE_API_KEY` variables.*
+   *(Ensure you populate the `DB_*` and `GEMINI_API_KEY` variables in `.env`)*
 
 4. **Migrate & Serve:**
    ```bash
@@ -108,15 +120,11 @@ If you wish to run this project locally to review the codebase or contribute:
 
 ## 📸 Platform Interface
 
-*(Replace these placeholders with high-quality screenshots of your work to impress clients)*
+*(Replace these placeholders with high-quality GIFs or screenshots of your application)*
 
 | **Dashboard Analytics** | **AI Financial Assistant** |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/600x400.png?text=Dashboard+Analytics" alt="Dashboard" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=AI+Financial+Assistant" alt="AI Chat" width="100%"> |
-
-| **Family Collaborative Workspace** | **Automated Reporting** |
-| :---: | :---: |
-| <img src="https://via.placeholder.com/600x400.png?text=Family+Workspace" alt="Family" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=Automated+Reporting" alt="Reports" width="100%"> |
+| <img src="https://via.placeholder.com/600x400.png?text=Animated+Dashboard+GIF" alt="Dashboard" width="100%"> | <img src="https://via.placeholder.com/600x400.png?text=AI+Chat+Interface" alt="AI Chat" width="100%"> |
 
 ---
 
@@ -124,9 +132,18 @@ If you wish to run this project locally to review the codebase or contribute:
 
 **Are you looking for a Full-Stack Developer to build scalable, secure, and AI-integrated web applications?** 
 
-I am currently open to freelance opportunities and full-time roles. I specialize in PHP, Laravel, React/Vue, and AI integrations.
+I am currently open to freelance opportunities and full-time roles. I specialize in PHP, Laravel, React/Vue, and Enterprise AI integrations.
 
-📫 **Email:** hetsony143@gmail.com  
-💼 **GitHub:** [github.com/HetSoni28](https://github.com/HetSoni28)
+<div align="center">
+  
+  [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hetvi-prajapati)
+  [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](#)
+  [![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:your-email@example.com)
 
-*If you like this project, please consider giving it a ⭐!*
+</div>
+
+<br/>
+
+<div align="center">
+  <i>If you found this architecture impressive, please consider giving it a ⭐!</i>
+</div>
