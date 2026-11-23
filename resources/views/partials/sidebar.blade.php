@@ -1,6 +1,6 @@
 {{-- ======================================================================
      FinanceAI — sidebar
-     Dark navy panel (matches the website's dark sections). Plain labels,
+     Black panel (matches the website's dark sections). Plain labels,
      real routes, and a "This month" card built from the user's own records.
      Mobile open/close is driven by the layout's `sidebarOpen`; desktop can
      collapse to icons.
@@ -59,12 +59,9 @@
 @endphp
 
 <aside x-data="{ collapsed: false }"
-       class="sb fixed lg:relative inset-y-0 left-0 z-50 h-screen flex flex-col bg-[#0b0b1a] text-slate-300 border-r border-white/5 transition-[width,transform] duration-300 no-print"
+       class="sb fixed lg:relative inset-y-0 left-0 z-50 h-screen flex flex-col bg-black text-zinc-300 border-r border-white/5 transition-[width,transform] duration-300 no-print"
        :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', collapsed ? 'lg:w-[76px] w-[17rem]' : 'w-[17rem]']"
        aria-label="Sidebar">
-
-    {{-- Soft brand glow at the top (decorative) --}}
-    <div class="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-indigo-600/15 to-transparent" aria-hidden="true"></div>
 
     {{-- Logo --}}
     <div class="relative h-16 flex items-center justify-between px-4 shrink-0">
@@ -74,7 +71,7 @@
             </span>
             <span class="text-lg font-black text-white tracking-tight" :class="collapsed && 'lg:hidden'">Finance<span class="text-indigo-400">AI</span></span>
         </a>
-        <button type="button" @click="sidebarOpen = false" class="lg:hidden w-9 h-9 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center" aria-label="Close menu">
+        <button type="button" @click="sidebarOpen = false" class="lg:hidden w-9 h-9 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center" aria-label="Close menu">
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
     </div>
@@ -82,11 +79,11 @@
     {{-- Search (opens the real command palette) + quick add --}}
     <div class="relative px-3 space-y-2.5 shrink-0" :class="collapsed && 'lg:px-2'">
         <button type="button" @click="if (typeof toggleCommandPalette === 'function') toggleCommandPalette()" title="Search (Ctrl/⌘ K)"
-                class="w-full h-10 flex items-center gap-3 px-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-slate-400 hover:text-white hover:bg-white/[0.07] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                class="w-full h-10 flex items-center gap-3 px-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-zinc-400 hover:text-white hover:bg-white/[0.07] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                 :class="collapsed && 'lg:justify-center lg:px-0'">
             <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
             <span class="flex-1 text-left text-sm" :class="collapsed && 'lg:hidden'">Search</span>
-            <kbd class="font-mono text-[11px] text-slate-500 border border-white/10 rounded-md px-1.5 py-0.5" :class="collapsed && 'lg:hidden'">⌘K</kbd>
+            <kbd class="font-mono text-[11px] text-zinc-500 border border-white/10 rounded-md px-1.5 py-0.5" :class="collapsed && 'lg:hidden'">⌘K</kbd>
         </button>
 
         <div class="flex rounded-xl overflow-hidden ring-1 ring-white/[0.07]" :class="collapsed && 'lg:flex-col'">
@@ -106,7 +103,7 @@
     <nav class="sb-scroll relative flex-1 overflow-y-auto px-3 pt-5 pb-4 space-y-5" :class="collapsed && 'lg:px-2'" aria-label="Main">
         @foreach($groups as $groupName => $items)
             <div>
-                <p class="px-3 mb-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-slate-500" :class="collapsed && 'lg:hidden'">{{ $groupName }}</p>
+                <p class="px-3 mb-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-zinc-500" :class="collapsed && 'lg:hidden'">{{ $groupName }}</p>
                 <div x-show="collapsed" class="hidden lg:block mx-auto mb-2 w-5 h-px bg-white/10"></div>
                 <ul class="space-y-0.5">
                     @foreach($items as $item)
@@ -121,15 +118,15 @@
                                title="{{ $label }}"
                                @click="if (window.innerWidth < 1024) sidebarOpen = false"
                                @if($active) aria-current="page" @endif
-                               class="sb-link group relative flex items-center gap-3 h-10 px-3 rounded-xl text-[14px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 {{ $active ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.04]' }}"
+                               class="sb-link group relative flex items-center gap-3 h-10 px-3 rounded-xl text-[14px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 {{ $active ? 'bg-white/[0.08] text-white' : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]' }}"
                                :class="collapsed && 'lg:justify-center lg:px-0'">
                                 @if($active)
                                     <span class="absolute -left-3 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-gradient-to-b from-indigo-400 to-violet-500 shadow-[0_0_12px_rgba(129,140,248,.8)]" :class="collapsed && 'lg:-left-2'" aria-hidden="true"></span>
                                 @endif
-                                <i class="fa-solid {{ $icon }} w-5 text-center text-[15px] transition-transform group-hover:scale-110 {{ $active ? 'text-indigo-300' : 'text-slate-500 group-hover:text-slate-300' }}" aria-hidden="true"></i>
+                                <i class="fa-solid {{ $icon }} w-5 text-center text-[15px] transition-transform group-hover:scale-110 {{ $active ? 'text-indigo-300' : 'text-zinc-500 group-hover:text-zinc-300' }}" aria-hidden="true"></i>
                                 <span class="flex-1 truncate" :class="collapsed && 'lg:hidden'">{{ $label }}</span>
                                 @if($count > 0)
-                                    <span class="min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center shadow-[0_0_0_3px_#0b0b1a]"
+                                    <span class="min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center shadow-[0_0_0_3px_#000]"
                                           :class="collapsed && 'lg:absolute lg:top-1 lg:right-2 lg:min-w-[16px] lg:h-4 lg:text-[10px] lg:px-1'">{{ $count > 99 ? '99+' : $count }}</span>
                                 @endif
                             </a>
@@ -143,12 +140,12 @@
         @if($user)
             <a href="{{ route('user.reports.index') }}" class="block rounded-2xl border border-white/[0.07] bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-4 hover:border-indigo-400/30 transition-colors" :class="collapsed && 'lg:hidden'">
                 <div class="flex items-center justify-between">
-                    <span class="font-mono text-[10.5px] uppercase tracking-[0.18em] text-slate-500">{{ now()->format('F') }}</span>
-                    <i class="fa-solid fa-arrow-right text-[11px] text-slate-500" aria-hidden="true"></i>
+                    <span class="font-mono text-[10.5px] uppercase tracking-[0.18em] text-zinc-500">{{ now()->format('F') }}</span>
+                    <i class="fa-solid fa-arrow-right text-[11px] text-zinc-500" aria-hidden="true"></i>
                 </div>
                 <p class="mt-2 text-xl font-black tabular-nums {{ $monthKept >= 0 ? 'text-white' : 'text-rose-300' }}">
                     {{ $monthKept < 0 ? '−' : '' }}{{ $inr($monthKept) }}
-                    <span class="text-xs font-semibold text-slate-500">{{ $monthKept >= 0 ? 'kept' : 'over' }}</span>
+                    <span class="text-xs font-semibold text-zinc-500">{{ $monthKept >= 0 ? 'kept' : 'over' }}</span>
                 </p>
                 <div class="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden" role="img" aria-label="{{ $spentShare }}% of this month's income spent">
                     <div class="h-full rounded-full {{ $spentShare >= 90 ? 'bg-rose-400' : 'bg-gradient-to-r from-indigo-400 to-violet-400' }}" style="width: {{ $spentShare }}%"></div>
@@ -166,25 +163,25 @@
         <div class="relative border-t border-white/[0.06] p-3 shrink-0">
             <div class="flex items-center gap-3 rounded-xl p-1.5" :class="collapsed && 'lg:flex-col lg:p-0 lg:gap-2'">
                 <a href="{{ route('user.profile.index') }}" title="Profile" class="relative h-10 w-10 shrink-0 rounded-full p-[2px] bg-gradient-to-br from-indigo-400 to-violet-500">
-                    <span class="h-full w-full rounded-full bg-[#0b0b1a] text-white text-xs font-bold flex items-center justify-center">{{ $initials }}</span>
+                    <span class="h-full w-full rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">{{ $initials }}</span>
                 </a>
                 <div class="flex-1 min-w-0" :class="collapsed && 'lg:hidden'">
                     <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
-                    <a href="{{ route('user.subscription.index') }}" class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold {{ $planSlug === 'free' ? 'text-slate-400 hover:text-white' : 'text-indigo-300 hover:text-indigo-200' }}">
+                    <a href="{{ route('user.subscription.index') }}" class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold {{ $planSlug === 'free' ? 'text-zinc-400 hover:text-white' : 'text-indigo-300 hover:text-indigo-200' }}">
                         @if($planSlug !== 'free')<i class="fa-solid fa-bolt text-[10px]" aria-hidden="true"></i>@endif
                         {{ $user->current_plan_name ?? 'Starter' }} plan
                     </a>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" title="Sign out" class="w-9 h-9 rounded-lg text-slate-500 hover:text-rose-300 hover:bg-rose-500/10 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400" aria-label="Sign out">
+                    <button type="submit" title="Sign out" class="w-9 h-9 rounded-lg text-zinc-500 hover:text-rose-300 hover:bg-rose-500/10 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400" aria-label="Sign out">
                         <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                     </button>
                 </form>
             </div>
 
             <button type="button" @click="collapsed = !collapsed"
-                    class="hidden lg:flex mt-2 w-full h-8 items-center justify-center gap-2 rounded-lg text-xs font-medium text-slate-500 hover:text-white hover:bg-white/[0.04] transition-colors"
+                    class="hidden lg:flex mt-2 w-full h-8 items-center justify-center gap-2 rounded-lg text-xs font-medium text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors"
                     :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
                 <i class="fa-solid fa-angles-left transition-transform" :class="collapsed && 'rotate-180'" aria-hidden="true"></i>
                 <span :class="collapsed && 'lg:hidden'">Collapse</span>

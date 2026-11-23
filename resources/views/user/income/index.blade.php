@@ -16,11 +16,18 @@
     // Predictive Math: Annual Run Rate (ARR) & Taxes (New Fun)
     $projectedARR = $currentMonth > 0 ? $currentMonth * 12 : ($total > 0 ? ($total / max(1, $incomes->count())) * 12 : 0);
 
-    // Chart Grouping Logic
-    $monthly = collect($incomes->items() ?? $incomes)
-        ->groupBy(fn($i) => $i->income_date ? \Carbon\Carbon::parse($i->income_date)->format('M Y') : \Carbon\Carbon::parse($i->created_at)->format('M Y'))
-        ->map(fn($group) => $group->sum('amount'))
-        ->take(6);
+    // Chart: real totals for each of the last 6 months (all personal records, not just this page; empty months = 0)
+    $chartStart = now()->startOfMonth()->subMonths(5);
+    $sumsByMonth = \App\Models\Income::where('user_id', auth()->id())
+        ->where('is_personal', true)->whereNull('family_id')
+        ->where('income_date', '>=', $chartStart)
+        ->selectRaw("DATE_FORMAT(income_date, '%Y-%m') as ym, SUM(amount) as total")
+        ->groupBy('ym')->pluck('total', 'ym');
+    $monthly = collect(range(0, 5))->mapWithKeys(function ($i) use ($chartStart, $sumsByMonth) {
+        $m = $chartStart->copy()->addMonths($i);
+        return [$m->format('M Y') => (float) ($sumsByMonth[$m->format('Y-m')] ?? 0)];
+    });
+    $hasTrendData = $monthly->sum() > 0;
 
     $chartLabels = $monthly->keys()->values();
     $chartValues = $monthly->values();
@@ -152,7 +159,7 @@
                 </div>
                 <div class="flex-1 relative min-h-[300px] w-full z-10">
                     <canvas id="incomeChart"></canvas>
-                    @if($monthly->isEmpty())
+                    @if(!$hasTrendData)
                         <div class="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm z-20 rounded-xl">
                             <div class="text-center">
                                 <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3">

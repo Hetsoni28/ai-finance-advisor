@@ -19,9 +19,18 @@
     $topCategory = $categoryData->sortDesc()->keys()->first() ?? 'Uncategorized';
     
     // Monthly Data Aggregation
-    $monthlyData = collect($expenses->items() ?? $expenses)->groupBy(function($e) {
-        return $e->expense_date ? \Carbon\Carbon::parse($e->expense_date)->format('M Y') : 'Unknown';
-    })->map->sum('amount');
+    // Real totals for each of the last 6 months (all personal records, not just this page; empty months = 0)
+    $chartStart = now()->startOfMonth()->subMonths(5);
+    $sumsByMonth = \App\Models\Expense::where('user_id', auth()->id())
+        ->where('is_personal', true)->whereNull('family_id')
+        ->where('expense_date', '>=', $chartStart)
+        ->selectRaw("DATE_FORMAT(expense_date, '%Y-%m') as ym, SUM(amount) as total")
+        ->groupBy('ym')->pluck('total', 'ym');
+    $monthlyData = collect(range(0, 5))->mapWithKeys(function ($i) use ($chartStart, $sumsByMonth) {
+        $m = $chartStart->copy()->addMonths($i);
+        return [$m->format('M Y') => (float) ($sumsByMonth[$m->format('Y-m')] ?? 0)];
+    });
+    $hasTrendData = $monthlyData->sum() > 0;
 
     // Growth Calculation
     $monthlyValues = $monthlyData->values();
@@ -48,7 +57,7 @@
     $colors = ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6', '#0ea5e9', '#64748b'];
 @endphp
 
-<div class="min-h-screen bg-[#f8fafc] pb-24 font-sans selection:bg-indigo-100 selection:text-indigo-900 relative" x-data="{ search: '', showScanner: false }">
+<div class="min-h-screen bg-[#f8fafc] pb-24 font-sans selection:bg-indigo-100 selection:text-indigo-900 relative" x-data="{ search: '' }">
     
     {{-- Pristine Ambient Background --}}
     <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02]">
@@ -77,9 +86,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-                <button @click="showScanner = true" class="px-5 py-3.5 bg-slate-50 text-indigo-600 border border-indigo-100 rounded-xl font-bold text-sm hover:bg-indigo-50 hover:border-indigo-300 transition-all flex items-center gap-2 focus:outline-none shadow-sm">
-                    <i class="fa-solid fa-camera-viewfinder"></i> Scan Receipt
-                </button>
                 
                 @if(Route::has('user.expenses.export.pdf'))
                 <a href="{{ route('user.expenses.export.pdf') }}" class="px-5 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center gap-2 shadow-sm">
@@ -126,7 +132,7 @@
                     </div>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Average</p>
-                <h2 class="text-2xl font-black text-slate-900">₹{{ number_format($monthlyValues->avg(), 0) }}</h2>
+                <h2 class="text-2xl font-black text-slate-900">₹{{ number_format($monthlyValues->filter(fn ($v) => $v > 0)->avg() ?? 0, 0) }}</h2>
             </div>
 
             <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
@@ -171,7 +177,7 @@
                 </div>
                 <div class="flex-1 relative min-h-[300px] w-full">
                     <canvas id="trendChart"></canvas>
-                    @if($monthlyData->isEmpty())
+                    @if(!$hasTrendData)
                         <div class="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm z-10 rounded-xl">
                             <div class="text-center">
                                 <i class="fa-solid fa-chart-line text-3xl text-slate-300 mb-3"></i>
@@ -374,41 +380,6 @@
 </div>
 
 {{-- ================= MODALS & TOASTS ================= --}}
-
-{{-- AI Smart Scanner Modal (New Fun) --}}
-<div x-data="{ scanning: false, scanProgress: 0 }" 
-     x-show="showScanner" 
-     style="display: none;"
-     class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    
-    <div @click.away="!scanning ? showScanner = false : null" class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-slate-200 p-8 transform transition-all">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black text-slate-900">Scan Receipt</h2>
-            <button x-show="!scanning" @click="showScanner = false" class="text-slate-400 hover:text-rose-500 transition-colors focus:outline-none"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-
-        <div x-show="!scanning" class="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-3xl p-10 text-center hover:bg-indigo-50 transition-colors cursor-pointer relative group"
-             @click="scanning = true; let inv = setInterval(() => { scanProgress += 10; if(scanProgress >= 100) { clearInterval(inv); setTimeout(() => { showScanner = false; scanProgress = 0; scanning = false; showToast('Receipt parsed! Redirecting to entry...'); }, 500); } }, 300)">
-            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-indigo-500 group-hover:scale-110 transition-transform border border-indigo-100">
-                <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
-            </div>
-            <h3 class="text-slate-900 font-bold text-lg mb-1">Click or Drag Image</h3>
-            <p class="text-slate-500 text-sm font-medium">FinanceAI will automatically extract amount, date, and merchant.</p>
-        </div>
-
-        <div x-show="scanning" style="display: none;" class="py-10 text-center">
-            <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 relative border border-indigo-100">
-                <i class="fa-solid fa-receipt text-3xl text-indigo-600 relative z-10"></i>
-                <div class="absolute w-full h-1 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,1)] z-20 animate-[scan_1s_ease-in-out_infinite_alternate]"></div>
-            </div>
-            <h3 class="text-xl font-black text-slate-900 mb-2">Vision Engine Active</h3>
-            <p class="text-sm font-medium text-slate-500 mb-6">Extracting merchant metadata and numeric values...</p>
-            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200 shadow-inner">
-                <div class="bg-indigo-500 h-2.5 rounded-full transition-all duration-300" :style="`width: ${scanProgress}%`"></div>
-            </div>
-        </div>
-    </div>
-</div>
 
 {{-- Global Toast --}}
 <div id="toast" class="fixed bottom-8 right-8 z-[120] bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-400 pointer-events-none border border-slate-800">
