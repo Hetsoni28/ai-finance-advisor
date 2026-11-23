@@ -1,54 +1,35 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 /node_modules
+/vendor
 /public/hot
 /public/storage
+/public/build
 /storage/*.key
-/vendor
-.env
-.env.backup
-.phpunit.result.cache
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/.idea
-/.vscode
-=======
-=======
->>>>>>> 7306964d8c23c01dbc08feb7d0303d343c13c445
-/vendor/
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Laravel 4 specific
+/storage/pail
 bootstrap/compiled.php
 app/storage/
-
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
-
-# Laravel 5 & Lumen specific with changed public path
 public_html/storage
 public_html/hot
 
-storage/*.key
+# Environment files and scripts containing secrets
 .env
-Homestead.yaml
-Homestead.json
-/.vagrant
-.phpunit.result.cache
-
-/public/build
-/storage/pail
 .env.backup
 .env.production
+.env.vercel
+.env.vercel.prod
+deploy_vercel.ps1
+push_env.cmd
+
+# Tooling
+.phpunit.result.cache
 .phpactor.json
 auth.json
-<<<<<<< HEAD
->>>>>>> 135b3f89b84a95b1d4011046efdfbb851f04edf0
-=======
->>>>>>> 7306964d8c23c01dbc08feb7d0303d343c13c445
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+/.vagrant
+/.idea
+/.vscode
+.vercel
+npm-debug.log
+yarn-error.log
+curl_output.html

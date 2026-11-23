@@ -1,0 +1,32 @@
+# Files that must never be uploaded to Vercel.
+# All production settings live in Vercel -> Settings -> Environment Variables.
+
+# Local environment file (localhost DB, local secrets)
+/.env
+
+# Local runtime data
+/storage/logs/*
+/storage/framework/sessions/*
+/storage/framework/cache/data/*
+/storage/framework/views/*
+!/storage/**/.gitignore
+
+# Scripts and env copies that contain secrets
+/deploy_vercel.ps1
+/push_env.cmd
+/.env.vercel
+/.env.vercel.prod
+/.env.backup
+
+# Local tooling / scratch
+# Leading "/" = project root only. Unanchored names match at any depth
+# (an unanchored "data" once stripped vendor/voku/.../helper/data and broke boot).
+/node_modules
+/.refact
+/.jetro
+/.cursor
+/.agents
+/.mcp.json
+/curl_output.html
+/projects
+/data

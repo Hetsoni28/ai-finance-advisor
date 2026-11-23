@@ -15,7 +15,7 @@
 
 <br/>
 
-**[Live Demo](https://ai-finance-advisor-ebon.vercel.app)** | **[Report Issue](#-contact--hire-me)** | **[Architecture Docs](./ARCHITECTURE.md)**
+**[Live Demo](https://finance-advisor-wine.vercel.app)** | **[Report Issue](#-contact--hire-me)** | **[Architecture Docs](./ARCHITECTURE.md)**
 
 <br/>
 

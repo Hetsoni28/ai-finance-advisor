@@ -96,6 +96,11 @@ Route::middleware('auth')->group(function () {
     // Global Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Role-aware shortcut used by "Enter App" / "Dashboard" links across the site
+    Route::get('/dashboard', function () {
+        return redirect()->route(auth()->user()->isAdmin() ? 'admin.dashboard' : 'user.dashboard');
+    })->name('dashboard');
+
     /*
     |========================================================================
     | 👤 USER HUB
@@ -108,7 +113,7 @@ Route::middleware('auth')->group(function () {
 
         // --- EXPENSES ---
         Route::get('/expenses/export/pdf', [ExpenseController::class, 'exportPdf'])->name('expenses.export.pdf');
-        Route::resource('expenses', ExpenseController::class);
+        Route::resource('expenses', ExpenseController::class)->except('show');
 
         // --- INCOMES ---
         Route::get('/incomes/export/pdf', [IncomeController::class, 'exportPdf'])->name('incomes.export.pdf');

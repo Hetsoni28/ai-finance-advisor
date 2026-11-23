@@ -1,1646 +1,782 @@
 @extends('layouts.landing')
 
-@section('title', 'FinanceAI - Elite Financial Intelligence & Automation')
-@section('meta_description', 'Enterprise-grade AI financial analytics natively built on Laravel 8 and strict MySQL. Automate your wealth scaling today.')
+@section('title', 'FinanceAI — Track money, share budgets, ask an AI advisor')
+@section('meta_description', 'Track income and expenses in rupees, run a shared family budget, see a financial health score, and get answers from an AI advisor that knows your numbers. Free to start.')
 
-@section('content')
-
-{{-- ================= 0. CUSTOM CURSOR, CMD+K & EASTER EGGS ================= --}}
-<div id="custom-cursor" class="fixed w-10 h-10 border-2 border-indigo-500 rounded-full pointer-events-none z-[9999] transition-transform duration-75 ease-out transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center mix-blend-screen opacity-0 hidden md:flex backdrop-blur-[2px]">
-    <div class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-</div>
-
-<div id="cmdk-modal" class="fixed inset-0 z-[9000] bg-slate-950/80 backdrop-blur-xl hidden flex-col items-center pt-32 px-4 opacity-0 transition-opacity duration-300">
-    <div class="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-3xl shadow-[0_0_150px_rgba(79,70,229,0.3)] overflow-hidden transform scale-95 transition-transform duration-300" id="cmdk-content">
-        <div class="flex items-center px-6 py-5 border-b border-slate-800 bg-slate-900/50">
-            <svg class="w-6 h-6 text-indigo-500 mr-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" id="cmdk-input" placeholder="Search docs, execute commands, or find transactions..." class="w-full bg-transparent text-white focus:outline-none text-xl placeholder-slate-600 font-mono">
-            <button onclick="closeCmdK()" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs font-bold text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-white transition-colors tracking-widest focus:outline-none">ESC</button>
-        </div>
-        <div class="p-4 max-h-[60vh] overflow-y-auto" id="cmdk-results">
-            <div class="px-4 py-3 text-xs font-black text-indigo-500 uppercase tracking-widest">System Actions</div>
-            <a href="{{ route('register') ?? '#' }}" class="flex items-center justify-between px-6 py-4 hover:bg-indigo-600/20 border border-transparent hover:border-indigo-500/50 rounded-2xl group transition-all mb-2 cursor-none">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-800 group-hover:bg-indigo-500 rounded-lg transition-colors"><svg class="w-5 h-5 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></div><span class="text-slate-300 group-hover:text-white font-bold text-lg">Initialize New Account</span></div>
-                <kbd class="hidden md:block px-3 py-1 bg-slate-800 rounded-md text-xs text-slate-400 font-mono">↵ Enter</kbd>
-            </a>
-            <button onclick="triggerKonami()" class="w-full flex items-center justify-between px-6 py-4 hover:bg-emerald-600/20 border border-transparent hover:border-emerald-500/50 rounded-2xl group transition-all mb-4 cursor-none focus:outline-none">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-800 group-hover:bg-emerald-500 rounded-lg transition-colors"><svg class="w-5 h-5 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg></div><span class="text-slate-300 group-hover:text-emerald-400 font-bold text-lg">Execute Override Protocol (Easter Egg)</span></div>
-                <span class="text-xs text-slate-500 group-hover:text-emerald-400 font-mono">System Command</span>
-            </button>
-
-            <div class="px-4 py-3 text-xs font-black text-indigo-500 uppercase tracking-widest border-t border-slate-800/50 mt-2 pt-6">Recent Context Searches</div>
-            <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-800/50 rounded-2xl cursor-none transition-colors">
-                <div class="flex items-center gap-4"><svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-slate-400 font-medium">GTU Student Pro Tier Requirements</span></div>
-            </div>
-            <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-800/50 rounded-2xl cursor-none transition-colors">
-                <div class="flex items-center gap-4"><svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-slate-400 font-medium">BCA Sem 6 Laravel MVC Structure</span></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ================= 1. HERO SECTION (Dynamic Greeting + Spiderweb Particles + 3D) ================= --}}
-<section class="relative min-h-[100vh] flex items-center pt-32 pb-20 overflow-hidden bg-slate-950 text-white" id="hero" onmouseenter="showCustomCursor()" onmouseleave="hideCustomCursor()">
-    {{-- Dynamic Ambient Deep Space Glow --}}
-    <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-[1000px] h-[1000px] bg-indigo-600/20 rounded-full blur-[180px] animate-float"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[1000px] h-[1000px] bg-pink-600/10 rounded-full blur-[180px] animate-float delay-2000"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[200px] animate-pulse"></div>
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.15] mix-blend-overlay"></div>
-        {{-- Scanline overlay --}}
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20"></div>
-    </div>
-
-    {{-- Interactive AI Spiderweb Particle Network (Canvas) --}}
-    <canvas id="particleCanvas" class="absolute inset-0 z-0 opacity-60 pointer-events-none"></canvas>
-
-    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16 items-center relative z-10">
-        
-        {{-- Left Content --}}
-        <div class="lg:col-span-6 space-y-8" data-aos="fade-right" data-aos-duration="1000">
-            <button onclick="openCmdK()" class="inline-flex items-center gap-3 px-5 py-2.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-full text-sm font-bold shadow-[0_0_30px_rgba(79,70,229,0.2)] backdrop-blur-xl hover:bg-indigo-500/20 transition-all cursor-none group focus:outline-none">
-                <svg class="w-4 h-4 text-indigo-400 group-hover:animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <span id="dynamic-greeting">System Online</span> — Press <kbd class="px-2 py-0.5 bg-indigo-900/50 rounded text-xs border border-indigo-500/30 ml-1 font-mono tracking-widest text-white">⌘K</kbd>
-            </button>
-
-            <h1 class="text-6xl md:text-7xl lg:text-8xl font-black leading-[1.02] tracking-tighter drop-shadow-2xl">
-                Financial Logic, <br>
-                <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent typewriter-effect relative pb-2 inline-block">
-                    Automated.
-                    <span class="absolute right-[-16px] top-2 bottom-3 w-[6px] bg-pink-400 animate-blink rounded-full"></span>
-                </span>
-            </h1>
-
-            <p class="text-xl text-slate-400 font-medium max-w-xl leading-relaxed">
-                Engineered for Ahmedabad's fastest-growing startups and families. Let our Machine Learning models strictly categorize, forecast, and map your financial future.
-            </p>
-
-            <div class="flex flex-col sm:flex-row flex-wrap gap-5 pt-6 relative z-20">
-                <a href="{{ route('register') ?? '#' }}" class="magnetic-target group relative px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(79,70,229,0.5)] hover:shadow-[0_0_60px_rgba(79,70,229,0.8)] hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden cursor-none">
-                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none"></div>
-                    Initialize Engine
-                    <svg class="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                </a>
-                
-                <button onclick="openDemoModal()" class="magnetic-target px-10 py-5 border-2 border-slate-700 bg-slate-800/50 backdrop-blur-md text-white rounded-2xl font-bold text-lg hover:bg-slate-800 hover:border-indigo-500 transition-all flex items-center justify-center gap-4 group cursor-none focus:outline-none">
-                    <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-500 transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)] group-hover:shadow-[0_0_30px_rgba(79,70,229,0.8)]">
-                        <svg class="w-5 h-5 text-indigo-400 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                    </div>
-                    Watch Architecture Tour
-                </button>
-            </div>
-            
-            <div class="flex items-center gap-8 pt-8 text-sm font-bold text-slate-500">
-                <span class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 shadow-inner"><svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> MySQL 8 Strict Mode</span>
-                <span class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 shadow-inner"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Laravel.svg" class="w-5 h-5 opacity-80" alt="Laravel"> Laravel Native</span>
-            </div>
-        </div>
-
-        {{-- Right Content (3D Complex Mouse Tracking Mockup) --}}
-        <div class="lg:col-span-6 relative h-[600px] md:h-[750px] perspective-1000" id="hero3D" data-aos="zoom-in-up" data-aos-duration="1400">
-            
-            {{-- Main App Image Mockup --}}
-            <div class="tilt-card absolute right-0 top-1/2 -translate-y-1/2 w-full max-w-2xl bg-[#0a0f1c] border border-slate-700/80 rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.9)] overflow-hidden z-10 transition-transform duration-200 ease-out cursor-none">
-                <div class="bg-[#1e293b] px-6 py-4 flex items-center gap-3 border-b border-slate-700 shadow-md">
-                    <div class="flex gap-2.5">
-                        <div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56] shadow-inner"></div>
-                        <div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e] shadow-inner"></div>
-                        <div class="w-3.5 h-3.5 rounded-full bg-[#27c93f] shadow-inner"></div>
-                    </div>
-                    <div class="mx-auto text-xs text-slate-400 font-mono tracking-widest flex items-center gap-2 bg-slate-900 px-4 py-1.5 rounded-md border border-slate-700">
-                        <svg class="w-3 h-3 text-emerald-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                        finance-ai.engine/analytics
-                    </div>
-                </div>
-                
-                {{-- Decorative App Image --}}
-                <div class="relative h-64 w-full border-b border-slate-800">
-                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-40 mix-blend-luminosity pointer-events-none" alt="Financial Software">
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a0f1c] via-[#0a0f1c]/80 to-transparent"></div>
-                </div>
-
-                {{-- Integrated Glowing Chart --}}
-                <div class="p-8 bg-[#0a0f1c] relative -mt-24">
-                    <div class="flex justify-between items-end mb-6 relative z-10">
-                        <div>
-                            <h3 class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]"></span> 
-                                Live System Output
-                            </h3>
-                            <div class="text-6xl font-black text-white tracking-tighter drop-shadow-lg">₹1,240,500</div>
-                        </div>
-                        <div class="flex flex-col items-end">
-                            <span class="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-sm font-black shadow-[0_0_25px_rgba(52,211,153,0.2)] flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                                +23.5%
-                            </span>
-                        </div>
-                    </div>
-                    <div class="h-56 w-full relative z-10 mt-6 pointer-events-none">
-                        <canvas id="heroNeonChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Floating UI Pill 1 (Expense Mapping) --}}
-            <div class="absolute top-[18%] -left-16 z-20 bg-slate-900/95 backdrop-blur-2xl border border-slate-700 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-floatSlow flex items-center gap-5 cursor-none">
-                <div class="w-14 h-14 rounded-2xl bg-pink-500/20 flex items-center justify-center text-pink-400 border border-pink-500/30 shadow-inner">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Crazy Chat Corner</p>
-                    <p class="text-white font-black text-2xl drop-shadow-md">-₹150</p>
-                </div>
-            </div>
-
-            {{-- Floating UI Pill 2 (Security/User Context) --}}
-            <div class="absolute bottom-[12%] -right-12 z-30 bg-slate-900/95 backdrop-blur-2xl border border-slate-700 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-floatSlow cursor-none" style="animation-delay: 2.5s;">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">GTU Database</p>
-                        <p class="text-emerald-400 font-black text-base drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]">Encrypted & Validated</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- ================= 1.5. LIVE FINANCIAL TICKER (NEW FUN!) ================= --}}
-<div class="bg-[#050b14] border-b border-slate-800 py-3 flex overflow-hidden relative z-20">
-    <div class="flex whitespace-nowrap animate-marquee items-center gap-12 font-mono text-sm font-bold text-slate-400">
-        @for ($i = 0; $i < 6; $i++)
-            <span class="flex items-center gap-2"><span class="text-indigo-400">BTC/INR</span> 56,23,450 <span class="text-emerald-500">▲ 2.4%</span></span>
-            <span class="text-slate-700">|</span>
-            <span class="flex items-center gap-2"><span class="text-indigo-400">NIFTY50</span> 22,450.20 <span class="text-emerald-500">▲ 0.8%</span></span>
-            <span class="text-slate-700">|</span>
-            <span class="flex items-center gap-2"><span class="text-indigo-400">RELIANCE</span> 2,980.45 <span class="text-rose-500">▼ 1.2%</span></span>
-            <span class="text-slate-700">|</span>
-            <span class="flex items-center gap-2"><span class="text-indigo-400">USD/INR</span> 83.15 <span class="text-emerald-500">▲ 0.1%</span></span>
-            <span class="text-slate-700">|</span>
-        @endfor
-    </div>
-</div>
-
-{{-- ================= 2. TRIPLE INFINITE MARQUEE (TRUSTED STACK) ================= --}}
-<div class="border-b border-slate-800 bg-[#020617] py-16 overflow-hidden flex flex-col items-center relative z-20">
-    <div class="absolute inset-0 bg-gradient-to-r from-[#020617] via-transparent to-[#020617] w-full z-10 pointer-events-none"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[300px] bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none"></div>
-    
-    {{-- Row 1: Moving Left (Backend) --}}
-    <div class="relative w-full max-w-[100vw] overflow-hidden mb-12 flex">
-        <div class="flex whitespace-nowrap animate-marquee items-center gap-20 md:gap-40 opacity-40 hover:opacity-100 transition-opacity duration-500">
-            @for ($i = 0; $i < 4; $i++)
-                <div class="flex items-center gap-4 group">
-                    <svg class="w-12 h-12 text-slate-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L1.604 6v12L12 24l10.396-6V6L12 0zm0 2.227l8.473 4.89v9.766L12 21.773l-8.473-4.89V7.117L12 2.227z"/></svg>
-                    <h3 class="text-4xl font-black text-slate-400 group-hover:text-white transition-colors">AWS CLOUD</h3>
-                </div>
-                <div class="flex items-center gap-4 group">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Laravel.svg" class="w-12 h-12 grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Laravel">
-                    <h3 class="text-4xl font-black text-slate-400 group-hover:text-white transition-colors">LARAVEL 8</h3>
-                </div>
-                <div class="flex items-center gap-4 group">
-                    <svg class="w-12 h-12 text-slate-400 group-hover:text-[#6366f1] transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M11.998 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm-.213 6.945c1.92 0 3.398 1.258 3.525 3.036h-2.148c-.068-.69-.738-1.258-1.572-1.258-.87 0-1.536.488-1.536 1.15 0 .61.43 1.01 1.488 1.258l1.413.333c1.782.42 2.766 1.422 2.766 3.047 0 1.953-1.636 3.35-3.805 3.35-2.106 0-3.766-1.378-3.92-3.32h2.24c.092.83.843 1.488 1.83 1.488 1.056 0 1.688-.518 1.688-1.218 0-.66-.452-1.1-1.635-1.35l-1.25-.264c-1.802-.38-2.628-1.423-2.628-2.95 0-1.896 1.583-3.292 3.544-3.292z"/></svg>
-                    <h3 class="text-4xl font-black text-slate-400 group-hover:text-white transition-colors">STRIPE API</h3>
-                </div>
-                <div class="flex items-center gap-4 group">
-                    <h3 class="text-4xl font-black text-slate-400 group-hover:text-[#F29111] transition-colors">MYSQL 8.0 STRICT</h3>
-                </div>
-            @endfor
-        </div>
-    </div>
-
-    {{-- Row 2: Moving Right (Frontend & Infra) --}}
-    <div class="relative w-full max-w-[100vw] overflow-hidden mb-12 flex">
-        <div class="flex whitespace-nowrap animate-marquee-reverse items-center gap-20 md:gap-40 opacity-30 hover:opacity-100 transition-opacity duration-500">
-            @for ($i = 0; $i < 4; $i++)
-                <h3 class="text-4xl font-black text-slate-500 hover:text-white transition-colors">REACT FRONTEND</h3>
-                <h3 class="text-4xl font-black text-slate-500 hover:text-[#38bdf8] transition-colors">TAILWINDCSS V3</h3>
-                <h3 class="text-4xl font-black text-slate-500 hover:text-[#777BB4] transition-colors">PHP 8.2 ENGINE</h3>
-                <h3 class="text-4xl font-black text-slate-500 hover:text-[#2496ED] transition-colors">DOCKER CONTAINERS</h3>
-            @endfor
-        </div>
-    </div>
-    
-    {{-- Row 3: Moving Left Fast (Data Science) --}}
-    <div class="relative w-full max-w-[100vw] overflow-hidden flex">
-        <div class="flex whitespace-nowrap animate-marquee-fast items-center gap-20 md:gap-40 opacity-20 hover:opacity-100 transition-opacity duration-500">
-            @for ($i = 0; $i < 4; $i++)
-                <h3 class="text-2xl font-bold text-slate-600 hover:text-emerald-400 transition-colors tracking-widest uppercase">Machine Learning</h3>
-                <h3 class="text-2xl font-bold text-slate-600 hover:text-emerald-400 transition-colors tracking-widest uppercase">Predictive Models</h3>
-                <h3 class="text-2xl font-bold text-slate-600 hover:text-emerald-400 transition-colors tracking-widest uppercase">Anomaly Detection</h3>
-                <h3 class="text-2xl font-bold text-slate-600 hover:text-emerald-400 transition-colors tracking-widest uppercase">Data Cleansing</h3>
-            @endfor
-        </div>
-    </div>
-</div>
-
-{{-- ================= 3. DEVELOPER API EXPERIENCE (Working Tabs) ================= --}}
-<section class="py-32 bg-[#050b14] relative border-b border-slate-800 overflow-hidden">
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-indigo-600/5 rounded-full blur-[150px] pointer-events-none"></div>
-    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center relative z-10">
-        
-        <div data-aos="fade-right">
-            <h2 class="text-4xl md:text-6xl font-black text-white tracking-tight mb-8 leading-[1.1]">Engineered for <br><span class="text-indigo-400">Developers.</span></h2>
-            <p class="text-slate-400 text-xl font-medium leading-relaxed mb-12">
-                Push data to your financial dashboard directly from your own applications. Our REST API is built on Laravel, protected by strict Sanctum token authentication.
-            </p>
-            
-            <div class="space-y-8">
-                <div class="flex items-start gap-5 group">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-800/50 border border-slate-700 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-1 shadow-lg group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="text-2xl font-bold text-white mb-2">RESTful Architecture</h4>
-                        <p class="text-slate-400 text-lg leading-relaxed">Standardized JSON responses, predictable resource URIs, and comprehensive pagination out of the box.</p>
-                    </div>
-                </div>
-                <div class="flex items-start gap-5 group">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-800/50 border border-slate-700 flex items-center justify-center text-emerald-400 flex-shrink-0 mt-1 shadow-lg group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="text-2xl font-bold text-white mb-2">Strict Data Validation</h4>
-                        <p class="text-slate-400 text-lg leading-relaxed">Every API request is scrubbed through Laravel FormRequests to prevent bad data from reaching the MySQL kernel.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Interactive Code Editor Mockup --}}
-        <div class="bg-[#020617] rounded-[2.5rem] border border-slate-700 shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden" data-aos="fade-left">
-            <div class="flex items-center justify-between px-6 bg-[#0f172a] border-b border-slate-800">
-                <div class="flex gap-2.5 py-5">
-                    <div class="w-3.5 h-3.5 rounded-full bg-rose-500"></div>
-                    <div class="w-3.5 h-3.5 rounded-full bg-amber-500"></div>
-                    <div class="w-3.5 h-3.5 rounded-full bg-emerald-500"></div>
-                </div>
-                {{-- Dynamic Tabs --}}
-                <div class="flex h-full mt-2">
-                    <button class="api-tab active px-8 py-4 text-sm font-bold font-mono text-indigo-400 bg-[#020617] border-t-2 border-indigo-500 transition-all rounded-t-lg focus:outline-none" data-target="code-php">PHP (Laravel)</button>
-                    <button class="api-tab px-8 py-4 text-sm font-bold font-mono text-slate-500 hover:text-slate-300 transition-all border-t-2 border-transparent focus:outline-none" data-target="code-curl">cURL</button>
-                    <button class="api-tab px-8 py-4 text-sm font-bold font-mono text-slate-500 hover:text-slate-300 transition-all border-t-2 border-transparent focus:outline-none" data-target="code-python">Python</button>
-                </div>
-            </div>
-            
-            <div class="p-8 overflow-x-auto text-sm md:text-base font-mono leading-loose relative min-h-[380px] bg-[#020617] flex">
-                {{-- Line Numbers --}}
-                <div class="flex flex-col text-slate-700 pr-6 select-none border-r border-slate-800 mr-6">
-                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span>
-                </div>
-                
-                {{-- PHP Snippet --}}
-                <div id="code-php" class="api-code-block block transition-opacity duration-300 opacity-100 flex-1">
-                    <span class="text-pink-400">$response</span> <span class="text-white">=</span> <span class="text-indigo-300">Http</span><span class="text-white">::</span><span class="text-emerald-300">withToken</span><span class="text-white">(</span><span class="text-amber-300">'API_SECRET'</span><span class="text-white">)</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-white">-></span><span class="text-emerald-300">post</span><span class="text-white">(</span><span class="text-amber-300">'https://api.financeai.com/v1/transactions'</span><span class="text-white">, [</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">'amount'</span> <span class="text-pink-400">=></span> <span class="text-purple-300">380.00</span><span class="text-white">,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">'type'</span> <span class="text-pink-400">=></span> <span class="text-amber-300">'expense'</span><span class="text-white">,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">'description'</span> <span class="text-pink-400">=></span> <span class="text-amber-300">'BGMI UC Sync'</span><span class="text-white">,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">'auto_categorize'</span> <span class="text-pink-400">=></span> <span class="text-indigo-400">true</span><br>
-                    <span class="text-white">]);</span><br><br>
-                    <span class="text-slate-500">// Returns:</span><br>
-                    <span class="text-white">{</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-emerald-300">"status"</span><span class="text-white">: </span><span class="text-amber-300">"success"</span><span class="text-white">,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-emerald-300">"category_assigned"</span><span class="text-white">: </span><span class="text-amber-300">"Gaming & Entertainment"</span><br>
-                    <span class="text-white">}</span>
-                </div>
-
-                {{-- cURL Snippet --}}
-                <div id="code-curl" class="api-code-block hidden opacity-0 transition-opacity duration-300 absolute top-8 left-20 right-8 bottom-8">
-                    <span class="text-indigo-300">curl</span> <span class="text-pink-400">-X</span> POST https://api.financeai.com/v1/transactions \<br>
-                    &nbsp;&nbsp;<span class="text-pink-400">-H</span> <span class="text-amber-300">"Authorization: Bearer API_SECRET"</span> \<br>
-                    &nbsp;&nbsp;<span class="text-pink-400">-H</span> <span class="text-amber-300">"Content-Type: application/json"</span> \<br>
-                    &nbsp;&nbsp;<span class="text-pink-400">-d</span> <span class="text-amber-300">'{</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">"amount": 150.00,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">"type": "expense",</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">"description": "Crazy Chat Corner - Snacks"</span><br>
-                    &nbsp;&nbsp;<span class="text-amber-300">}'</span>
-                </div>
-
-                {{-- Python Snippet --}}
-                <div id="code-python" class="api-code-block hidden opacity-0 transition-opacity duration-300 absolute top-8 left-20 right-8 bottom-8">
-                    <span class="text-pink-400">import</span> <span class="text-white">requests</span><br><br>
-                    <span class="text-white">url = </span><span class="text-amber-300">"https://api.financeai.com/v1/transactions"</span><br>
-                    <span class="text-white">headers = {</span><span class="text-amber-300">"Authorization"</span><span class="text-white">: </span><span class="text-amber-300">"Bearer API_SECRET"</span><span class="text-white">}</span><br>
-                    <span class="text-white">data = {</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">"amount"</span><span class="text-white">: </span><span class="text-purple-300">15000</span><span class="text-white">,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">"type"</span><span class="text-white">: </span><span class="text-amber-300">"income"</span><span class="text-white">,</span><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">"description"</span><span class="text-white">: </span><span class="text-amber-300">"GTU Scholarship"</span><br>
-                    <span class="text-white">}</span><br><br>
-                    <span class="text-white">response = requests.</span><span class="text-emerald-300">post</span><span class="text-white">(url, json=data, headers=headers)</span><br>
-                    <span class="text-indigo-300">print</span><span class="text-white">(response.</span><span class="text-emerald-300">json</span><span class="text-white">())</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</section>
-
-{{-- ================= 3.5. DATA PIPELINE UI (NEW FUN!) ================= --}}
-<section class="py-32 bg-white relative overflow-hidden border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="text-center max-w-3xl mx-auto mb-20" data-aos="fade-up">
-            <h2 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-6">How the Neural Engine Works</h2>
-            <p class="text-xl text-slate-500 font-medium">A fully automated data ingestion and analysis pipeline.</p>
-        </div>
-
-        <div class="relative max-w-5xl mx-auto">
-            {{-- Connecting Line Background --}}
-            <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0">
-                <div class="h-full bg-indigo-500 w-1/3 animate-loading-strip"></div>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-12 relative z-10">
-                {{-- Step 1 --}}
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center relative group hover:-translate-y-2 transition-transform" data-aos="fade-up" data-aos-delay="0">
-                    <div class="w-16 h-16 mx-auto bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-200 mb-6 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shadow-sm">
-                        <i class="fa-solid fa-cloud-arrow-down text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-900 mb-3">1. Data Ingestion</h3>
-                    <p class="text-sm text-slate-500 font-medium">Connect your accounts or use our REST API. Raw data flows into our secure MySQL 8 strict-mode database.</p>
-                </div>
-
-                {{-- Step 2 --}}
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center relative group hover:-translate-y-2 transition-transform" data-aos="fade-up" data-aos-delay="150">
-                    <div class="w-16 h-16 mx-auto bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-200 mb-6 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shadow-sm">
-                        <i class="fa-solid fa-brain text-2xl group-hover:animate-pulse"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-900 mb-3">2. Neural Processing</h3>
-                    <p class="text-sm text-slate-500 font-medium">Our ML models instantly parse transaction descriptions, applying accurate accounting categories automatically.</p>
-                </div>
-
-                {{-- Step 3 --}}
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center relative group hover:-translate-y-2 transition-transform" data-aos="fade-up" data-aos-delay="300">
-                    <div class="w-16 h-16 mx-auto bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-200 mb-6 group-hover:bg-rose-50 group-hover:text-rose-600 transition-colors shadow-sm">
-                        <i class="fa-solid fa-chart-line text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-900 mb-3">3. Insight Generation</h3>
-                    <p class="text-sm text-slate-500 font-medium">Beautiful, interactive dashboards display your burn rate, net asset value, and future runway projections.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- ================= 4. SMART KPI SNAPSHOT ================= --}}
-<section class="py-28 bg-slate-50 relative border-b border-slate-200 overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-[500px] bg-[url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2000&auto=format&fit=crop')] opacity-5 mix-blend-multiply pointer-events-none object-cover"></div>
-    <div class="max-w-7xl mx-auto px-6 relative z-10">
-        <div class="text-center mb-20" data-aos="fade-up">
-            <h2 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Your Command Center</h2>
-            <p class="text-slate-500 mt-6 text-xl max-w-2xl mx-auto font-medium">Live data feeds driven by uncompromising strict-mode queries. Say goodbye to spreadsheet errors.</p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-8">
-            @php
-                $kpis = [
-                    ['label'=>'Total Inflow','value'=>1450000,'color'=>'text-emerald-600', 'bg'=>'bg-emerald-50', 'border'=>'border-emerald-100', 'icon'=>'M12 4v16m8-8H4', 'trend'=>'+14.2%', 'sparkline'=>'10,40 20,30 30,50 40,20 50,30 60,10 70,20'],
-                    ['label'=>'Total Outflow','value'=>480000,'color'=>'text-rose-600', 'bg'=>'bg-rose-50', 'border'=>'border-rose-100', 'icon'=>'M20 12H4', 'trend'=>'-2.1%', 'sparkline'=>'10,20 20,10 30,30 40,20 50,40 60,30 70,50'],
-                    ['label'=>'Net Asset Value','value'=>970000,'color'=>'text-indigo-600', 'bg'=>'bg-indigo-50', 'border'=>'border-indigo-100', 'icon'=>'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', 'trend'=>'Stable', 'sparkline'=>'10,40 20,35 30,30 40,25 50,20 60,15 70,10'],
-                ];
-            @endphp
-
-            @foreach($kpis as $kpi)
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:-translate-y-3 hover:shadow-2xl transition-all duration-500 group kpi-card-trigger relative overflow-hidden" data-aos="fade-up" data-aos-delay="{{ $loop->index * 150 }}">
-                
-                {{-- Background Sparkline SVG (Animated) --}}
-                <svg class="absolute bottom-0 right-0 w-full h-32 opacity-[0.05] group-hover:opacity-[0.15] transition-opacity duration-500 {{ $kpi['color'] }}" viewBox="0 0 100 60" preserveAspectRatio="none">
-                    <polyline fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="{{ $kpi['sparkline'] }}" stroke-dasharray="200" stroke-dashoffset="200" class="group-hover:animate-drawline"></polyline>
-                </svg>
-
-                <div class="flex justify-between items-start mb-8 relative z-10">
-                    <div class="w-16 h-16 {{ $kpi['bg'] }} {{ $kpi['color'] }} rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm border {{ $kpi['border'] }}">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $kpi['icon'] }}"></path>
-                        </svg>
-                    </div>
-                    <span class="px-4 py-1.5 bg-slate-50 text-slate-600 text-xs font-bold rounded-xl border border-slate-200 shadow-sm">{{ $kpi['trend'] }}</span>
-                </div>
-                <h3 class="text-sm font-bold uppercase text-slate-500 tracking-widest mb-3 relative z-10">{{ $kpi['label'] }}</h3>
-                <p class="text-5xl lg:text-6xl font-black text-slate-900 flex items-center gap-1 relative z-10">
-                    <span class="text-3xl text-slate-300">₹</span>
-                    <span class="counter tracking-tighter" data-target="{{ $kpi['value'] }}">0</span>
-                </p>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-{{-- ================= 5. INTERACTIVE VANILLA JS ROI CALCULATOR ================= --}}
-<section class="py-32 bg-white relative overflow-hidden border-b border-slate-200">
-    <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/5 rounded-full blur-[150px] pointer-events-none"></div>
-    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center relative z-10">
-        
-        <div data-aos="fade-right">
-            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-8 shadow-sm border border-indigo-200">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                </svg>
-            </div>
-            <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight tracking-tight">Calculate your <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">AI Advantage.</span></h2>
-            <p class="text-xl text-slate-500 mb-10 font-medium leading-relaxed">Stop guessing your runway. Use our predictive engine to see exactly how much money and time our AI auto-categorization saves you annually.</p>
-            
-            <div class="space-y-12 bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 shadow-inner">
-                {{-- Input 1 --}}
-                <div class="relative">
-                    <div class="flex justify-between text-base font-bold text-slate-700 mb-6">
-                        <label>Monthly Transactions</label>
-                        <span class="text-indigo-600 text-xl px-4 py-1.5 bg-white rounded-lg shadow-sm border border-slate-200 font-mono" id="txValue">150</span>
-                    </div>
-                    <input type="range" id="txSlider" min="10" max="1000" value="150" class="w-full h-3 bg-slate-200 rounded-full appearance-none cursor-pointer accent-indigo-600 outline-none hover:bg-indigo-100 transition-colors">
-                </div>
-                {{-- Input 2 --}}
-                <div class="relative">
-                    <div class="flex justify-between text-base font-bold text-slate-700 mb-6">
-                        <label>Current Monthly Expense</label>
-                        <span class="text-indigo-600 text-xl px-4 py-1.5 bg-white rounded-lg shadow-sm border border-slate-200 font-mono" id="expValue">₹45,000</span>
-                    </div>
-                    <input type="range" id="expSlider" min="10000" max="500000" step="5000" value="45000" class="w-full h-3 bg-slate-200 rounded-full appearance-none cursor-pointer accent-indigo-600 outline-none hover:bg-indigo-100 transition-colors">
-                </div>
-            </div>
-        </div>
-
-        {{-- Dynamic Chart & Calculator Output --}}
-        <div class="bg-slate-900 rounded-[3rem] p-10 md:p-14 border border-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col justify-between h-full min-h-[600px]" data-aos="fade-left">
-            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
-            <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <h3 class="text-white font-bold text-2xl mb-10 border-b border-slate-800 pb-6 relative z-10">Projected Annual Impact</h3>
-            
-            <div class="flex items-end justify-between h-48 mb-10 border-b border-slate-800 pb-4 relative z-10">
-                <div class="w-1/3 flex flex-col items-center gap-2">
-                    <div class="w-full bg-slate-800 rounded-t-xl transition-all duration-300 ease-out" style="height: 100%;"></div>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Manual</span>
-                </div>
-                <div class="w-1/3 flex flex-col items-center gap-2">
-                    <div id="dynamicChartBar" class="w-full bg-gradient-to-t from-indigo-600 to-purple-400 rounded-t-xl transition-all duration-300 ease-out shadow-[0_0_20px_rgba(79,70,229,0.5)]" style="height: 15%;"></div>
-                    <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">FinanceAI</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-8 relative z-10 mb-10">
-                <div class="relative group">
-                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Hours Saved</p>
-                    <div class="flex items-end gap-2">
-                        <p class="text-5xl font-black text-emerald-400 transition-all duration-300 drop-shadow-[0_0_15px_rgba(52,211,153,0.4)]" id="hoursSaved">54</p>
-                        <p class="text-slate-500 mb-2 font-medium text-sm">hrs</p>
-                    </div>
-                </div>
-                <div class="relative group">
-                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Capital Retained</p>
-                    <div class="flex items-end gap-2">
-                        <p class="text-5xl font-black text-indigo-400 transition-all duration-300 drop-shadow-[0_0_15px_rgba(79,70,229,0.4)]" id="moneySaved">₹81k</p>
-                        <p class="text-slate-500 mb-2 font-medium text-sm">/yr</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="relative z-10 mt-auto">
-                <a href="{{ route('register') ?? '#' }}" class="magnetic-target w-full flex items-center justify-center gap-3 py-5 bg-white text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-200 transition-all cursor-none shadow-xl">
-                    Start Saving Now
-                    <svg class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- ================= 6. ARCHITECTURE / SECURITY DEEP DIVE (NEW MVC SECTION) ================= --}}
-<section class="py-32 bg-slate-50 relative overflow-hidden border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="text-center max-w-4xl mx-auto mb-24" data-aos="fade-up">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
-                <i class="fa-solid fa-shield-halved text-indigo-500"></i> Enterprise Security
-            </div>
-            <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Security without compromise.</h2>
-            <p class="text-xl text-slate-500 leading-relaxed font-medium">Your financial data is your most sensitive asset. We built an architecture that treats it like one, adhering strictly to Model-View-Controller paradigms.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 auto-rows-[380px]">
-            
-            {{-- Box 1: Storage --}}
-            <div class="bento-card md:col-span-2 bg-white rounded-[3rem] p-12 border border-slate-200 relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all duration-300" data-aos="fade-up">
-                <div class="glow-effect absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                <div class="relative z-10">
-                    <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-8 border border-indigo-100 shadow-sm">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path></svg>
-                    </div>
-                    <h3 class="text-3xl font-black text-slate-900 mb-4">Isolated Storage Clusters</h3>
-                    <p class="text-slate-500 font-medium text-lg leading-relaxed w-5/6">Each account is strictly partitioned. We enforce row-level security so your data physically cannot mix with others.</p>
-                </div>
-                {{-- Interactive Server Image --}}
-                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=800&auto=format&fit=crop" class="absolute -right-20 -bottom-20 w-80 h-80 object-cover rounded-full opacity-30 mix-blend-luminosity group-hover:scale-110 transition-transform duration-700" alt="Server">
-            </div>
-
-            {{-- Box 2: Encryption --}}
-            <div class="md:col-span-2 bg-slate-900 rounded-[3rem] text-white relative overflow-hidden group shadow-[0_20px_60px_rgba(0,0,0,0.6)]" data-aos="fade-up" data-aos-delay="100">
-                <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 group-hover:rotate-1 transition-transform duration-1000 mix-blend-overlay" alt="Security Lock">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
-                <div class="absolute bottom-0 left-0 w-full p-12 z-10 transform group-hover:-translate-y-2 transition-transform duration-500">
-                    <h3 class="text-4xl font-black mb-4 text-white">SHA-256 Vaulting</h3>
-                    <p class="text-slate-300 font-medium text-xl leading-relaxed">Every transaction is hashed and salted natively via Laravel before it even touches the MySQL disk.</p>
-                </div>
-            </div>
-
-            {{-- Box 3: API --}}
-            <div class="bg-indigo-600 rounded-[3rem] p-12 text-white relative overflow-hidden group shadow-2xl shadow-indigo-500/30" data-aos="fade-up" data-aos-delay="200">
-                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
-                <h3 class="text-3xl font-black mb-4 relative z-10">Sanctum Auth</h3>
-                <p class="text-indigo-100 font-medium text-lg leading-relaxed relative z-10">API token generation with strict scope limitations.</p>
-                <div class="absolute bottom-10 right-10 w-20 h-20 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center animate-spin-slow shadow-inner border border-white/30">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
-                </div>
-            </div>
-
-            {{-- Box 4: Architecture Skewed Mobile --}}
-            <div class="bento-card md:col-span-3 bg-white rounded-[3rem] p-12 border border-slate-200 relative overflow-hidden group flex items-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] scroll-skew" data-aos="fade-up" data-aos-delay="300">
-                <div class="glow-effect absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                <div class="w-full md:w-[45%] relative z-10">
-                    <h3 class="text-4xl font-black text-slate-900 mb-8 leading-tight">100% Mobile Responsive.</h3>
-                    <ul class="space-y-6">
-                        <li class="flex items-center gap-4 text-slate-600 font-bold text-lg"><span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-sm shadow-sm border border-emerald-100">✓</span> TailwindCSS Layouts</li>
-                        <li class="flex items-center gap-4 text-slate-600 font-bold text-lg"><span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-sm shadow-sm border border-emerald-100">✓</span> Native Interactivity</li>
-                        <li class="flex items-center gap-4 text-slate-600 font-bold text-lg"><span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-sm shadow-sm border border-emerald-100">✓</span> PWA Ready</li>
-                    </ul>
-                </div>
-                <div class="hidden md:block absolute -right-12 top-1/2 -translate-y-1/2 w-[60%] h-[140%] perspective-1000">
-                    <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-l-[3rem] shadow-[-30px_0_80px_rgba(0,0,0,0.2)] border-l-[12px] border-y-[12px] border-slate-100 transform rotate-[-10deg] group-hover:rotate-[-5deg] group-hover:scale-105 transition-all duration-1000 ease-out" alt="Mobile App">
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-{{-- ================= 7. SCROLL SPY FEATURE SHOWCASE ================= --}}
-<section class="py-40 bg-white relative border-b border-slate-200 hidden lg:block">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid grid-cols-12 gap-20">
-            
-            {{-- Sticky Text Left --}}
-            <div class="col-span-5 relative">
-                <div class="sticky top-40 space-y-40 py-20" id="feature-text-container">
-                    
-                    {{-- Feature 1 Text --}}
-                    <div class="feature-text transition-all duration-500 opacity-100 translate-x-0" data-index="0">
-                        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-8 shadow-sm border border-indigo-100">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        </div>
-                        <h3 class="text-4xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight tracking-tight">Database Architecture that never fails.</h3>
-                        <p class="text-lg text-slate-500 leading-relaxed font-medium">Built strictly on Laravel 8's Eloquent ORM. We enforce MySQL strict mode to guarantee that every single transaction is accounted for without <code class="text-pink-500 bg-pink-50 px-2 py-1 rounded text-sm border border-pink-100">ONLY_FULL_GROUP_BY</code> data loss.</p>
-                        <ul class="mt-8 space-y-4">
-                            <li class="flex items-center gap-3 text-slate-700 font-bold"><span class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xs border border-emerald-100">✓</span> Clean Controller-Service logic</li>
-                            <li class="flex items-center gap-3 text-slate-700 font-bold"><span class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xs border border-emerald-100">✓</span> Encrypted payload storage</li>
-                        </ul>
-                    </div>
-
-                    {{-- Feature 2 Text --}}
-                    <div class="feature-text transition-all duration-500 opacity-20 blur-md translate-x-10" data-index="1">
-                        <div class="w-16 h-16 bg-pink-50 text-pink-500 rounded-2xl flex items-center justify-center mb-8 shadow-sm border border-pink-100">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        </div>
-                        <h3 class="text-4xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight tracking-tight">Predictive AI Modeling.</h3>
-                        <p class="text-lg text-slate-500 leading-relaxed font-medium">Stop looking at what you spent yesterday. Our machine learning core analyzes your specific spending habits to project your exact month-end balance. Identify cashflow shortages weeks before they happen.</p>
-                    </div>
-
-                    {{-- Feature 3 Text --}}
-                    <div class="feature-text transition-all duration-500 opacity-20 blur-md translate-x-10" data-index="2">
-                        <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-8 shadow-sm border border-emerald-100">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                        <h3 class="text-4xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight tracking-tight">Scale with your family.</h3>
-                        <p class="text-lg text-slate-500 leading-relaxed font-medium">Invite your spouse, your accountant, or your business partners. Set specific permission roles, share modular budgets, and build your financial empire collaboratively.</p>
-                    </div>
-
-                </div>
-            </div>
-
-            {{-- Scrolling Images Right --}}
-            <div class="col-span-7 space-y-40 py-20" id="feature-image-container">
-                {{-- Image 1 --}}
-                <div class="feature-image w-full h-[700px] bg-slate-900 rounded-[3rem] p-6 border border-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.6)] transform transition-all duration-700 ease-out origin-center" data-index="0">
-                    <div class="w-full h-full rounded-[2.5rem] overflow-hidden relative">
-                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-70 mix-blend-luminosity pointer-events-none" alt="Code Architecture">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent pointer-events-none"></div>
-                        <div class="absolute bottom-12 left-12 bg-black/60 backdrop-blur-xl border border-white/10 p-8 rounded-3xl font-mono text-base text-emerald-400 shadow-2xl">
-                            <span class="text-slate-500">➜</span> php artisan migrate --seed<br>
-                            <span class="text-slate-500">➜</span> MySQL Connection <span class="text-emerald-400 font-bold">OK</span><br>
-                            <span class="text-slate-500">➜</span> Strict Mode: <span class="text-indigo-400 font-bold">ENABLED</span><br>
-                            <span class="text-slate-500">➜</span> Database secured.
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Image 2 --}}
-                <div class="feature-image w-full h-[700px] bg-indigo-600 rounded-[3rem] p-6 border border-indigo-500 shadow-[0_40px_100px_rgba(79,70,229,0.3)] transform transition-all duration-700 ease-out origin-center hidden opacity-0" data-index="1">
-                    <div class="w-full h-full rounded-[2.5rem] overflow-hidden relative">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-80 mix-blend-overlay pointer-events-none" alt="AI Dashboard">
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-2xl border border-white/20 p-12 rounded-[2.5rem] shadow-2xl text-center w-[85%]">
-                            <div class="w-20 h-20 rounded-full bg-indigo-500/30 flex items-center justify-center mx-auto mb-8 border border-indigo-400/50 shadow-inner">
-                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            </div>
-                            <h4 class="text-white font-bold text-xl mb-4 uppercase tracking-widest">Month End Projection</h4>
-                            <p class="text-7xl font-black text-white drop-shadow-md">+₹42,500</p>
-                            <p class="text-indigo-200 mt-6 text-base font-medium">Based on your historical burn rate over 90 days.</p>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Image 3 --}}
-                <div class="feature-image w-full h-[700px] bg-slate-100 rounded-[3rem] p-6 border border-slate-200 shadow-2xl transform transition-all duration-700 ease-out origin-center hidden opacity-0" data-index="2">
-                    <div class="w-full h-full rounded-[2.5rem] overflow-hidden relative bg-white">
-                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-60 grayscale mix-blend-multiply pointer-events-none" alt="Team Collaboration">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none"></div>
-                        <div class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-2xl border border-white p-10 rounded-[2.5rem] shadow-2xl w-[85%]">
-                            <p class="text-slate-900 font-black text-lg text-center mb-8 uppercase tracking-widest">Active Hub Members</p>
-                            <div class="flex justify-center -space-x-6">
-                                <img class="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover hover:-translate-y-3 transition-transform" src="https://i.pravatar.cc/150?img=11" alt="User 1">
-                                <img class="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover hover:-translate-y-3 transition-transform" src="https://i.pravatar.cc/150?img=32" alt="User 2">
-                                <img class="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover hover:-translate-y-3 transition-transform" src="https://i.pravatar.cc/150?img=47" alt="User 3">
-                                <div class="w-24 h-24 rounded-full border-4 border-white shadow-xl bg-indigo-600 flex items-center justify-center text-white font-black text-2xl z-10 hover:-translate-y-3 transition-transform cursor-pointer">+2</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-{{-- ================= 7.5 WALL OF LOVE (TESTIMONIAL MASONRY - NEW FUN!) ================= --}}
-<section class="py-32 bg-slate-50 border-b border-slate-200 relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="text-center max-w-3xl mx-auto mb-20" data-aos="fade-up">
-            <h2 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-6">Trusted by the best.</h2>
-            <p class="text-xl text-slate-500 font-medium">Over 10,000 nodes deployed. Here is what C-Suite executives and engineers are saying about the architecture.</p>
-        </div>
-
-        <div class="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6" data-aos="fade-up" data-aos-delay="100">
-            {{-- Review 1 --}}
-            <div class="break-inside-avoid bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow">
-                <div class="flex items-center gap-2 mb-6 text-amber-400 text-sm">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                </div>
-                <p class="text-slate-700 font-medium text-lg leading-relaxed mb-8">"FinanceAI completely eliminated our need for manual spreadsheet reconciliation. The MySQL 8 strict mode guarantees our ledgers are mathematically flawless."</p>
-                <div class="flex items-center gap-4 border-t border-slate-100 pt-6">
-                    <img src="https://i.pravatar.cc/150?img=68" class="w-12 h-12 rounded-full object-cover" alt="Avatar">
-                    <div>
-                        <p class="text-sm font-black text-slate-900">Het Soni</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CFO, TechFlow Inc.</p>
-                    </div>
-                </div>
-            </div>
-            
-            {{-- Review 2 --}}
-            <div class="break-inside-avoid bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl text-white">
-                <div class="flex items-center gap-2 mb-6 text-amber-400 text-sm">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                </div>
-                <p class="text-slate-300 font-medium text-lg leading-relaxed mb-8">"The API documentation is pristine. We integrated our internal billing system with FinanceAI via Sanctum tokens in under two hours. Phenomenal engineering."</p>
-                <div class="flex items-center gap-4 border-t border-slate-800 pt-6">
-                    <img src="https://i.pravatar.cc/150?img=11]" class="w-12 h-12 rounded-full object-cover border border-slate-700" alt="Avatar">
-                    <div>
-                        <p class="text-sm font-black text-white">Devanshu</p>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lead Architect, DataCore</p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Review 3 --}}
-            <div class="break-inside-avoid bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow">
-                <div class="flex items-center gap-2 mb-6 text-amber-400 text-sm">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                </div>
-                <p class="text-slate-700 font-medium text-lg leading-relaxed mb-8">"I love the GTU student benefit. Getting access to the Pro Hub for free allowed me to track my project expenses and learn Laravel simultaneously."</p>
-                <div class="flex items-center gap-4 border-t border-slate-100 pt-6">
-                    <img src="https://i.pravatar.cc/150?img=59" class="w-12 h-12 rounded-full object-cover" alt="Avatar">
-                    <div>
-                        <p class="text-sm font-black text-slate-900">Neel Patel</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BCA Student, GTU</p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Review 4 --}}
-            <div class="break-inside-avoid bg-indigo-600 border border-indigo-500 rounded-3xl p-8 shadow-xl text-white">
-                <div class="flex items-center gap-2 mb-6 text-amber-300 text-sm">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                </div>
-                <p class="text-indigo-100 font-medium text-lg leading-relaxed mb-8">"The predictive burn-rate AI warned us we were going to run out of runway in Q3. We adjusted our spending instantly. This software literally saved our startup."</p>
-                <div class="flex items-center gap-4 border-t border-indigo-500/50 pt-6">
-                    <img src="https://i.pravatar.cc/150?img=32" class="w-12 h-12 rounded-full object-cover border border-indigo-400" alt="Avatar">
-                    <div>
-                        <p class="text-sm font-black text-white">Heer</p>
-                        <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Founder, Velocity</p>
-                    </div>
-                </div>
-            </div>
-            
-            {{-- Review 5 --}}
-            <div class="break-inside-avoid bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow">
-                <div class="flex items-center gap-2 mb-6 text-amber-400 text-sm">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                </div>
-                <p class="text-slate-700 font-medium text-lg leading-relaxed mb-8">"Finally, a dashboard that looks like a modern command center instead of a 1990s accounting tool. Beautiful Tailwind execution."</p>
-                <div class="flex items-center gap-4 border-t border-slate-100 pt-6">
-                    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400">EP</div>
-                    <div>
-                        <p class="text-sm font-black text-slate-900">Ishita</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">UI/UX Director</p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-{{-- ================= 8. GLOBAL MAP / INTEGRATION NODE ================= --}}
-<section class="py-32 bg-white relative overflow-hidden border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-6 text-center">
-        <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight" data-aos="fade-up">The Center of your Financial Universe.</h2>
-        <p class="text-xl text-slate-500 max-w-3xl mx-auto mb-24 font-medium" data-aos="fade-up" data-aos-delay="100">Connect everything. FinanceAI acts as the central brain, processing streams from all your existing international and domestic accounts seamlessly via secure API.</p>
-
-        <div class="relative h-[600px] w-full max-w-6xl mx-auto flex items-center justify-center" data-aos="zoom-in" data-aos-duration="1000">
-            
-            {{-- Abstract Map Background --}}
-            <svg class="absolute inset-0 w-full h-full text-slate-100 pointer-events-none" viewBox="0 0 1000 500" fill="currentColor">
-                <circle cx="200" cy="150" r="4" /><circle cx="220" cy="160" r="2" /><circle cx="250" cy="140" r="5" class="text-indigo-200 cursor-pointer hover:text-indigo-400 transition-colors pointer-events-auto"><title>US-East Node</title></circle>
-                <circle cx="800" cy="200" r="4" /><circle cx="750" cy="250" r="2" /><circle cx="820" cy="220" r="5" class="text-indigo-200 cursor-pointer hover:text-indigo-400 transition-colors pointer-events-auto"><title>AP-South Node</title></circle>
-                <circle cx="500" cy="450" r="4" /><circle cx="550" cy="430" r="2" /><circle cx="480" cy="470" r="5" />
-                <circle cx="300" cy="350" r="4" /><circle cx="320" cy="330" r="2" /><circle cx="350" cy="370" r="5" />
-                <circle cx="650" cy="150" r="4" /><circle cx="680" cy="120" r="2" /><circle cx="620" cy="180" r="5" class="text-indigo-200 cursor-pointer hover:text-indigo-400 transition-colors pointer-events-auto"><title>EU-Central Node</title></circle>
-                
-                {{-- SVG connection lines drawing inward --}}
-                <path d="M250,140 Q 375,195 500,250" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="5,5" class="text-indigo-200 animate-pulse"/>
-                <path d="M800,200 Q 650,225 500,250" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="5,5" class="text-indigo-200 animate-pulse" style="animation-delay: 0.5s;"/>
-                <path d="M500,450 Q 500,350 500,250" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="5,5" class="text-indigo-200 animate-pulse" style="animation-delay: 1s;"/>
-                <path d="M620,180 Q 560,215 500,250" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="5,5" class="text-indigo-200 animate-pulse" style="animation-delay: 1.5s;"/>
-            </svg>
-
-            {{-- Center Hub --}}
-            <div class="absolute z-20 w-40 h-40 bg-indigo-600 rounded-[3rem] shadow-[0_0_80px_rgba(79,70,229,0.5)] flex items-center justify-center rotate-45 transform hover:scale-110 transition-transform duration-500 cursor-none border-4 border-white">
-                <div class="-rotate-45">
-                    <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                </div>
-            </div>
-
-            {{-- Pulsing Rings --}}
-            <div class="absolute z-0 w-80 h-80 border border-indigo-500/20 rounded-full animate-ping" style="animation-duration: 3s;"></div>
-            <div class="absolute z-0 w-[500px] h-[500px] border border-indigo-500/10 rounded-full animate-ping" style="animation-duration: 4s; animation-delay: 1s;"></div>
-            <div class="absolute z-0 w-[700px] h-[700px] border border-indigo-500/5 rounded-full"></div>
-
-            {{-- Satellite Nodes --}}
-            <div class="absolute top-10 left-[15%] w-24 h-24 bg-white border border-slate-200 rounded-3xl shadow-xl flex items-center justify-center z-10 animate-floatSlow">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Laravel.svg" class="w-12 h-12" alt="Laravel">
-            </div>
-            
-            {{-- Stripe Node --}}
-            <div class="absolute bottom-16 right-[15%] w-28 h-28 bg-white border border-slate-200 rounded-full shadow-xl flex items-center justify-center z-10 animate-floatSlow" style="animation-delay: 1s;">
-                <svg class="w-14 h-14 text-[#6366f1]" viewBox="0 0 24 24" fill="currentColor"><path d="M11.998 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm-.213 6.945c1.92 0 3.398 1.258 3.525 3.036h-2.148c-.068-.69-.738-1.258-1.572-1.258-.87 0-1.536.488-1.536 1.15 0 .61.43 1.01 1.488 1.258l1.413.333c1.782.42 2.766 1.422 2.766 3.047 0 1.953-1.636 3.35-3.805 3.35-2.106 0-3.766-1.378-3.92-3.32h2.24c.092.83.843 1.488 1.83 1.488 1.056 0 1.688-.518 1.688-1.218 0-.66-.452-1.1-1.635-1.35l-1.25-.264c-1.802-.38-2.628-1.423-2.628-2.95 0-1.896 1.583-3.292 3.544-3.292z"/></svg>
-            </div>
-            
-            {{-- Personal User Context Node --}}
-            <div class="absolute top-[20%] right-[10%] w-24 h-24 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl flex items-center justify-center z-10 animate-floatSlow" style="animation-delay: 2s;">
-                <div class="text-center">
-                    <span class="font-black text-white text-sm block">BGMI</span>
-                    <span class="text-xs text-emerald-400 font-bold">UC Sync</span>
-                </div>
-            </div>
-            
-            {{-- MySQL Node --}}
-            <div class="absolute bottom-[20%] left-[10%] w-28 h-28 bg-white border border-slate-200 rounded-full shadow-xl flex items-center justify-center z-10 animate-floatSlow" style="animation-delay: 0.5s;">
-                <span class="font-black text-3xl text-[#F29111] border-b-4 border-slate-800">MySQL</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- ================= 9. INTERACTIVE PRICING (Vanilla JS Toggle + EXHAUSTIVE Matrix) ================= --}}
-<section id="pricing" class="py-32 bg-slate-50 relative border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
-        <h2 class="text-4xl md:text-6xl font-black mb-6 text-slate-900 tracking-tight" data-aos="fade-up">Scaleable Infrastructure.</h2>
-        <p class="text-slate-500 text-xl mb-16 font-medium" data-aos="fade-up">Invest in your financial command center today. Special rates available for students.</p>
-
-        {{-- Pure Vanilla JS Pricing Toggle --}}
-        <div class="mb-24" data-aos="fade-up">
-            <div class="inline-flex bg-white rounded-full p-2 shadow-sm border border-slate-200 relative w-[360px] h-16 cursor-none" id="pricingToggleBtn">
-                {{-- Physical Sliding Pill --}}
-                <div id="pricingSlider" class="absolute top-2 bottom-2 left-2 w-[calc(50%-0.5rem)] bg-indigo-600 rounded-full shadow-md transition-transform duration-400 ease-out z-0 transform translate-x-0"></div>
-                
-                <button id="btnMonthly" class="relative z-10 w-1/2 flex items-center justify-center font-bold text-base transition-colors duration-300 text-white cursor-none focus:outline-none">Pay Monthly</button>
-                <button id="btnYearly" class="relative z-10 w-1/2 flex items-center justify-center font-bold text-base transition-colors duration-300 text-slate-500 hover:text-slate-800 cursor-none focus:outline-none">Pay Yearly <span class="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded-md text-[10px] uppercase tracking-wider hidden sm:block border border-emerald-200">Save 20%</span></button>
-            </div>
-
-            {{-- The Pricing Cards --}}
-            <div class="grid md:grid-cols-3 gap-8 mt-12 text-left">
-                @php
-                    $plans = [
-                        ['name'=>'Core Node','desc'=>'Basic individual tracking','monthly'=>'0','yearly'=>'0','btn'=>'Current Plan', 'features'=>['Standard Dashboard','MySQL 8 Sync','Community Support', 'Basic PDF Reports']],
-                        ['name'=>'Pro Hub','desc'=>'Full AI & Family control','monthly'=>'99','yearly'=>'950','btn'=>'Upgrade to Pro', 'features'=>['Everything in Core','ML Auto-Categorization','Predictive Forecasting','Priority Email Support', 'Family Collaboration (Up to 5)']],
-                        ['name'=>'Enterprise','desc'=>'Custom architecture','monthly'=>'499','yearly'=>'4990','btn'=>'Contact Sales', 'features'=>['Dedicated DB Instance','White-label Interface','Custom Controller Logic','99.99% SLA', 'Dedicated Account Manager']],
-                    ];
-                @endphp
-
-                @foreach($plans as $plan)
-                <div class="bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200 relative transition-all duration-500 hover:-translate-y-3 hover:shadow-xl {{ $loop->index==1 ? 'border-[3px] border-indigo-500 shadow-[0_20px_60px_rgba(79,70,229,0.15)] transform md:-translate-y-6 hover:-translate-y-8 z-10' : '' }}">
-                    @if($loop->index == 1)
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-6 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-md whitespace-nowrap flex items-center gap-2"><i class="fa-solid fa-star text-amber-300"></i> Most Deployed</div>
-                    @endif
-                    <h3 class="text-3xl font-black mb-3 text-slate-900">{{ $plan['name'] }}</h3>
-                    <p class="text-slate-500 text-base mb-10 pb-10 border-b border-slate-100 font-medium">{{ $plan['desc'] }}</p>
-                    
-                    <div class="mb-12 flex items-end h-16">
-                        <span class="text-6xl font-black text-slate-900 transition-all price-value tracking-tighter" data-monthly="{{ $plan['monthly'] }}" data-yearly="{{ $plan['yearly'] }}">
-                            ₹{{ $plan['monthly'] }}
-                        </span>
-                        <span class="text-slate-400 font-bold ml-2 mb-2 transition-all price-period text-lg">/mo</span>
-                    </div>
-
-                    <ul class="text-left space-y-6 mb-12 font-medium text-slate-600 text-lg">
-                        @foreach($plan['features'] as $feature)
-                        <li class="flex items-start gap-4">
-                            <div class="w-7 h-7 rounded-full {{ $loop->parent->index == 1 ? 'bg-indigo-100 text-indigo-600' : 'bg-emerald-50 text-emerald-500 border border-emerald-100' }} flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            </div>
-                            <span class="leading-tight">{{ $feature }}</span>
-                        </li>
-                        @endforeach
-                    </ul>
-                    
-                    <a href="{{ route('register') ?? '#' }}" class="magnetic-target block w-full py-5 text-center rounded-2xl font-bold text-lg transition-all {{ $loop->index==1 ? 'bg-slate-900 text-white hover:bg-indigo-600 shadow-[0_10px_20px_rgba(0,0,0,0.1)]' : 'bg-slate-50 border border-slate-200 text-slate-900 hover:bg-slate-100' }} cursor-none focus:outline-none">
-                        {{ $plan['btn'] }}
-                    </a>
-                </div>
-                @endforeach
-            </div>
-
-            {{-- Contextual BCA Easter Egg --}}
-            <div class="mt-16 p-6 bg-indigo-50 border border-indigo-100 rounded-3xl max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 shadow-sm" data-aos="fade-up">
-                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm border border-indigo-100 flex-shrink-0">
-                    <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                </div>
-                <div class="text-center sm:text-left">
-                    <span class="text-lg font-black text-slate-900 block mb-1">BCA Student Benefit</span>
-                    <span class="text-sm font-medium text-slate-600">Register with your JG University <code class="bg-white border border-slate-200 px-1.5 py-0.5 rounded text-indigo-600">.edu.in</code> email to unlock the Pro Hub entirely for free.</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</section>
-
-{{-- ================= 10. FAQ (Vanilla JS Accordion) ================= --}}
-<section class="py-28 bg-white relative overflow-hidden border-b border-slate-200">
-    <div class="absolute -left-40 bottom-0 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-[150px] pointer-events-none"></div>
-    <div class="max-w-4xl mx-auto px-6 relative z-10">
-        <h2 class="text-4xl md:text-6xl font-black text-center mb-6 text-slate-900 tracking-tight" data-aos="fade-up">System Inquiries</h2>
-        <p class="text-xl text-slate-500 text-center mb-20 font-medium" data-aos="fade-up" data-aos-delay="100">Everything you need to know before deploying a node.</p>
-
-        <div class="space-y-4" id="faqAccordion">
-            @php
-                $faqs = [
-                    ['q'=>'Is my financial data secure?', 'a'=>'Absolutely. We use industry-standard AES-256 encryption via Laravel. Your database connections are completely isolated and we never store plaintext credentials on our servers.'],
-                    ['q'=>'Does this fix ONLY_FULL_GROUP_BY SQL errors?', 'a'=>'Yes. The entire Laravel repository is written with explicit, strict-mode compliant Eloquent queries and Raw selects to ensure zero aggregation errors. It is foolproof.'],
-                    ['q'=>'Can I access the dashboard on mobile?', 'a'=>'Yes. The entire UI is built with TailwindCSS grid and flex utilities, meaning the dashboard, charts, and tables map perfectly to any smartphone size.'],
-                    ['q'=>'How does the AI prediction work?', 'a'=>'Our ML engine takes your last 90 days of transactions, identifies recurring burn rates, and mathematically forecasts your likely balance at the end of the current month with high accuracy.'],
-                    ['q'=>'Do you offer discounts for GTU students?', 'a'=>'Yes! We offer a 100% free Pro tier for students at Gujarat Technological University. Just sign up with your valid `.edu.in` email address and contact support to claim your upgrade.'],
-                ];
-            @endphp
-
-            @foreach($faqs as $index => $faq)
-            <div class="faq-item bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-md hover:border-indigo-200" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
-                <button class="faq-btn w-full px-8 py-6 text-left flex justify-between items-center focus:outline-none group cursor-none magnetic-target">
-                    <span class="font-black text-xl text-slate-900 group-hover:text-indigo-600 transition-colors">{{ $faq['q'] }}</span>
-                    <span class="faq-icon w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center transform transition-transform duration-500 text-slate-400 border border-slate-200 shadow-sm group-hover:bg-indigo-50 group-hover:border-indigo-100 group-hover:text-indigo-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </span>
-                </button>
-                <div class="faq-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                    <div class="px-8 pb-8 text-slate-500 font-medium leading-relaxed text-base border-t border-slate-100 pt-6 mt-2">
-                        {{ $faq['a'] }}
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-{{-- ================= 11. LIVE PULSE NOTIFICATIONS (Bottom Left Toast) ================= --}}
-<div id="liveToast" class="fixed bottom-8 left-8 z-[90] bg-white border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl p-5 flex items-center gap-5 transform translate-y-40 opacity-0 transition-all duration-700 pointer-events-none max-w-sm backdrop-blur-xl">
-    <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0 border border-emerald-100 shadow-[0_0_15px_rgba(52,211,153,0.1)]">
-        <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-    </div>
-    <div>
-        <p class="text-xs font-black text-slate-900 uppercase tracking-widest mb-0.5" id="toastTitle">Live Sync</p>
-        <p class="text-sm text-slate-500 font-medium" id="toastMessage">Just synced a new database.</p>
-    </div>
-</div>
-
-{{-- ================= 12. REAL VIDEO MODAL (Interactive iframe) ================= --}}
-<div id="demoModal" class="fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-3xl hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300 px-6 cursor-none">
-    <div class="relative w-full max-w-6xl aspect-video bg-slate-900 rounded-[2rem] shadow-[0_0_150px_rgba(79,70,229,0.3)] overflow-hidden border border-slate-700 transform scale-95 transition-transform duration-500" id="demoModalContent">
-        {{-- Close Button --}}
-        <button onclick="closeDemoModal()" class="magnetic-target absolute -top-16 right-0 z-20 w-14 h-14 bg-white/10 hover:bg-rose-500 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors shadow-2xl cursor-none border border-white/20 focus:outline-none">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-        {{-- Working Iframe container (SRC is injected via JS on open to prevent background loading) --}}
-        <div class="absolute inset-0 flex items-center justify-center bg-slate-900 z-0" id="iframeLoader">
-            <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-        <iframe id="youtubePlayer" class="w-full h-full absolute inset-0 z-10 opacity-0 transition-opacity duration-1000" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen onload="this.classList.remove('opacity-0')"></iframe>
-    </div>
-    <div class="absolute inset-0 z-0" onclick="closeDemoModal()"></div>
-</div>
-
-{{-- ================= 13. MATRIX KONAMI OVERLAY (Easter Egg) ================= --}}
-<canvas id="matrixCanvas" class="fixed inset-0 z-[99999] pointer-events-none hidden opacity-0 transition-opacity duration-1000 bg-black"></canvas>
-
-@endsection
-
-{{-- ================= SCRIPTS & STYLES ================= --}}
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-    /* Hide Default Cursor where custom is applied */
-    .cursor-none { cursor: none !important; }
+    .font-serif-i { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+    .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .paper { background-color: #fbfbfa; }
+    .hairline { background-image: linear-gradient(to right, transparent, rgba(15,23,42,.12), transparent); height: 1px; }
+    .dots { background-image: radial-gradient(rgba(79,70,229,.18) 1px, transparent 1px); background-size: 18px 18px; }
 
-    /* Premium Typewriter Effect */
-    .typewriter-effect {
-        display: inline-block;
-        white-space: nowrap;
-        margin: 0 auto;
-        letter-spacing: .05em;
-        animation: typing 4s steps(40, end) infinite alternate;
-        overflow: hidden;
+    /* Scroll reveal */
+    [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+    [data-reveal].is-visible { opacity: 1; transform: none; }
+
+    /* Hero headline: words rise out of a mask on load */
+    .rise > span { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; }
+    .rise > span > span { display: inline-block; transform: translateY(105%); animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes rise { to { transform: none; } }
+    .fade-in { opacity: 0; animation: fadeIn .8s ease forwards; animation-delay: var(--d, 0ms); }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    /* Hero photo: slow settle-in zoom, and a gently floating example chip */
+    .hero-img { transform: scale(1.08); animation: heroZoom 1.8s cubic-bezier(.2,.7,.2,1) .2s forwards; }
+    @keyframes heroZoom { to { transform: scale(1); } }
+    .float-chip { animation: chipFloat 6s ease-in-out 1.5s infinite; }
+    @keyframes chipFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+    /* Category marquee */
+    .marquee { -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+    .marquee-track { display: flex; width: max-content; animation: marquee 38s linear infinite; }
+    .marquee:hover .marquee-track { animation-play-state: paused; }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    /* Data animations (triggered when a parent gets .is-visible) */
+    .grow-bar { height: 0; transition: height .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+    .is-visible .grow-bar { height: var(--h); }
+    .fill { width: 0; transition: width 1.1s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+    .is-visible .fill { width: var(--w); }
+    .ring-draw { stroke-dashoffset: 97.4; transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1) .2s; }
+    .is-visible .ring-draw { stroke-dashoffset: var(--off); }
+    .caret { animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .typing span { width: 6px; height: 6px; border-radius: 9999px; background: #94a3b8; display: inline-block; animation: bounce 1.2s infinite; }
+    .typing span:nth-child(2) { animation-delay: .15s; } .typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+    /* Film-grain texture for dark panels (adds depth without gradients/blobs) */
+    .grain { position: relative; isolation: isolate; }
+    .grain::after {
+        content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: .09; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     }
-    @keyframes typing { 0%, 20% { width: 0 } 80%, 100% { width: 100% } }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-    .animate-blink { animation: blink 1s step-end infinite; }
+    .grain > *:not(.absolute) { position: relative; z-index: 1; }
 
-    /* Floating & Shimmer */
-    @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-20px);} }
-    .animate-float { animation: float 8s ease-in-out infinite; }
-    @keyframes floatSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    .animate-floatSlow { animation: floatSlow 6s ease-in-out infinite; }
-    @keyframes shimmer { 100% { transform: translateX(100%); } }
-    .animate-shimmer { animation: shimmer 2.5s infinite; }
+    /* Bento cards: quiet hover */
+    .bento > article { transition: border-color .3s ease, box-shadow .3s ease; }
+    .bento > article:hover { border-color: #c7d2fe; box-shadow: 0 24px 48px -24px rgba(30,27,75,.25); }
 
-    /* Line drawing animation for KPI charts */
-    @keyframes drawline { to { stroke-dashoffset: 0; } }
-    .animate-drawline { animation: drawline 2s ease-out forwards; }
+    /* Story panel cross-fade */
+    .screen { transition: opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1); }
 
-    /* Scroll Skewing effect class applied via JS */
-    .scroll-skew { transition: transform 0.1s ease-out; }
+    /* Range input */
+    input[type=range].range { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 9999px; background: linear-gradient(to right, #4f46e5 var(--p, 50%), #e2e8f0 var(--p, 50%)); outline: none; }
+    input[type=range].range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 9999px; background: #fff; border: 2px solid #4f46e5; box-shadow: 0 2px 8px rgba(79,70,229,.35); cursor: pointer; }
+    input[type=range].range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 9999px; background: #fff; border: 2px solid #4f46e5; cursor: pointer; }
+    input[type=range].range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(79,70,229,.25); }
 
-    /* Marquees */
-    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-    .animate-marquee { animation: marquee 40s linear infinite; }
-    .animate-marquee:hover { animation-play-state: paused; }
-    @keyframes marquee-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
-    .animate-marquee-reverse { animation: marquee-reverse 40s linear infinite; }
-    .animate-marquee-reverse:hover { animation-play-state: paused; }
-    @keyframes marquee-fast { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-    .animate-marquee-fast { animation: marquee-fast 25s linear infinite; }
-    .animate-marquee-fast:hover { animation-play-state: paused; }
-
-    /* 3D Perspective */
-    .perspective-1000 { perspective: 1000px; }
-
-    /* Matrix Mode Override classes */
-    .matrix-mode { --tw-bg-opacity: 1 !important; background-color: #000 !important; color: #0f0 !important; }
-    .matrix-mode * { border-color: #0f0 !important; box-shadow: none !important; }
-    .matrix-mode .bg-indigo-600, .matrix-mode .bg-emerald-500, .matrix-mode .bg-rose-500 { background-color: #0f0 !important; color: #000 !important; }
-    .matrix-mode .text-slate-900, .matrix-mode .text-white, .matrix-mode .text-slate-500 { color: #0f0 !important; }
+    @media (prefers-reduced-motion: reduce) {
+        [data-reveal], .rise > span > span, .fade-in { opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important; }
+        .marquee-track, .caret, .typing span, .float-chip { animation: none !important; }
+        .hero-img { animation: none !important; transform: none !important; }
+        .grow-bar, .fill, .ring-draw, .screen { transition: none !important; }
+    }
 </style>
 @endpush
 
+@section('content')
+<div class="paper">
+
+{{-- =====================================================================
+     HERO — full-bleed photo background (Unsplash License, photographer Julio Lopez)
+     ===================================================================== --}}
+<section class="relative overflow-hidden bg-[#0b0b1a] text-white grain">
+    {{-- Background photo: full-bleed on mobile, right ~65% fading into the dark on desktop --}}
+    <div class="absolute inset-0 lg:left-auto lg:w-[66%]" aria-hidden="true">
+        <img src="{{ asset('img/landing/hero-couple.jpg') }}"
+             srcset="{{ asset('img/landing/hero-couple.jpg') }} 1400w, {{ asset('img/landing/hero-couple-2400.jpg') }} 2400w"
+             sizes="(min-width: 1024px) 66vw, 100vw"
+             alt="" width="2400" height="1600" fetchpriority="high" decoding="async"
+             class="hero-img absolute inset-0 w-full h-full object-cover object-[55%_30%] lg:object-[50%_35%]">
+        {{-- Mobile: darken evenly, heavier at the bottom where the buttons sit --}}
+        <div class="absolute inset-0 bg-[#0b0b1a]/65 lg:hidden"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0b0b1a] via-[#0b0b1a]/40 to-transparent lg:hidden"></div>
+        {{-- Desktop: fade the photo's left edge into the dark panel behind the text --}}
+        <div class="absolute inset-0 hidden lg:block bg-gradient-to-r from-[#0b0b1a] via-[#0b0b1a]/55 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 h-40 hidden lg:block bg-gradient-to-t from-[#0b0b1a]/80 to-transparent"></div>
+        {{-- Brand tint so the photo sits inside the indigo palette --}}
+        <div class="absolute inset-0 bg-indigo-950/25 mix-blend-multiply"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[38rem] sm:min-h-[42rem] lg:min-h-[46rem] flex items-end lg:items-center pt-40 sm:pt-48 lg:pt-20 pb-14 lg:pb-24">
+        <div class="max-w-2xl lg:max-w-xl xl:max-w-2xl">
+            <p class="fade-in font-mono text-[11px] sm:text-xs uppercase tracking-[0.2em] text-indigo-200/90" style="--d: 0ms">
+                Personal &amp; family finance <span class="text-indigo-400">·</span> ₹ INR
+            </p>
+
+            <h1 class="mt-6 text-[2.6rem] leading-[1.02] sm:text-6xl xl:text-7xl font-black tracking-[-0.035em] text-white">
+                <span class="rise block"><span><span style="--d: 80ms">Your</span></span> <span><span style="--d: 140ms">money,</span></span></span>
+                <span class="rise block"><span><span class="font-serif-i text-indigo-300 pr-1" style="--d: 220ms">finally</span></span> <span><span style="--d: 300ms">making</span></span></span>
+                <span class="rise block"><span><span style="--d: 380ms">sense.</span></span></span>
+            </h1>
+
+            <p class="fade-in mt-7 text-base sm:text-lg text-slate-200/90 leading-relaxed max-w-xl" style="--d: 500ms">
+                FinanceAI keeps your income, spending and savings in one place, shares a budget with your family,
+                and lets you ask an AI advisor that has actually seen your numbers.
+            </p>
+
+            <div class="fade-in mt-9 flex flex-col sm:flex-row gap-3" style="--d: 620ms">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.7)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/60">
+                        Open your dashboard <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
+                    </a>
+                @else
+                    <a href="{{ route('register') }}" class="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.7)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/60">
+                        Create a free account <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
+                    </a>
+                    <a href="#how" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-bold text-white border border-white/25 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30">
+                        See how it works
+                    </a>
+                @endauth
+            </div>
+
+            <dl class="fade-in mt-12 grid grid-cols-3 max-w-lg border-t border-white/15 pt-6" style="--d: 760ms">
+                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Starts at</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">₹0</dd></div>
+                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Exports</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">PDF</dd></div>
+                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Bank login</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">Never</dd></div>
+            </dl>
+        </div>
+
+        {{-- Example chip over the photo (desktop only) --}}
+        <div class="float-chip hidden lg:block absolute right-8 xl:right-16 bottom-16 w-[15.5rem] rounded-2xl bg-white/95 backdrop-blur border border-white/60 shadow-[0_24px_48px_-16px_rgba(0,0,0,.5)] p-4 text-slate-900" aria-hidden="true">
+            <div class="flex items-center justify-between">
+                <span class="font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">This month</span>
+                <span class="font-mono text-[11px] text-slate-400">Example</span>
+            </div>
+            <p class="mt-1 text-2xl font-black tabular-nums">₹18,000 <span class="text-sm font-bold text-emerald-600">saved</span></p>
+            <div class="mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full w-[30%] rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"></div></div>
+            <p class="mt-1.5 text-xs text-slate-500">30% of income kept</p>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     CALCULATOR — same formula the app uses for the first 70 points of the health score
+     ===================================================================== --}}
+<section id="calculator" class="scroll-mt-20 py-20 sm:py-24 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <div class="lg:col-span-5" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">Try it</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                How much are you <span class="font-serif-i text-indigo-600">keeping?</span>
+            </h2>
+            <p class="mt-6 text-lg text-slate-600 leading-relaxed">Move the sliders to see your savings rate and how many health-score points it earns — using the same formula FinanceAI uses.</p>
+            <ul class="mt-8 space-y-3 text-slate-700">
+                <li class="flex gap-3"><i class="fa-solid fa-lock text-indigo-600 mt-1" aria-hidden="true"></i>Runs in your browser. Nothing is saved or sent.</li>
+                <li class="flex gap-3"><i class="fa-solid fa-calculator text-indigo-600 mt-1" aria-hidden="true"></i>Savings rate counts for 40 points, spending control for 30.</li>
+                <li class="flex gap-3"><i class="fa-solid fa-chart-line text-indigo-600 mt-1" aria-hidden="true"></i>Track it for real and FinanceAI adds the other 30 from your history.</li>
+            </ul>
+        </div>
+        <div class="lg:col-span-7" data-reveal style="--d: 120ms"
+             x-data="{
+                income: 60000, expense: 42000,
+                fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); },
+                get saved() { return this.income - this.expense; },
+                get rate() { return this.income > 0 ? Math.max(this.saved, 0) / this.income * 100 : 0; },
+                get ratio() { return this.income > 0 ? this.expense / this.income * 100 : 100; },
+                get points() { return this.rate * 0.40 + (100 - Math.min(100, this.ratio)) * 0.30; },
+                pct(v, max) { return (v / max * 100) + '%'; }
+             }">
+            <div class="relative rounded-[1.75rem] bg-white border border-slate-200 shadow-[0_40px_80px_-30px_rgba(30,27,75,.25)] p-6 sm:p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-indigo-600">Savings calculator</p>
+                        <p class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Move the sliders</p>
+                    </div>
+                    <span class="shrink-0 inline-flex items-center gap-1.5 font-mono text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-md px-2 py-1">
+                        <i class="fa-solid fa-lock text-[11px]" aria-hidden="true"></i> Not saved
+                    </span>
+                </div>
+
+                <div class="mt-7 space-y-6">
+                    <div>
+                        <div class="flex justify-between items-baseline">
+                            <label for="calc-income" class="text-sm font-semibold text-slate-600">Monthly income</label>
+                            <span class="text-lg font-black text-slate-900 tabular-nums" x-text="fmt(income)">₹60,000</span>
+                        </div>
+                        <input id="calc-income" type="range" min="5000" max="300000" step="1000" x-model.number="income"
+                               class="range mt-3" :style="'--p:' + pct(income - 5000, 295000)">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-baseline">
+                            <label for="calc-expense" class="text-sm font-semibold text-slate-600">Monthly spending</label>
+                            <span class="text-lg font-black text-slate-900 tabular-nums" x-text="fmt(expense)">₹42,000</span>
+                        </div>
+                        <input id="calc-expense" type="range" min="0" max="300000" step="1000" x-model.number="expense"
+                               class="range mt-3" :style="'--p:' + pct(expense, 300000)">
+                    </div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-2 gap-3">
+                    <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                        <p class="text-xs font-semibold text-slate-500" x-text="saved >= 0 ? 'You keep each month' : 'You overspend by'">You keep each month</p>
+                        <p class="mt-1 text-2xl font-black tabular-nums" :class="saved >= 0 ? 'text-emerald-600' : 'text-rose-600'" x-text="fmt(Math.abs(saved))">₹18,000</p>
+                    </div>
+                    <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                        <p class="text-xs font-semibold text-slate-500">Savings rate</p>
+                        <p class="mt-1 text-2xl font-black text-slate-900 tabular-nums" x-text="rate.toFixed(0) + '%'">30%</p>
+                    </div>
+                </div>
+
+                <div class="mt-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <p class="text-xs font-semibold text-indigo-900">Health score points from these two numbers</p>
+                        <p class="shrink-0 whitespace-nowrap text-lg font-black text-indigo-700 tabular-nums"><span x-text="points.toFixed(0)">21</span><span class="text-sm text-indigo-400"> / 70</span></p>
+                    </div>
+                    <div class="mt-2.5 h-2 rounded-full bg-white overflow-hidden">
+                        <div class="h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 transition-[width] duration-300" :style="'width:' + (points / 70 * 100) + '%'"></div>
+                    </div>
+                    <p class="mt-2.5 text-[12px] leading-snug text-indigo-900/70">The other 30 points come from how steady your money is month to month and your emergency runway — FinanceAI works those out from your history.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     CATEGORY MARQUEE — the app's real built-in categories
+     ===================================================================== --}}
+<section class="border-y border-slate-200 bg-white py-5" aria-label="Built-in categories">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-6">
+        <p class="hidden md:block shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Built-in<br>categories</p>
+        <div class="marquee overflow-hidden flex-1">
+            <ul class="marquee-track gap-3">
+                @php
+                    $cats = [
+                        ['Salary','fa-briefcase','in'],['Food','fa-burger','out'],['Freelance','fa-laptop-code','in'],['Travel','fa-plane','out'],
+                        ['Investments','fa-chart-pie','in'],['Bills','fa-file-invoice','out'],['Business','fa-store','in'],['Shopping','fa-bag-shopping','out'],
+                        ['Gifts','fa-gift','in'],['Health','fa-heart-pulse','out'],
+                    ];
+                @endphp
+                @foreach(array_merge($cats, $cats) as $k => [$name, $icon, $dir])
+                    <li class="shrink-0 inline-flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-700" @if($k >= count($cats)) aria-hidden="true" @endif>
+                        <span class="w-7 h-7 rounded-full flex items-center justify-center {{ $dir === 'in' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }}"><i class="fa-solid {{ $icon }} text-xs" aria-hidden="true"></i></span>
+                        {{ $name }}
+                        <span class="font-mono text-[11px] {{ $dir === 'in' ? 'text-emerald-600' : 'text-rose-500' }}">{{ $dir === 'in' ? 'IN' : 'OUT' }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     HOW IT WORKS — pinned product panel that changes as you scroll
+     ===================================================================== --}}
+<section id="how" class="scroll-mt-20 py-20 sm:py-28" x-data="{ active: 0 }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">How it works</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                Three steps. <span class="font-serif-i text-slate-500">No spreadsheets.</span>
+            </h2>
+        </div>
+
+        <div class="mt-14 lg:mt-20 grid lg:grid-cols-2 gap-10 lg:gap-20">
+            {{-- Pinned screen (desktop) --}}
+            <div class="hidden lg:block">
+                <div class="sticky top-28">
+                    <div class="relative h-[26rem]">
+                        <div class="absolute -inset-6 rounded-[2rem] dots opacity-70" aria-hidden="true"></div>
+                        @foreach(['add','see','ask'] as $i => $screen)
+                            <div class="screen absolute inset-x-0 top-6"
+                                 :class="active === {{ $i }} ? 'opacity-100 translate-y-0 is-visible' : 'opacity-0 translate-y-4 pointer-events-none'">
+                                @include('partials.landing.screen-' . $screen)
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Steps --}}
+            <ol class="space-y-16 lg:space-y-0">
+                @foreach([
+                    ['01', 'Add', 'Log money as it moves', 'Add income and expenses in seconds. Pick a category, a date and an amount — Salary, Freelance, Food, Bills and more are built in. Edit or delete anything later.', 'add'],
+                    ['02', 'See', 'Watch the picture form', 'Your dashboard totals everything automatically: what came in, what went out, what you kept, and where it went by category and by month.', 'see'],
+                    ['03', 'Ask', 'Get answers, not charts', 'Ask the AI advisor in plain English. It reads your own numbers, goals and risk profile before it replies, so the advice fits your life.', 'ask'],
+                ] as $i => [$num, $kicker, $title, $body, $screen])
+                    <li class="lg:min-h-[70vh] lg:flex lg:items-center" x-intersect:enter.half="active = {{ $i }}">
+                        <div data-reveal>
+                            <div class="flex items-center gap-4">
+                                <span class="font-mono text-sm font-semibold transition-colors" :class="active === {{ $i }} ? 'text-indigo-600' : 'text-slate-400'">{{ $num }}</span>
+                                <span class="h-px w-12 transition-colors" :class="active === {{ $i }} ? 'bg-indigo-600' : 'bg-slate-300'"></span>
+                                <span class="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">{{ $kicker }}</span>
+                            </div>
+                            <h3 class="mt-5 text-3xl sm:text-4xl font-black tracking-[-0.03em] text-slate-900">{{ $title }}</h3>
+                            <p class="mt-4 text-lg text-slate-600 leading-relaxed max-w-md">{{ $body }}</p>
+                            <div class="mt-8 lg:hidden" data-reveal>
+                                @include('partials.landing.screen-' . $screen)
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     MADE FOR — three real use cases, each mapped to features that exist
+     ===================================================================== --}}
+<section class="py-20 sm:py-28 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6" data-reveal>
+            <div class="max-w-2xl">
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">Made for</p>
+                <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                    However your money <span class="font-serif-i text-indigo-600">moves.</span>
+                </h2>
+            </div>
+            <p class="text-lg text-slate-600 max-w-sm">One app, three very different households. Pick the one that sounds like you.</p>
+        </div>
+
+        <div class="mt-14 grid lg:grid-cols-3 border-t border-slate-200">
+            @foreach([
+                ['01', 'fa-user', 'Individuals', 'Salaried and want to know where it all goes.', ['Log salary and every expense by category', 'Watch your savings rate and health score', 'Ask the advisor before big purchases']],
+                ['02', 'fa-people-roof', 'Families', 'Running a household budget together.', ['Invite family members by email', 'Track shared income and spending', 'Owners, admins and members with clear roles']],
+                ['03', 'fa-laptop-code', 'Freelancers & side earners', 'Income that changes from month to month.', ['Separate Salary, Freelance and Business income', 'Consistency score shows how steady you are', 'Set an emergency-fund goal for lean months']],
+            ] as $k => [$num, $icon, $title, $lede, $points])
+                <article class="group relative pt-10 pb-10 lg:pr-10 {{ $k > 0 ? 'lg:pl-10 lg:border-l border-slate-200' : '' }} {{ $k > 0 ? 'border-t lg:border-t-0 border-slate-200' : '' }}" data-reveal style="--d: {{ $k * 100 }}ms">
+                    <span class="absolute top-0 left-0 {{ $k > 0 ? 'lg:left-10' : '' }} h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-violet-600 transition-all duration-500 group-hover:w-24" aria-hidden="true"></span>
+                    <div class="flex items-center justify-between">
+                        <span class="w-11 h-11 rounded-xl bg-slate-950 text-white flex items-center justify-center"><i class="fa-solid {{ $icon }}" aria-hidden="true"></i></span>
+                        <span class="font-mono text-sm text-slate-400">{{ $num }}</span>
+                    </div>
+                    <h3 class="mt-8 text-2xl font-black tracking-tight text-slate-900">{{ $title }}</h3>
+                    <p class="mt-2 text-slate-600">{{ $lede }}</p>
+                    <ul class="mt-6 space-y-3">
+                        @foreach($points as $p)
+                            <li class="flex gap-3 text-sm text-slate-700"><i class="fa-solid fa-arrow-right text-xs text-indigo-600 mt-1" aria-hidden="true"></i>{{ $p }}</li>
+                        @endforeach
+                    </ul>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     FEATURES — bento grid with real product details
+     ===================================================================== --}}
+<section id="features" class="scroll-mt-20 py-20 sm:py-28 bg-white border-y border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-6 items-end" data-reveal>
+            <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">What's inside</p>
+                <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                    Small tools. <span class="font-serif-i text-indigo-600">Big</span> clarity.
+                </h2>
+            </div>
+            <p class="text-lg text-slate-600 leading-relaxed lg:max-w-md lg:justify-self-end">Everything you need to understand your money — and nothing you'll never use.</p>
+        </div>
+
+        <div class="bento mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {{-- Health score (wide) --}}
+            <article class="lg:col-span-2 rounded-[1.5rem] border border-slate-200 bg-[#fbfbfa] p-6 sm:p-8 grid sm:grid-cols-5 gap-8 items-center" data-reveal>
+                <div class="sm:col-span-2 flex flex-col items-center sm:items-start">
+                    <span class="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Financial health score</span>
+                    <div class="relative mt-5 w-36 h-36">
+                        <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90" aria-hidden="true">
+                            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#e0e7ff" stroke-width="3"/>
+                            <circle class="ring-draw" cx="18" cy="18" r="15.5" fill="none" stroke="url(#hs)" stroke-width="3" stroke-linecap="round" stroke-dasharray="97.4" style="--off: 0"/>
+                            <defs><linearGradient id="hs" x1="0" x2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
+                        </svg>
+                        <span class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-black text-slate-900">100</span>
+                            <span class="font-mono text-[11px] text-slate-500 uppercase tracking-wider">points</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="sm:col-span-3">
+                    <h3 class="text-2xl font-black tracking-tight text-slate-900">One number for how stable you are</h3>
+                    <p class="mt-2 text-slate-600 leading-relaxed">Here's exactly how the 0–100 score is built:</p>
+                    <ul class="mt-5 space-y-3.5">
+                        @foreach([['Savings rate', 40], ['Spending control', 30], ['Month-to-month consistency', 20], ['Emergency runway (6-month target)', 10]] as $k => [$label, $w])
+                            <li>
+                                <div class="flex justify-between text-sm"><span class="font-semibold text-slate-700">{{ $label }}</span><span class="font-mono font-semibold text-slate-900">{{ $w }}%</span></div>
+                                <div class="mt-1.5 h-2 rounded-full bg-slate-200/70 overflow-hidden"><div class="fill h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600" style="--w: {{ $w / 40 * 100 }}%; --d: {{ $k * 120 }}ms"></div></div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </article>
+
+            {{-- Family hub --}}
+            <article class="rounded-[1.5rem] border border-slate-200 bg-white p-6 sm:p-8 flex flex-col" data-reveal style="--d: 80ms">
+                <span class="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Family hub</span>
+                <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900">One budget, the whole house</h3>
+                <p class="mt-2 text-slate-600 leading-relaxed">Invite people by email. They join with a one-click link and add to the shared income and spending.</p>
+                <ul class="mt-auto pt-6 space-y-2" aria-label="Family roles">
+                    @foreach([['Owner','Manages members and invites','bg-indigo-600 text-white'],['Admin','Helps manage the family','bg-indigo-100 text-indigo-700'],['Member','Adds and views shared money','bg-slate-100 text-slate-700']] as [$role, $desc, $tone])
+                        <li class="flex items-center gap-3 rounded-xl border border-slate-100 p-2.5">
+                            <span class="font-mono text-[11px] font-semibold px-2 py-1 rounded-md {{ $tone }}">{{ strtoupper($role) }}</span>
+                            <span class="text-sm text-slate-600">{{ $desc }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </article>
+
+            {{-- Reports --}}
+            <article class="rounded-[1.5rem] border border-slate-200 bg-white p-6 sm:p-8 flex flex-col" data-reveal>
+                <span class="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Reports</span>
+                <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900">Take it with you</h3>
+                <p class="mt-2 text-slate-600 leading-relaxed">Monthly trends and category breakdowns in the app — and clean PDF ledgers to download.</p>
+                <div class="mt-auto pt-6 space-y-2" aria-hidden="true">
+                    @foreach(['Income ledger', 'Expense ledger'] as $doc)
+                        <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                            <span class="w-9 h-11 rounded-md bg-white border border-slate-200 flex items-end justify-center pb-1 font-mono text-[9px] font-semibold text-rose-500">PDF</span>
+                            <div class="flex-1"><p class="text-sm font-bold text-slate-800">{{ $doc }}</p><p class="font-mono text-[11px] text-slate-500">Summary · categories · entries</p></div>
+                        </div>
+                    @endforeach
+                </div>
+            </article>
+
+            {{-- Markets --}}
+            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-950 text-white p-6 sm:p-8 flex flex-col" data-reveal style="--d: 80ms">
+                <span class="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-400">Market snapshot</span>
+                <h3 class="mt-3 text-2xl font-black tracking-tight">Markets, in rupees</h3>
+                <p class="mt-2 text-slate-400 leading-relaxed">Bitcoin, Ethereum and gold prices in ₹ inside the app — and the AI considers them when you ask about investing.</p>
+                <div class="mt-auto pt-6 grid grid-cols-3 gap-2" aria-hidden="true">
+                    @foreach([['BTC','fa-bitcoin','fa-brands'],['ETH','fa-ethereum','fa-brands'],['GOLD','fa-coins','fa-solid']] as [$t, $i, $set])
+                        <div class="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+                            <i class="{{ $set }} {{ $i }} text-lg text-indigo-300"></i>
+                            <p class="mt-1 font-mono text-xs font-semibold">{{ $t }}</p>
+                            <p class="font-mono text-[11px] text-slate-500">in ₹</p>
+                        </div>
+                    @endforeach
+                </div>
+            </article>
+
+            {{-- Goals --}}
+            <article class="rounded-[1.5rem] border border-slate-200 bg-white p-6 sm:p-8 flex flex-col" data-reveal style="--d: 160ms">
+                <span class="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Goals</span>
+                <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900">Save for something real</h3>
+                <p class="mt-2 text-slate-600 leading-relaxed">Set a target amount and date, give it a priority, and track it with the advisor.</p>
+                <div class="mt-auto pt-6 flex flex-wrap gap-2">
+                    @foreach(['Emergency fund','House','Car','Education','Retirement','Travel','Wedding','Gadget'] as $g)
+                        <span class="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-600">{{ $g }}</span>
+                    @endforeach
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     COMPARISON — honest, including where a spreadsheet wins
+     ===================================================================== --}}
+<section class="py-20 sm:py-28">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">Why not a spreadsheet?</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                Spreadsheets are great. <span class="font-serif-i text-slate-500">Until they aren't.</span>
+            </h2>
+        </div>
+
+        <div class="mt-14 rounded-[1.5rem] border border-slate-200 bg-white overflow-hidden" data-reveal style="--d: 100ms">
+            <table class="w-full text-left text-sm sm:text-base">
+                <caption class="sr-only">Comparison of a spreadsheet and FinanceAI</caption>
+                <thead>
+                    <tr class="border-b border-slate-200">
+                        <th scope="col" class="py-5 px-4 sm:px-8 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold w-1/2">What you need</th>
+                        <th scope="col" class="py-5 px-3 sm:px-6 font-bold text-slate-500 text-center">Spreadsheet</th>
+                        <th scope="col" class="py-5 px-3 sm:px-6 text-center bg-indigo-50/60">
+                            <span class="inline-flex items-center gap-2 font-black text-slate-900"><span class="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 text-white hidden sm:inline-flex items-center justify-center"><i class="fa-solid fa-cube text-[11px]" aria-hidden="true"></i></span>FinanceAI</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @php
+                        $yes = '<i class="fa-solid fa-circle-check text-emerald-500 text-lg" aria-hidden="true"></i><span class="sr-only">Yes</span>';
+                        $no  = '<i class="fa-solid fa-minus text-slate-300" aria-hidden="true"></i><span class="sr-only">No</span>';
+                    @endphp
+                    @foreach([
+                        ['Totals and savings rate', 'Write formulas', $yes],
+                        ['Spending by category and month', 'Build a pivot table', $yes],
+                        ['A health score with a clear breakdown', $no, $yes],
+                        ['A shared budget with roles', 'Share a file', $yes],
+                        ['Ask questions in plain English', $no, $yes],
+                        ['PDF ledgers', 'Export by hand', $yes],
+                        ['Fully custom layouts and formulas', $yes, 'Focused on personal & family finance'],
+                        ['Price to start', 'Free', 'Free'],
+                    ] as [$label, $sheet, $us])
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <th scope="row" class="py-4 sm:py-5 px-4 sm:px-8 font-semibold text-slate-800">{{ $label }}</th>
+                            <td class="py-4 sm:py-5 px-3 sm:px-6 text-center text-slate-500 text-xs sm:text-sm">{!! $sheet !!}</td>
+                            <td class="py-4 sm:py-5 px-3 sm:px-6 text-center bg-indigo-50/40 text-slate-700 text-xs sm:text-sm font-semibold">{!! $us !!}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     AI ADVISOR — dark section, chat types itself out when it scrolls in
+     ===================================================================== --}}
+<section id="ai" class="scroll-mt-20 grain overflow-hidden bg-[#0b0b1a] text-white py-20 sm:py-28">
+    <div class="absolute inset-0 opacity-[0.15] dots pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/70 to-transparent" aria-hidden="true"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <div class="lg:col-span-5" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-300">AI advisor</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] leading-[1.05]">
+                Advice that knows <span class="font-serif-i text-indigo-300">your</span> rent.
+            </h2>
+            <p class="mt-6 text-lg text-slate-300 leading-relaxed">
+                Generic tips can't see your salary or your spending. FinanceAI's advisor reads your income, expenses,
+                savings goals and risk profile first — then answers.
+            </p>
+            <dl class="mt-10 grid grid-cols-2 gap-6 border-t border-white/10 pt-8">
+                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-500">Risk profiles</dt><dd class="mt-1.5 text-sm text-slate-200">Conservative, moderate or aggressive</dd></div>
+                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-500">Model</dt><dd class="mt-1.5 text-sm text-slate-200">Google Gemini</dd></div>
+            </dl>
+        </div>
+
+        <div class="lg:col-span-7" data-reveal style="--d: 120ms"
+             x-data="{ step: 0, started: false, run() { if (this.started) return; this.started = true; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; if (reduce) { this.step = 5; return; } [500, 1700, 2900, 4000, 5000].forEach((t, i) => setTimeout(() => this.step = i + 1, t)); } }"
+             x-intersect.half="run()">
+            <div class="rounded-[1.5rem] border border-white/10 bg-white/[0.04] backdrop-blur p-5 sm:p-7 shadow-2xl" role="img" aria-label="Example conversation: a user asks if they can save two lakh rupees for a trip by next December; the advisor says yes, about fifteen thousand four hundred a month, and saves it as a goal.">
+                <div class="flex items-center justify-between pb-5 border-b border-white/10">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center"><i class="fa-solid fa-cube text-sm" aria-hidden="true"></i></span>
+                        <p class="text-sm font-bold">FinanceAI Advisor</p>
+                    </div>
+                    <span class="font-mono text-[11px] text-slate-500">Example conversation</span>
+                </div>
+
+                <div class="pt-6 space-y-4 text-[15px] min-h-[19rem]" aria-hidden="true">
+                    <div class="flex justify-end transition-all duration-500" :class="step >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+                        <p class="max-w-[85%] rounded-2xl rounded-br-sm bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-3">Can I save ₹2 lakh for a trip by next December?</p>
+                    </div>
+
+                    <div class="flex" x-show="step === 2" x-cloak>
+                        <p class="rounded-2xl rounded-bl-sm bg-white/10 px-4 py-3.5 typing flex gap-1"><span></span><span></span><span></span></p>
+                    </div>
+
+                    <div class="flex transition-all duration-500" :class="step >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 h-0 overflow-hidden'">
+                        <div class="max-w-[90%] rounded-2xl rounded-bl-sm bg-white/10 border border-white/10 px-4 py-3 text-slate-200 leading-relaxed">
+                            <p>Yes. That's about <strong class="text-white">₹15,400 a month</strong>. You currently keep around ₹18,000 a month, so it fits — with a little room to spare.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end transition-all duration-500" :class="step >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+                        <p class="max-w-[85%] rounded-2xl rounded-br-sm bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-3">Save it as a goal.</p>
+                    </div>
+
+                    <div class="flex transition-all duration-500" :class="step >= 5 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+                        <p class="rounded-2xl rounded-bl-sm bg-emerald-500/10 border border-emerald-400/20 text-emerald-200 px-4 py-3"><i class="fa-solid fa-circle-check mr-1.5" aria-hidden="true"></i>Goal “Trip” added · ₹2,00,000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     SECURITY — only measures that exist in the code
+     ===================================================================== --}}
+<section class="py-20 sm:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12">
+        <div class="lg:col-span-5" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">Privacy &amp; security</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                We never ask for your <span class="font-serif-i text-indigo-600">bank</span> password.
+            </h2>
+            <p class="mt-6 text-lg text-slate-600 leading-relaxed">You decide what goes in. There's no bank connection to leak, and the basics are locked down.</p>
+            @if(Route::has('privacy'))
+                <a href="{{ route('privacy') }}" class="mt-8 inline-flex items-center gap-2 font-bold text-indigo-700 hover:text-indigo-900 group">
+                    Read the privacy policy <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
+                </a>
+            @endif
+        </div>
+
+        <ul class="lg:col-span-7 grid sm:grid-cols-2 gap-px bg-slate-200 rounded-[1.5rem] overflow-hidden border border-slate-200" data-reveal style="--d: 100ms">
+            @foreach([
+                ['fa-building-columns', 'No bank connection', 'You add income and expenses yourself. FinanceAI never needs your bank login.'],
+                ['fa-key', 'Hashed passwords', 'Passwords are stored with bcrypt hashing — never in plain text.'],
+                ['fa-gauge-high', 'Sign-in limits', 'Login is limited to 5 attempts a minute to slow down password guessing.'],
+                ['fa-shield-halved', 'Protected forms', 'Every form is protected against cross-site request forgery.'],
+                ['fa-user-lock', 'Family permissions', 'Owners, admins and members can each only do what their role allows.'],
+                ['fa-file-export', 'Your data, exportable', 'Download your income and expense ledgers as PDF whenever you want.'],
+            ] as $k => [$icon, $title, $body])
+                <li class="bg-white p-6 sm:p-7">
+                    <i class="fa-solid {{ $icon }} text-indigo-600" aria-hidden="true"></i>
+                    <h3 class="mt-4 font-bold text-slate-900">{{ $title }}</h3>
+                    <p class="mt-1.5 text-sm text-slate-600 leading-relaxed">{{ $body }}</p>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+</section>
+
+{{-- =====================================================================
+     PRICING — plans and prices come straight from the database
+     ===================================================================== --}}
+@if(isset($plans) && $plans->isNotEmpty())
+<section id="pricing" class="scroll-mt-20 py-20 sm:py-28 bg-white border-y border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">Pricing</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">
+                Start at <span class="font-serif-i text-indigo-600">₹0</span>. Stay as long as you like.
+            </h2>
+        </div>
+
+        <div class="mt-14 grid md:grid-cols-{{ min(3, $plans->count()) }} gap-4 max-w-5xl mx-auto items-stretch">
+            @foreach($plans as $k => $plan)
+                @php $featured = $plan->slug === 'pro'; $paid = (float) $plan->price > 0; @endphp
+                <div class="relative rounded-[1.5rem] p-7 sm:p-8 flex flex-col {{ $featured ? 'bg-[#0b0b1a] text-white shadow-[0_40px_80px_-30px_rgba(30,27,75,.6)]' : 'bg-[#fbfbfa] border border-slate-200' }}" data-reveal style="--d: {{ $k * 90 }}ms">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-mono text-xs uppercase tracking-[0.18em] {{ $featured ? 'text-indigo-300' : 'text-slate-500' }}">{{ $plan->name }}</h3>
+                        @if($featured)<span class="font-mono text-[11px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md bg-gradient-to-br from-indigo-600 to-violet-600">Popular</span>@endif
+                    </div>
+                    <p class="mt-6 flex items-baseline gap-1.5">
+                        <span class="text-5xl font-black tracking-tight tabular-nums">₹{{ number_format((float) $plan->price) }}</span>
+                        <span class="text-sm {{ $featured ? 'text-slate-400' : 'text-slate-500' }}">{{ $paid ? '/ ' . ($plan->duration_days ?: 30) . ' days' : 'forever' }}</span>
+                    </p>
+                    <div class="my-7 h-px {{ $featured ? 'bg-white/10' : 'bg-slate-200' }}"></div>
+                    <ul class="space-y-3 text-sm flex-1">
+                        @foreach((array) $plan->features as $feature)
+                            <li class="flex gap-3"><i class="fa-solid fa-check mt-0.5 {{ $featured ? 'text-indigo-300' : 'text-indigo-600' }}" aria-hidden="true"></i><span class="{{ $featured ? 'text-slate-300' : 'text-slate-600' }}">{{ $feature }}</span></li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ auth()->check() ? route('user.subscription.index') : route('register') }}"
+                       class="mt-8 inline-flex justify-center items-center h-12 rounded-xl font-bold transition-all focus:outline-none focus-visible:ring-4 {{ $featured ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white hover:-translate-y-0.5 focus-visible:ring-indigo-400' : 'bg-white border border-slate-200 text-slate-900 hover:border-slate-300 focus-visible:ring-indigo-200' }}">
+                        {{ $paid ? 'Choose ' . $plan->name : 'Start free' }}
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- =====================================================================
+     FAQ
+     ===================================================================== --}}
+<section id="faq" class="scroll-mt-20 py-20 sm:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12">
+        <div class="lg:col-span-4" data-reveal>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-600">FAQ</p>
+            <h2 class="mt-4 text-4xl sm:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-[1.05]">Good <span class="font-serif-i text-slate-500">questions.</span></h2>
+            <p class="mt-6 text-slate-600">Something else? <a href="{{ route('contact') }}" class="font-bold text-indigo-700 hover:text-indigo-900 underline underline-offset-4 decoration-indigo-200">Contact us</a>.</p>
+        </div>
+        <div class="lg:col-span-8 border-t border-slate-200" x-data="{ open: 0 }" data-reveal style="--d: 100ms">
+            @foreach([
+                ['Is FinanceAI free?', 'Yes. The Starter plan costs ₹0 and needs no card. Paid plans are optional and billed every 30 days.'],
+                ['Does it connect to my bank?', 'No. You add income and expenses yourself, so FinanceAI never needs your bank login.'],
+                ['How is the health score calculated?', 'It\'s a 0–100 score: 40% savings rate, 30% spending control, 20% how consistent your money is month to month, and 10% emergency runway, where 6 months of runway is the target.'],
+                ['How does family sharing work?', 'Create a family and invite people by email. They join with a one-click link and can add to the shared income and spending. Owners manage members and invites.'],
+                ['What does the AI advisor see?', 'Your own income, expenses, goals and risk profile, plus current market prices. Its answers are guidance, not regulated financial advice.'],
+                ['Can I take my data with me?', 'Yes. Download PDF ledgers of your income and your expenses at any time.'],
+            ] as $i => [$q, $a])
+                <div class="border-b border-slate-200">
+                    <h3>
+                        <button type="button" @click="open = open === {{ $i }} ? null : {{ $i }}" :aria-expanded="open === {{ $i }}"
+                                class="w-full flex items-center justify-between gap-6 py-6 text-left text-lg font-bold text-slate-900 hover:text-indigo-700 transition-colors focus:outline-none focus-visible:text-indigo-700">
+                            <span>{{ $q }}</span>
+                            <span class="w-8 h-8 shrink-0 rounded-full border border-slate-200 flex items-center justify-center transition-all duration-300" :class="open === {{ $i }} && 'bg-indigo-600 border-indigo-600 text-white rotate-45'">
+                                <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </h3>
+                    <div x-show="open === {{ $i }}" x-collapse>
+                        <p class="pb-6 pr-14 text-slate-600 leading-relaxed">{{ $a }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     BUILT ON PROVEN TOOLS — the real stack
+     ===================================================================== --}}
+<section class="px-4 sm:px-6 lg:px-8 pb-6">
+    <div class="relative max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-[#0b0b1a] text-white grain" data-reveal>
+        <div class="relative grid lg:grid-cols-12 gap-10 p-8 sm:p-12 lg:p-16 items-center">
+            <div class="lg:col-span-5">
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-indigo-300">Under the hood</p>
+                <h2 class="mt-4 text-3xl sm:text-4xl font-black tracking-[-0.03em] leading-[1.08]">
+                    Built on tools <span class="font-serif-i text-indigo-300">you can trust.</span>
+                </h2>
+                <p class="mt-5 text-slate-400 leading-relaxed">No experimental tech holding your money data. FinanceAI runs on proven, widely used software — each piece doing one job well.</p>
+            </div>
+            <ul class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3" aria-label="Technology used">
+                @foreach([
+                    ['fa-brands fa-laravel', 'Laravel 8', 'Application'],
+                    ['fa-solid fa-database', 'MySQL', 'Your data'],
+                    ['fa-solid fa-wand-magic-sparkles', 'Google Gemini', 'AI advisor'],
+                    ['fa-solid fa-file-pdf', 'DomPDF', 'PDF ledgers'],
+                    ['fa-brands fa-bitcoin', 'CoinGecko', 'Market prices'],
+                    ['fa-solid fa-shield-halved', 'bcrypt', 'Password hashing'],
+                ] as $k => [$icon, $name, $role])
+                    <li class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 hover:border-indigo-400/40 hover:bg-white/[0.06] transition-colors">
+                        <i class="{{ $icon }} text-xl text-indigo-300" aria-hidden="true"></i>
+                        <p class="mt-4 font-bold">{{ $name }}</p>
+                        <p class="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-0.5">{{ $role }}</p>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</section>
+
+{{-- =====================================================================
+     FINAL CTA
+     ===================================================================== --}}
+<section class="px-4 sm:px-6 lg:px-8 pb-20 sm:pb-28">
+    <div class="relative max-w-7xl mx-auto overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 to-violet-700 px-6 py-16 sm:px-16 sm:py-24" data-reveal>
+        <div class="absolute inset-0 opacity-30 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px); background-size: 18px 18px;" aria-hidden="true"></div>
+        <div class="relative grid lg:grid-cols-12 gap-10 items-end">
+            <h2 class="lg:col-span-8 text-4xl sm:text-6xl font-black tracking-[-0.035em] text-white leading-[1.02]">
+                Know where every rupee goes — <span class="font-serif-i text-indigo-200">starting today.</span>
+            </h2>
+            <div class="lg:col-span-4 flex flex-col gap-3">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="inline-flex justify-center items-center gap-2 h-14 rounded-xl bg-white text-indigo-700 font-bold hover:bg-indigo-50 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/40">
+                        Open your dashboard <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
+                    </a>
+                @else
+                    <a href="{{ route('register') }}" class="inline-flex justify-center items-center gap-2 h-14 rounded-xl bg-white text-indigo-700 font-bold hover:bg-indigo-50 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/40">
+                        Create a free account <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
+                    </a>
+                    <a href="{{ route('login') }}" class="inline-flex justify-center items-center h-14 rounded-xl border border-white/30 text-white font-bold hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/40">
+                        I already have an account
+                    </a>
+                @endauth
+            </div>
+        </div>
+    </div>
+</section>
+
+</div>
+@endsection
+
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 0. AOS Initialization
-    AOS.init({ duration: 1000, once: true, offset: 100, easing: 'ease-out-cubic' });
-
-    // 1. CUSTOM CURSOR LOGIC (Magnetic Effect)
-    const cursor = document.getElementById('custom-cursor');
-    const heroSection = document.getElementById('hero');
-    const magneticTargets = document.querySelectorAll('.magnetic-target');
-
-    if (cursor) {
-        document.addEventListener('mousemove', (e) => {
-            if(e.target.closest('.cursor-none') || e.target.closest('#hero') || document.body.classList.contains('matrix-mode')) {
-                cursor.style.opacity = '1';
-                cursor.style.left = e.clientX + 'px';
-                cursor.style.top = e.clientY + 'px';
-            } else {
-                cursor.style.opacity = '0';
-            }
-        });
-
-        magneticTargets.forEach(target => {
-            target.addEventListener('mousemove', (e) => {
-                const rect = target.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                
-                target.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-                cursor.style.transform = `translate(-50%, -50%) scale(3)`;
-                cursor.style.backgroundColor = 'rgba(99, 102, 241, 0.2)'; 
-                cursor.style.borderColor = 'rgba(99, 102, 241, 0.8)';
+    // Reveal-on-scroll for [data-reveal] blocks and data visuals inside them.
+    (function () {
+        var els = document.querySelectorAll('[data-reveal]');
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            els.forEach(function (el) { el.classList.add('is-visible'); });
+            return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
             });
-
-            target.addEventListener('mouseleave', () => {
-                target.style.transform = `translate(0px, 0px)`;
-                cursor.style.transform = `translate(-50%, -50%) scale(1)`;
-                cursor.style.backgroundColor = 'transparent'; 
-                cursor.style.borderColor = '#6366f1'; 
-            });
-        });
-    }
-
-    // 2. DYNAMIC GREETING BASED ON TIME
-    const greetingEl = document.getElementById('dynamic-greeting');
-    if(greetingEl) {
-        const hour = new Date().getHours();
-        let greeting = "System Online";
-        if (hour >= 5 && hour < 12) greeting = "Good Morning";
-        else if (hour >= 12 && hour < 18) greeting = "Good Afternoon";
-        else greeting = "Good Evening";
-        greetingEl.innerText = greeting;
-    }
-
-    // 3. CMD+K MODAL LOGIC (Vanilla JS Fallback if Alpine not wrapped)
-    const cmdkModal = document.getElementById('cmdk-modal');
-    const cmdkInput = document.getElementById('cmdk-input');
-
-    window.openCmdK = function() {
-        if(!cmdkModal) return;
-        cmdkModal.classList.remove('hidden');
-        cmdkModal.classList.add('flex');
-        setTimeout(() => {
-            cmdkModal.classList.remove('opacity-0');
-            cmdkModal.classList.add('opacity-100');
-            document.getElementById('cmdk-content').classList.remove('scale-95');
-            document.getElementById('cmdk-content').classList.add('scale-100');
-            if(cmdkInput) cmdkInput.focus();
-        }, 10);
-    }
-
-    window.closeCmdK = function() {
-        if(!cmdkModal) return;
-        cmdkModal.classList.remove('opacity-100');
-        cmdkModal.classList.add('opacity-0');
-        document.getElementById('cmdk-content').classList.remove('scale-100');
-        document.getElementById('cmdk-content').classList.add('scale-95');
-        setTimeout(() => {
-            cmdkModal.classList.add('hidden');
-            cmdkModal.classList.remove('flex');
-            if(cmdkInput) cmdkInput.value = '';
-        }, 300);
-    }
-
-    // Interactive AI Spiderweb Particle Network (Hero Canvas)
-    const particleCanvas = document.getElementById('particleCanvas');
-    if(particleCanvas) {
-        const pCtx = particleCanvas.getContext('2d');
-        let particlesArray;
-        let mouse = { x: null, y: null, radius: 150 };
-
-        window.addEventListener('mousemove', function(event) {
-            mouse.x = event.x;
-            mouse.y = event.y;
-        });
-
-        particleCanvas.width = window.innerWidth;
-        particleCanvas.height = window.innerHeight;
-
-        class Particle {
-            constructor(x, y, directionX, directionY, size, color) {
-                this.x = x; this.y = y;
-                this.directionX = directionX; this.directionY = directionY;
-                this.size = size; this.color = color;
-            }
-            draw() {
-                pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                pCtx.fillStyle = '#6366f1'; pCtx.fill();
-            }
-            update() {
-                if (this.x > particleCanvas.width || this.x < 0) this.directionX = -this.directionX;
-                if (this.y > particleCanvas.height || this.y < 0) this.directionY = -this.directionY;
-                
-                // Collision detection with mouse (Spiderweb effect)
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx*dx + dy*dy);
-                if (distance < mouse.radius + this.size) {
-                    if (mouse.x < this.x && this.x < particleCanvas.width - this.size * 10) this.x += 1;
-                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 1;
-                    if (mouse.y < this.y && this.y < particleCanvas.height - this.size * 10) this.y += 1;
-                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 1;
-                }
-
-                this.x += this.directionX; this.y += this.directionY;
-                this.draw();
-            }
-        }
-
-        function initParticles() {
-            particlesArray = [];
-            let numberOfParticles = (particleCanvas.height * particleCanvas.width) / 9000;
-            for (let i = 0; i < numberOfParticles; i++) {
-                let size = (Math.random() * 2) + 1;
-                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                let directionX = (Math.random() * 1.5) - 0.75;
-                let directionY = (Math.random() * 1.5) - 0.75;
-                particlesArray.push(new Particle(x, y, directionX, directionY, size, '#6366f1'));
-            }
-        }
-
-        function animateParticles() {
-            requestAnimationFrame(animateParticles);
-            pCtx.clearRect(0, 0, innerWidth, innerHeight);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-            connectParticles();
-        }
-
-        function connectParticles() {
-            let opacityValue = 1;
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    
-                    // Connect to mouse
-                    let mouseDistance = ((particlesArray[a].x - mouse.x) * (particlesArray[a].x - mouse.x)) + ((particlesArray[a].y - mouse.y) * (particlesArray[a].y - mouse.y));
-                    
-                    if (distance < (particleCanvas.width/7) * (particleCanvas.height/7)) {
-                        opacityValue = 1 - (distance / 20000);
-                        // Make lines near mouse brighter
-                        if(mouseDistance < 20000) opacityValue += 0.5;
-                        
-                        pCtx.strokeStyle = 'rgba(99, 102, 241,' + opacityValue + ')';
-                        pCtx.lineWidth = 1;
-                        pCtx.beginPath();
-                        pCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        pCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
-                        pCtx.stroke();
-                    }
-                }
-            }
-        }
-
-        window.addEventListener('resize', function() {
-            particleCanvas.width = innerWidth; particleCanvas.height = innerHeight;
-            initParticles();
-        });
-
-        initParticles();
-        animateParticles();
-    }
-
-    // 6. API TABS SWITCHER (Vanilla JS)
-    const apiTabs = document.querySelectorAll('.api-tab');
-    const apiCodes = document.querySelectorAll('.api-code-block');
-
-    if(apiTabs.length > 0) {
-        apiTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                apiTabs.forEach(t => {
-                    t.classList.remove('text-indigo-400', 'border-indigo-500');
-                    t.classList.add('text-slate-500', 'border-transparent');
-                });
-                tab.classList.remove('text-slate-500', 'border-transparent');
-                tab.classList.add('text-indigo-400', 'border-indigo-500');
-
-                apiCodes.forEach(code => {
-                    code.classList.remove('opacity-100');
-                    code.classList.add('opacity-0');
-                    setTimeout(() => { code.classList.add('hidden'); code.classList.remove('block', 'flex-1'); }, 300);
-                });
-
-                const targetId = tab.getAttribute('data-target');
-                const targetCode = document.getElementById(targetId);
-                if(targetCode) {
-                    setTimeout(() => {
-                        targetCode.classList.remove('hidden');
-                        if(targetId === 'code-php') targetCode.classList.add('flex-1');
-                        else targetCode.classList.add('block');
-                        setTimeout(() => { targetCode.classList.remove('opacity-0'); targetCode.classList.add('opacity-100'); }, 10);
-                    }, 300);
-                }
-            });
-        });
-    }
-
-    // 7. PURE VANILLA JS ROI CALCULATOR ENGINE (With Dynamic Chart)
-    const txSlider = document.getElementById('txSlider');
-    const expSlider = document.getElementById('expSlider');
-    const txValue = document.getElementById('txValue');
-    const expValue = document.getElementById('expValue');
-    const hoursSaved = document.getElementById('hoursSaved');
-    const moneySaved = document.getElementById('moneySaved');
-    const dynamicChartBar = document.getElementById('dynamicChartBar');
-
-    function calculateROI() {
-        if(!txSlider || !expSlider) return;
-        const tx = parseInt(txSlider.value);
-        const exp = parseInt(expSlider.value);
-        
-        txValue.innerText = tx;
-        expValue.innerText = '₹' + exp.toLocaleString('en-IN');
-
-        const hours = Math.round((tx * 3 * 12) / 60); 
-        const savings = Math.round((exp * 12) * 0.15); // Assume 15% saving
-
-        hoursSaved.innerText = hours;
-        
-        // Format money smartly (81k instead of 81000 for space)
-        if(savings >= 1000) {
-            moneySaved.innerText = '₹' + (savings/1000).toFixed(0) + 'k';
-        } else {
-            moneySaved.innerText = '₹' + savings;
-        }
-
-        // Animate the bar chart relative to savings
-        if(dynamicChartBar) {
-            // max savings in this scale is (500000 * 12) * 0.15 = 900,000
-            let percentage = (savings / 900000) * 100;
-            // Map percentage to a visual height between 15% and 85%
-            let visualHeight = 15 + (percentage * 0.7);
-            dynamicChartBar.style.height = `${visualHeight}%`;
-        }
-    }
-
-    if(txSlider) txSlider.addEventListener('input', calculateROI);
-    if(expSlider) expSlider.addEventListener('input', calculateROI);
-
-    // 9. SCROLL VELOCITY SKEW EFFECT
-    let lastScroll = window.scrollY;
-    const skewElements = document.querySelectorAll('.scroll-skew');
-    
-    if(skewElements.length > 0) {
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.scrollY;
-            const velocity = currentScroll - lastScroll;
-            lastScroll = currentScroll;
-            
-            const skewAmount = Math.max(Math.min(velocity * 0.05, 5), -5);
-            
-            skewElements.forEach(el => {
-                el.style.transform = `skewY(${skewAmount}deg)`;
-                setTimeout(() => {
-                    el.style.transform = `skewY(0deg)`;
-                }, 150);
-            });
-        });
-    }
-
-    // 10. Advanced Scroll-Spy Feature Section (Vanilla JS)
-    const featureTexts = document.querySelectorAll('.feature-text');
-    const featureImages = document.querySelectorAll('.feature-image');
-    
-    if(featureTexts.length > 0) {
-        window.addEventListener('scroll', () => {
-            featureTexts.forEach((text, index) => {
-                const textTop = text.getBoundingClientRect().top;
-                const windowHeight = window.innerHeight;
-                
-                if (textTop < windowHeight * 0.6 && textTop > windowHeight * 0.2) {
-                    text.classList.remove('opacity-20', 'blur-md', 'translate-x-10');
-                    text.classList.add('opacity-100', 'translate-x-0');
-                    
-                    featureImages.forEach((img, imgIndex) => {
-                        if(index === imgIndex) {
-                            img.style.display = 'block';
-                            setTimeout(() => { img.style.opacity = '1'; img.style.transform = 'translateY(0) scale(1)'; }, 50);
-                        } else {
-                            img.style.opacity = '0'; img.style.transform = 'translateY(40px) scale(0.95)';
-                            setTimeout(() => { img.style.display = 'none'; }, 700);
-                        }
-                    });
-                } else {
-                    text.classList.add('opacity-20', 'blur-md', 'translate-x-10');
-                    text.classList.remove('opacity-100', 'translate-x-0');
-                }
-            });
-        });
-        
-        featureImages.forEach((img, index) => {
-            if(index !== 0) {
-                img.style.display = 'none';
-                img.style.opacity = '0';
-            }
-        });
-    }
-
-    // 11. Bento Box Mouse Glow Effect
-    document.querySelectorAll('.bento-card').forEach(card => {
-        card.addEventListener('mousemove', e => {
-            const glow = card.querySelector('.glow-effect');
-            if(!glow) return;
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            glow.style.background = `radial-gradient(800px circle at ${x}px ${y}px, rgba(79,70,229,0.06), transparent 40%)`;
-        });
-    });
-
-    // 12. PURE VANILLA JS PRICING TOGGLE
-    const toggleBtn = document.getElementById('pricingToggleBtn');
-    if (toggleBtn) {
-        let isAnnual = false;
-        const slider = document.getElementById('pricingSlider');
-        const btnMonthly = document.getElementById('btnMonthly');
-        const btnYearly = document.getElementById('btnYearly');
-        const prices = document.querySelectorAll('.price-value');
-        const periods = document.querySelectorAll('.price-period');
-
-        toggleBtn.addEventListener('click', (e) => {
-            const rect = toggleBtn.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            isAnnual = clickX > rect.width / 2;
-
-            if (isAnnual) {
-                slider.classList.replace('translate-x-0', 'translate-x-full');
-                btnYearly.classList.replace('text-slate-500', 'text-white');
-                btnMonthly.classList.replace('text-white', 'text-slate-500');
-                
-                prices.forEach(p => p.innerText = '₹' + p.getAttribute('data-yearly'));
-                periods.forEach(p => p.innerText = '/yr');
-            } else {
-                slider.classList.replace('translate-x-full', 'translate-x-0');
-                btnMonthly.classList.replace('text-slate-500', 'text-white');
-                btnYearly.classList.replace('text-white', 'text-slate-500');
-                
-                prices.forEach(p => p.innerText = '₹' + p.getAttribute('data-monthly'));
-                periods.forEach(p => p.innerText = '/mo');
-            }
-        });
-    }
-
-    // 13. PURE VANILLA JS FAQ ACCORDION
-    const faqBtns = document.querySelectorAll('.faq-btn');
-    if(faqBtns.length > 0) {
-        faqBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                const icon = this.querySelector('.faq-icon');
-                
-                faqBtns.forEach(otherBtn => {
-                    if(otherBtn !== btn) {
-                        otherBtn.nextElementSibling.style.maxHeight = null;
-                        otherBtn.querySelector('.faq-icon').classList.remove('rotate-180', 'bg-indigo-50', 'text-indigo-500', 'border-indigo-100');
-                    }
-                });
-
-                if (content.style.maxHeight) {
-                    content.style.maxHeight = null;
-                    icon.classList.remove('rotate-180', 'bg-indigo-50', 'text-indigo-500', 'border-indigo-100');
-                } else {
-                    content.style.maxHeight = content.scrollHeight + "px";
-                    icon.classList.add('rotate-180', 'bg-indigo-50', 'text-indigo-500', 'border-indigo-100');
-                }
-            });
-        });
-    }
-
-    // 15. Hero 3D Mouse Tilt Effect
-    const hero3D = document.getElementById('hero3D');
-    const tiltCard = hero3D?.querySelector('.tilt-card');
-    if(hero3D && tiltCard) {
-        hero3D.addEventListener('mousemove', (e) => {
-            const rect = hero3D.getBoundingClientRect();
-            const x = e.clientX - rect.left; 
-            const y = e.clientY - rect.top;  
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -10;
-            const rotateY = ((x - centerX) / centerX) * 10;
-            tiltCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
-        hero3D.addEventListener('mouseleave', () => {
-            tiltCard.style.transform = `rotateX(0deg) rotateY(0deg)`;
-            tiltCard.style.transition = `transform 0.5s ease-out`; 
-        });
-        hero3D.addEventListener('mouseenter', () => {
-            tiltCard.style.transition = `transform 0.1s ease-out`; 
-        });
-    }
-
-    // 16. BEAST CHART (Neon Glow)
-    const canvas = document.getElementById('heroNeonChart');
-    if(canvas){
-        const ctx = canvas.getContext('2d');
-        const gradIncome = ctx.createLinearGradient(0, 0, 0, 200);
-        gradIncome.addColorStop(0, 'rgba(52, 211, 153, 0.4)'); 
-        gradIncome.addColorStop(1, 'rgba(52, 211, 153, 0)');
-
-        new Chart(ctx, {
-            type:'line',
-            data:{
-                labels:['W1','W2','W3','W4','W5','W6'],
-                datasets:[{
-                    label: 'Portfolio',
-                    data: [820000, 940000, 910000, 1050000, 1120000, 1240500], 
-                    borderColor: '#34d399', 
-                    backgroundColor: gradIncome,
-                    borderWidth: 4,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#0a0f1c',
-                    pointBorderColor: '#34d399',
-                    pointBorderWidth: 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                }]
-            },
-            options:{
-                responsive:true,
-                maintainAspectRatio:false,
-                interaction: { mode: 'index', intersect: false },
-                plugins:{
-                    legend:{display:false},
-                    tooltip: { backgroundColor: '#1e293b', titleColor: '#fff', bodyColor: '#34d399', padding: 12, cornerRadius: 8, titleFont:{size:14}, bodyFont:{weight:'900', size:16} }
-                },
-                scales:{
-                    y:{display:false},
-                    x:{grid:{display:false}, border:{display:false}, ticks:{color:'#64748b', font:{family:'monospace', size: 12}}}
-                }
-            }
-        });
-    }
-
-    // 17. LIVE PULSE NOTIFICATIONS (Social Proof Toast)
-    const toastMessages = [
-        { title: 'Secure Sync', msg: 'New bank connection established via Stripe.' },
-        { title: 'AI Categorized', msg: 'Expense: Crazy Chat Corner - ₹150' },
-        { title: 'Pro Upgrade', msg: 'GTU Student claimed Free Pro Tier.' },
-        { title: 'Payment Mapped', msg: 'Expense: BGMI UC Purchase - ₹380' },
-        { title: 'AI Automation', msg: 'Generated 90-day forecast for user #8491.' }
-    ];
-    let currentToast = 0;
-    const toast = document.getElementById('liveToast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastMsg = document.getElementById('toastMessage');
-
-    if(toast) {
-        setInterval(() => {
-            toastTitle.innerText = toastMessages[currentToast].title;
-            toastMsg.innerText = toastMessages[currentToast].msg;
-            
-            toast.classList.remove('translate-y-40', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-40', 'opacity-0');
-            }, 5000);
-
-            currentToast = (currentToast + 1) % toastMessages.length;
-        }, 12000); 
-    }
-
-    // 18. Observer-Based Counter Animation
-    const animateCounters = () => {
-        document.querySelectorAll('.counter').forEach(el => {
-            if(el.dataset.animated === "true") return;
-            el.dataset.animated = "true";
-            
-            const target = parseInt(el.dataset.target) || 0;
-            const duration = 2500;
-            let startTime = null;
-
-            function step(timestamp) {
-                if (!startTime) startTime = timestamp;
-                const progress = Math.min((timestamp - startTime) / duration, 1);
-                // Ease out Expo
-                const easedValue = Math.floor(progress === 1 ? target : target * (1 - Math.pow(2, -10 * progress)));
-                el.innerText = easedValue.toLocaleString('en-IN');
-                if (progress < 1) window.requestAnimationFrame(step);
-            }
-            window.requestAnimationFrame(step);
-        });
-    };
-
-    const counterObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                animateCounters();
-                counterObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.2 });
-
-    const kpiSection = document.querySelector('.kpi-card-trigger');
-    if(kpiSection) counterObserver.observe(kpiSection);
-
-});
-
-// 19. WORKING YOUTUBE VIDEO MODAL LOGIC
-window.openDemoModal = function() {
-    const modal = document.getElementById('demoModal');
-    const content = document.getElementById('demoModalContent');
-    const player = document.getElementById('youtubePlayer');
-    
-    // Inject real YouTube video URL with autoplay
-    player.src = "https://www.youtube.com/embed/gQ-7E6l_Z50?autoplay=1&rel=0&modestbranding=1";
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        modal.classList.add('opacity-100');
-        content.classList.remove('scale-95');
-        content.classList.add('scale-100');
-    }, 10);
-}
-
-window.closeDemoModal = function() {
-    const modal = document.getElementById('demoModal');
-    const content = document.getElementById('demoModalContent');
-    const player = document.getElementById('youtubePlayer');
-
-    modal.classList.remove('opacity-100');
-    modal.classList.add('opacity-0');
-    content.classList.remove('scale-100');
-    content.classList.add('scale-95');
-    
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        player.src = ""; // Kill iframe stream to stop audio
-    }, 300); 
-}
-
-// 20. KONAMI CODE EASTER EGG (The Ultimate Flex)
-window.triggerKonami = function() {
-    if(typeof closeCmdK === 'function') closeCmdK();
-    document.body.classList.add('matrix-mode');
-    
-    const mCanvas = document.getElementById('matrixCanvas');
-    if(!mCanvas) return;
-    
-    mCanvas.classList.remove('hidden');
-    setTimeout(() => mCanvas.classList.remove('opacity-0'), 100);
-    
-    const ctx = mCanvas.getContext('2d');
-    mCanvas.width = window.innerWidth;
-    mCanvas.height = window.innerHeight;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
-    const fontSize = 16;
-    const columns = mCanvas.width / fontSize;
-    const drops = [];
-    for(let x = 0; x < columns; x++) drops[x] = 1; 
-
-    function drawMatrix() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.fillRect(0, 0, mCanvas.width, mCanvas.height);
-        ctx.fillStyle = '#0F0';
-        ctx.font = fontSize + 'px monospace';
-        for(let i = 0; i < drops.length; i++) {
-            const text = letters.charAt(Math.floor(Math.random() * letters.length));
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-            if(drops[i] * fontSize > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
-    }
-    const matrixInterval = setInterval(drawMatrix, 33);
-
-    setTimeout(() => {
-        clearInterval(matrixInterval);
-        mCanvas.classList.add('opacity-0');
-        document.body.classList.remove('matrix-mode');
-        setTimeout(() => mCanvas.classList.add('hidden'), 1000);
-    }, 10000);
-}
-
-const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-let konamiIndex = 0;
-document.addEventListener('keydown', (e) => {
-    if (e.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === konamiCode.length) {
-            triggerKonami();
-            konamiIndex = 0;
-        }
-    } else {
-        konamiIndex = 0;
-    }
-});
+        }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+        els.forEach(function (el) { io.observe(el); });
+    })();
 </script>
 @endpush

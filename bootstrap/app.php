@@ -11,9 +11,18 @@
 |
 */
 
-$app = new Illuminate\Foundation\Application(
-    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
-);
+// On Vercel, use a custom Application that redirects bootstrap/cache to /tmp
+if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL'])) {
+    require_once __DIR__ . '/../app/VercelApplication.php';
+    $app = new App\VercelApplication(
+        $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
+    );
+    $app->useStoragePath('/tmp/storage');
+} else {
+    $app = new Illuminate\Foundation\Application(
+        $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
+    );
+}
 
 /*
 |--------------------------------------------------------------------------

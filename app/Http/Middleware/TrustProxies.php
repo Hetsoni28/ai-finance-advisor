@@ -9,10 +9,12 @@ class TrustProxies extends Middleware
 {
     /**
      * The trusted proxies for this application.
+     * Set to '*' to trust all proxies — required for Vercel/serverless deployments
+     * where HTTPS is terminated at the edge before reaching the PHP runtime.
      *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.

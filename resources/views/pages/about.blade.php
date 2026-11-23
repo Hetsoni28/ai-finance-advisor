@@ -276,9 +276,6 @@
                     <p class="text-[10px] font-bold text-sky-500 uppercase tracking-widest mt-1 mb-4">Infrastructure</p>
                     <p class="text-sm text-slate-500 font-medium leading-relaxed px-4">Securing the ledger cryptography and maintaining 99.9% network uptime.</p>
                     
-                    <div class="mt-8 flex justify-center gap-3">
-                        <a href="#" class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-sky-500 hover:border-sky-300 hover:bg-sky-50 flex items-center justify-center shadow-sm transition-all focus:outline-none"><i class="fa-brands fa-github"></i></a>
-                    </div>
                 </div>
 
                 {{-- Team Member 3 --}}
