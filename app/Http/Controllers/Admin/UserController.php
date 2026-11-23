@@ -64,7 +64,7 @@ class UserController extends Controller
             ->withQueryString();
 
         // 📊 Cached KPI Stats (Cache busts automatically on changes)
-        $stats = Cache::remember('admin_user_stats', now()->addMinutes(30), function () {
+        $stats = Cache::remember('admin_user_stats', now()->addMinute(), function () {
             // Using aggregate counts in a single query for massive performance boost
             $data = User::selectRaw('
                 COUNT(*) as total,

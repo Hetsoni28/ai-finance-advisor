@@ -201,8 +201,8 @@
                         <div class="relative">
                             <select name="severity" class="px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none cursor-pointer appearance-none pr-10 transition-all shadow-sm">
                                 <option value="">All Severities</option>
-                                <option value="critical" @selected(request('severity')=='critical')>Critical Only</option>
-                                <option value="info" @selected(request('severity')=='info')>Info Only</option>
+                                <option value="critical" {{ request('severity')=='critical' ? 'selected' : '' }}>Critical Only</option>
+                                <option value="info" {{ request('severity')=='info' ? 'selected' : '' }}>Info Only</option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
                         </div>

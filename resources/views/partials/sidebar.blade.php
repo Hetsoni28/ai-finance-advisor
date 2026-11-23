@@ -41,13 +41,15 @@
     ];
 
     if ($isAdmin) {
-        $groups['Admin'] = [
+        // Admins: admin tools first, and make the personal dashboard clearly "My Dashboard"
+        $groups['Money'][0][3] = 'My Dashboard';
+        $groups = ['Admin' => [
             ['admin.dashboard',        'admin.dashboard*',   'fa-gauge',      'Overview'],
             ['admin.users.index',      'admin.users.*',      'fa-users',      'Users'],
             ['admin.contacts.index',   'admin.contacts.*',   'fa-envelope',   'Messages'],
             ['admin.activities.index', 'admin.activities.*', 'fa-list-check', 'Activity Log'],
             ['admin.reports.index',    'admin.reports.*',    'fa-file-lines', 'Admin Reports'],
-        ];
+        ]] + $groups;
     }
 
     $initials = 'U';

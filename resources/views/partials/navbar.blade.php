@@ -60,6 +60,20 @@
 
     // Contextual Workspace Name (Safe Resolution)
     $activeContext = isset($family) && $family ? $family->name : 'Personal Workspace';
+
+    // Admin pages: say so clearly, with the right page name
+    if (str_starts_with($currentRoute, 'admin.')) {
+        $activeContext = 'Admin Panel';
+        $adminPages = [
+            'admin.dashboard' => 'Overview', 'admin.users' => 'Users', 'admin.contacts' => 'Messages',
+            'admin.activities' => 'Activity Log', 'admin.reports' => 'Reports',
+        ];
+        $pageName = 'Overview';
+        foreach ($adminPages as $prefix => $name) {
+            if (str_starts_with($currentRoute, $prefix)) { $pageName = $name; break; }
+        }
+        $breadcrumbs = ['Admin' => route('admin.dashboard'), $pageName => '#'];
+    }
     $systemTime = now()->setTimezone('Asia/Kolkata')->format('H:i:s T');
 @endphp
 

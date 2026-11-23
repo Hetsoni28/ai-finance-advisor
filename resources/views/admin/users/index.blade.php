@@ -57,10 +57,10 @@
             <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
                 @php
                     $kpiCards = [
-                        ['label'=>'Total Registered', 'value'=>$total, 'color'=>'text-indigo-600', 'bg'=>'bg-indigo-50', 'border'=>'border-indigo-100', 'icon'=>'fa-users', 'trend'=>'+12%'],
-                        ['label'=>'Active Accounts', 'value'=>$active, 'color'=>'text-emerald-600', 'bg'=>'bg-emerald-50', 'border'=>'border-emerald-100', 'icon'=>'fa-user-check', 'trend'=>'+8%'],
-                        ['label'=>'Suspended', 'value'=>$blocked, 'color'=>'text-rose-600', 'bg'=>'bg-rose-50', 'border'=>'border-rose-100', 'icon'=>'fa-user-lock', 'trend'=>'-2%'],
-                        ['label'=>'System Admins', 'value'=>$admins, 'color'=>'text-amber-600', 'bg'=>'bg-amber-50', 'border'=>'border-amber-100', 'icon'=>'fa-user-shield', 'trend'=>'Stable'],
+                        ['label'=>'Total Registered', 'value'=>$total, 'color'=>'text-indigo-600', 'bg'=>'bg-indigo-50', 'border'=>'border-indigo-100', 'icon'=>'fa-users'],
+                        ['label'=>'Active Accounts', 'value'=>$active, 'color'=>'text-emerald-600', 'bg'=>'bg-emerald-50', 'border'=>'border-emerald-100', 'icon'=>'fa-user-check'],
+                        ['label'=>'Suspended', 'value'=>$blocked, 'color'=>'text-rose-600', 'bg'=>'bg-rose-50', 'border'=>'border-rose-100', 'icon'=>'fa-user-lock'],
+                        ['label'=>'System Admins', 'value'=>$admins, 'color'=>'text-amber-600', 'bg'=>'bg-amber-50', 'border'=>'border-amber-100', 'icon'=>'fa-user-shield'],
                     ];
                 @endphp
 
@@ -70,7 +70,6 @@
                         <div class="w-14 h-14 rounded-2xl {{ $card['bg'] }} {{ $card['color'] }} flex items-center justify-center border {{ $card['border'] }} shadow-sm group-hover:scale-110 transition-transform duration-500">
                             <i class="fa-solid {{ $card['icon'] }} text-xl"></i>
                         </div>
-                        <span class="px-3 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-xs font-bold">{{ $card['trend'] }}</span>
                     </div>
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 relative z-10">{{ $card['label'] }}</p>
                     <p class="text-4xl font-black text-slate-900 relative z-10 counter" data-target="{{ $card['value'] }}">0</p>
@@ -86,6 +85,12 @@
                 </div>
                 <div class="h-40 w-full relative">
                     <canvas id="growthChart"></canvas>
+                    @if(array_sum($growthData) === 0)
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center bg-white/90 rounded-xl">
+                            <i class="fa-solid fa-user-plus text-slate-300 text-2xl"></i>
+                            <p class="mt-2 text-sm font-bold text-slate-600">No new sign-ups in the last 6 weeks</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -111,8 +116,8 @@
                     <div class="relative">
                         <select name="role" class="px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none cursor-pointer appearance-none pr-10 transition-all">
                             <option value="">All Roles</option>
-                            <option value="admin" @selected(request('role')=='admin')>Administrators</option>
-                            <option value="user" @selected(request('role')=='user')>Standard Users</option>
+                            <option value="admin" {{ request('role')=='admin' ? 'selected' : '' }}>Administrators</option>
+                            <option value="user" {{ request('role')=='user' ? 'selected' : '' }}>Standard Users</option>
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
                     </div>
@@ -121,8 +126,8 @@
                     <div class="relative">
                         <select name="status" class="px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none cursor-pointer appearance-none pr-10 transition-all">
                             <option value="">All Statuses</option>
-                            <option value="active" @selected(request('status')=='active')>Active Only</option>
-                            <option value="blocked" @selected(request('status')=='blocked')>Suspended Only</option>
+                            <option value="active" {{ request('status')=='active' ? 'selected' : '' }}>Active Only</option>
+                            <option value="blocked" {{ request('status')=='blocked' ? 'selected' : '' }}>Suspended Only</option>
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
                     </div>
