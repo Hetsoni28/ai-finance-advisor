@@ -177,7 +177,7 @@
               :class="isNavigating ? 'scale-[0.98] blur-[2px] opacity-60 pointer-events-none' : 'scale-100 blur-0 opacity-100'">
             
             {{-- Scroll Progress Bar --}}
-            <div x-show="!zenMode" class="fixed top-20 left-0 h-0.5 bg-indigo-500 z-[60] transition-all duration-150 no-print shadow-[0_0_8px_rgba(99,102,241,0.8)] lg:left-72" :style="`width: ${scrollProgress}%`"></div>
+            <div x-show="!zenMode" class="fixed top-20 left-0 h-0.5 bg-indigo-500 z-[60] transition-all duration-150 no-print shadow-[0_0_8px_rgba(99,102,241,0.8)] lg:left-64" :style="`width: ${scrollProgress}%`"></div>
             
             {{-- Skeleton Loading State (Shows while navigating) --}}
             <div x-show="isNavigating" x-cloak class="absolute inset-0 p-8 z-50 bg-[#f8fafc]">
