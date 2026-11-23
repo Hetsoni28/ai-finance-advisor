@@ -33,3 +33,14 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 curl_output.html
+
+# Local AI / editor tool state (kept out of the repo)
+.refact/
+.jetro/
+.cursor/
+.agents/
+.mcp.json
+AGENT.md
+CLAUDE.md
+.windsurfrules
+desktop.ini
