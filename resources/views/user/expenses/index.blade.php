@@ -173,7 +173,7 @@
             <div class="lg:col-span-4 bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200 flex flex-col">
                 <div class="flex items-center justify-between mb-8">
                     <h3 class="text-xl font-black text-slate-900 tracking-tight">Outflow Trajectory</h3>
-                    <span class="px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest">Year to Date</span>
+                    <span class="px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest">Last 6 Months</span>
                 </div>
                 <div class="flex-1 relative min-h-[300px] w-full">
                     <canvas id="trendChart"></canvas>
