@@ -275,11 +275,10 @@
                         <p class="text-xs font-bold text-slate-400 mt-1">Comparing Gross Inflow vs Total Burn</p>
                     </div>
                     
-                    {{-- Timeframe Simulator Toggle (New Fun) --}}
+                    {{-- Timeframe toggle: slices the real monthly data --}}
                     <div class="flex bg-slate-50 p-1 rounded-lg border border-slate-200 print:hidden" id="timeframeToggle">
-                        <button onclick="simulateTimeframe(3, this)" class="px-4 py-1.5 text-xs font-bold rounded-md transition-colors bg-white text-indigo-600 shadow-sm">3M</button>
-                        <button onclick="simulateTimeframe(6, this)" class="px-4 py-1.5 text-xs font-bold text-slate-500 rounded-md transition-colors hover:text-slate-900">6M</button>
-                        <button onclick="simulateTimeframe(12, this)" class="px-4 py-1.5 text-xs font-bold text-slate-500 rounded-md transition-colors hover:text-slate-900">1YR</button>
+                        <button onclick="simulateTimeframe(3, this)" class="px-4 py-1.5 text-xs font-bold text-slate-500 rounded-md transition-colors hover:text-slate-900">3M</button>
+                        <button onclick="simulateTimeframe(6, this)" class="px-4 py-1.5 text-xs font-bold rounded-md transition-colors bg-white text-indigo-600 shadow-sm">6M</button>
                     </div>
                 </div>
                 <div class="relative flex-1 min-h-[300px] w-full">
@@ -470,7 +469,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// 4. Interactive Timeframe Simulator (New Fun)
+// 4. Timeframe toggle (shows the last N months of real data)
 window.simulateTimeframe = function(months, btn) {
     if(!trendChartInstance) return;
 
@@ -481,32 +480,10 @@ window.simulateTimeframe = function(months, btn) {
     });
     btn.className = 'px-4 py-1.5 text-xs font-bold rounded-md transition-colors bg-white text-indigo-600 shadow-sm';
 
-    // Generate/Slice Data
-    let newLabels, newInc, newExp;
-
-    if (months <= 6) {
-        // Slice the real PHP data
-        newLabels = baseLabels.slice(-months);
-        newInc = baseIncome.slice(-months);
-        newExp = baseExpense.slice(-months);
-    } else {
-        // Simulate 12 months data by extrapolating backwards mathematically
-        newLabels = []; newInc = []; newExp = [];
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        let currentMonthIdx = new Date().getMonth();
-        
-        for(let i=11; i>=0; i--) {
-            let mIdx = (currentMonthIdx - i + 12) % 12;
-            newLabels.push(monthNames[mIdx]);
-            
-            // Random variance based on current average
-            let baseI = baseIncome[baseIncome.length-1];
-            let baseE = baseExpense[baseExpense.length-1];
-            newInc.push(baseI * (0.7 + (Math.random() * 0.5)));
-            newExp.push(baseE * (0.7 + (Math.random() * 0.5)));
-        }
-    }
-
+    // Slice the real monthly data (no generated values)
+    const newLabels = baseLabels.slice(-months);
+    const newInc = baseIncome.slice(-months);
+    const newExp = baseExpense.slice(-months);
     // Update Chart
     trendChartInstance.data.labels = newLabels;
     trendChartInstance.data.datasets[0].data = newInc;

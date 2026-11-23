@@ -15,7 +15,6 @@
     
     // Predictive Math: Annual Run Rate (ARR) & Taxes (New Fun)
     $projectedARR = $currentMonth > 0 ? $currentMonth * 12 : ($total > 0 ? ($total / max(1, $incomes->count())) * 12 : 0);
-    $estimatedTax = $total * 0.15; // 15% Simulated Tax Bracket
 
     // Chart Grouping Logic
     $monthly = collect($incomes->items() ?? $incomes)
@@ -72,9 +71,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-                <button onclick="simulateWireTransfer()" class="px-5 py-3.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-xl font-bold text-sm hover:bg-white hover:text-emerald-600 hover:border-emerald-300 hover:shadow-sm transition-all flex items-center gap-2 focus:outline-none">
-                    <i class="fa-solid fa-building-columns"></i> Sync Bank
-                </button>
                 
                 {{-- 🚨 FIX: Updated route to user.incomes.create --}}
                 <a href="{{ route('user.incomes.create') ?? '#' }}" class="px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(15,23,42,0.2)] hover:bg-emerald-600 hover:shadow-emerald-500/30 transition-all flex items-center gap-2 hover:-translate-y-0.5">
@@ -133,18 +129,16 @@
                 </div>
             </div>
 
-            {{-- Est. Tax Liability (New Fun) --}}
+            {{-- Average per entry (real) --}}
             <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
                 <div class="flex justify-between items-start mb-6">
-                    <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center border border-rose-100 shadow-sm group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-scale-balanced text-lg"></i>
+                    <div class="w-12 h-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center border border-sky-100 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-divide text-lg"></i>
                     </div>
-                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm border bg-slate-50 text-slate-500 border-slate-200">15% Bracket</span>
                 </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Est. Tax Liability</p>
-                <h2 class="text-2xl font-black text-rose-600 kpi-animate" id="kpiTax" data-val="{{ $estimatedTax }}">₹0</h2>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Average per entry</p>
+                <h2 class="text-2xl font-black text-sky-600 kpi-animate" data-val="{{ $average }}">₹0</h2>
             </div>
-
         </div>
 
         {{-- ================= 3. CHARTS & DIVERSIFICATION ================= --}}
@@ -450,48 +444,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
-
-// 3. Simulated Wire Transfer Animation
-window.simulateWireTransfer = function() {
-    showToast("Authenticating banking API...");
-    
-    setTimeout(() => {
-        showToast("Wire transfer of ₹12,500 cleared!");
-        
-        const totalEl = document.getElementById('kpiTotal');
-        const monthEl = document.getElementById('kpiMonth');
-        const taxEl = document.getElementById('kpiTax');
-        
-        [totalEl, monthEl].forEach(el => {
-            if(!el) return;
-            const currentVal = parseFloat(el.dataset.val) || 0;
-            const newVal = currentVal + 12500;
-            el.dataset.val = newVal;
-            
-            let start = currentVal;
-            let diff = 12500;
-            let startT = null;
-            
-            function animate(t) {
-                if(!startT) startT = t;
-                let p = Math.min((t - startT) / 1000, 1);
-                let v = start + (diff * p);
-                el.innerText = '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-                if(p < 1) requestAnimationFrame(animate);
-            }
-            requestAnimationFrame(animate);
-        });
-
-        // Update Tax Predictor
-        if(taxEl) {
-            const taxCurrent = parseFloat(taxEl.dataset.val) || 0;
-            const taxNew = taxCurrent + (12500 * 0.15);
-            taxEl.innerText = '₹' + taxNew.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-            taxEl.dataset.val = taxNew;
-        }
-
-    }, 1500);
-}
 
 // Global Toast UI
 window.showToast = function(msg) {

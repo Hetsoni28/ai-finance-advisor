@@ -39,17 +39,6 @@
         default => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'border' => 'border-indigo-200', 'icon' => 'fa-user-astronaut', 'glow' => 'shadow-indigo-500/20']
     };
 
-    // Simulated Active Sessions
-    $activeSessions = [
-        ['device' => 'MacBook Pro 16"', 'browser' => 'Safari 17.1', 'ip' => '192.168.1.42', 'location' => 'Ahmedabad, IN', 'active' => true, 'icon' => 'fa-laptop'],
-        ['device' => 'iPhone 14 Pro', 'browser' => 'FinanceAI Mobile', 'ip' => '10.0.0.115', 'location' => 'Mumbai, IN', 'active' => false, 'time' => '2 hours ago', 'icon' => 'fa-mobile-screen'],
-    ];
-
-    // Simulated API Keys (Enterprise Feature)
-    $apiKeys = [
-        ['name' => 'Production Master Key', 'key' => 'sk_live_9a8b7c6d5e4f3g2h1i0j', 'last_used' => '14 mins ago', 'color' => 'emerald'],
-        ['name' => 'Development Sandbox', 'key' => 'sk_test_1a2b3c4d5e6f7g8h9i0j', 'last_used' => '3 days ago', 'color' => 'indigo'],
-    ];
 @endphp
 
 <div x-data="profileEngine()" class="min-h-screen bg-[#f8fafc] pb-32 font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden flex flex-col">
@@ -74,7 +63,7 @@
                     </ol>
                 </nav>
                 <h1 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Identity Registry</h1>
-                <p class="text-slate-500 text-sm font-medium mt-2">Manage your cryptographic credentials, sessions, and active telemetry.</p>
+                <p class="text-slate-500 text-sm font-medium mt-2">Your account details, security and activity.</p>
             </div>
             
             <div class="flex items-center gap-3 shrink-0">
@@ -155,41 +144,18 @@
                     </div>
                 </div>
 
-                {{-- Right: INTERACTIVE Security Health Card --}}
-                <div class="bg-[#0f172a] rounded-[2rem] border border-slate-800 p-8 min-w-[280px] shadow-2xl relative overflow-hidden shrink-0 w-full md:w-auto transform-style-3d lg:hover:-translate-y-2 lg:hover:scale-105 transition-all duration-500">
-                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30 mix-blend-overlay pointer-events-none"></div>
-                    <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full blur-3xl pointer-events-none transition-colors duration-1000" :class="isScanning ? 'bg-indigo-500/40' : (mfaEnabled ? 'bg-emerald-500/20' : 'bg-amber-500/20')"></div>
-                    
-                    <div class="flex justify-between items-start mb-6 relative z-10">
-                        <div class="h-12 w-12 rounded-2xl border flex items-center justify-center shadow-inner transition-colors duration-500" :class="isScanning ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' : (mfaEnabled ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')">
-                            <i class="fa-solid text-xl" :class="isScanning ? 'fa-radar animate-spin-slow' : (mfaEnabled ? 'fa-shield-check' : 'fa-shield-halved')"></i>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">2FA</span>
-                            <button @click="toggleMFA()" @mouseenter="playHover()" class="w-10 h-5 rounded-full relative transition-colors focus:outline-none shadow-inner border border-white/10" :class="mfaEnabled ? 'bg-emerald-500' : 'bg-slate-700'">
-                                <div class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300" :class="mfaEnabled ? 'translate-x-5' : 'translate-x-0'"></div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="relative z-10">
-                        <p class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">Security Posture</p>
-                        <p class="text-white font-black text-2xl tracking-tight" x-text="scanStatusText">Optimal</p>
-                        
-                        {{-- Scan Progress Bar --}}
-                        <div x-show="isScanning" style="display: none;" class="w-full h-1.5 bg-slate-800 rounded-full mt-4 overflow-hidden border border-slate-700">
-                            <div class="h-full bg-indigo-500 rounded-full transition-all duration-200" :style="`width: ${scanProgress}%`"></div>
-                        </div>
-
-                        {{-- Final State Indicator --}}
-                        <p x-show="!isScanning" class="text-xs font-bold mt-3 flex items-center gap-2 transition-colors" :class="mfaEnabled ? 'text-emerald-400' : 'text-amber-400'"><i class="fa-solid fa-lock text-[10px]"></i> <span x-text="mfaEnabled ? 'AES-256 + MFA Secured' : 'AES-256 Secured (MFA Off)'"></span></p>
-                        
-                        <button @click="runSecurityScan()" x-show="!isScanning" @mouseenter="playHover()" class="w-full mt-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all focus:outline-none">
-                            Run Diagnostics
-                        </button>
-                    </div>
+                {{-- Right: account security (real data and real actions only) --}}
+                <div class="bg-[#0f172a] rounded-[2rem] border border-slate-800 p-8 min-w-[280px] shadow-2xl relative overflow-hidden shrink-0 w-full md:w-auto text-white">
+                    <div class="h-12 w-12 rounded-2xl border border-white/15 bg-white/5 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-xl text-indigo-300"></i></div>
+                    <p class="mt-6 text-[11px] uppercase font-black tracking-widest text-slate-400">Account security</p>
+                    <dl class="mt-3 space-y-2 text-sm">
+                        <div class="flex justify-between gap-6"><dt class="text-slate-400">Email</dt><dd class="font-semibold truncate max-w-[180px]">{{ $user->email }}</dd></div>
+                        <div class="flex justify-between gap-6"><dt class="text-slate-400">Member since</dt><dd class="font-semibold">{{ $user->created_at?->format('M Y') ?? '—' }}</dd></div>
+                    </dl>
+                    <a href="{{ route('user.profile.password.form') }}" class="mt-6 block w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl text-[11px] font-black uppercase tracking-widest text-center transition-colors">
+                        Change password
+                    </a>
                 </div>
-
             </div>
         </div>
 
@@ -276,114 +242,14 @@
                     </div>
                 </div>
 
-                {{-- NEW FUN: Resource Allocation Matrix --}}
-                <div class="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] p-8 md:p-10 relative overflow-hidden">
-                    <h2 class="text-xl font-black text-slate-900 mb-6 flex items-center justify-between tracking-tight border-b border-slate-100 pb-4">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-server text-indigo-500"></i> Resource Allocation</span>
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">Cluster Status</span>
-                    </h2>
-                    
-                    <div class="space-y-5">
-                        <div>
-                            <div class="flex justify-between text-xs font-bold mb-2">
-                                <span class="text-slate-700">Database Sync Pipeline</span>
-                                <span class="text-indigo-600 font-mono">68%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2.5 border border-slate-200 overflow-hidden">
-                                <div class="bg-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 68%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs font-bold mb-2">
-                                <span class="text-slate-700">Heuristic Analytics Engine</span>
-                                <span class="text-sky-500 font-mono">42%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2.5 border border-slate-200 overflow-hidden">
-                                <div class="bg-sky-400 h-full rounded-full transition-all duration-1000" style="width: 42%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs font-bold mb-2">
-                                <span class="text-slate-700">AES Cryptographic Processing</span>
-                                <span class="text-emerald-500 font-mono">15%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2.5 border border-slate-200 overflow-hidden">
-                                <div class="bg-emerald-400 h-full rounded-full transition-all duration-1000" style="width: 15%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- NEW FUN: Developer API Key Vault --}}
-                <div class="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] p-8 md:p-10 relative overflow-hidden">
-                    <h2 class="text-xl font-black text-slate-900 mb-6 flex items-center justify-between tracking-tight border-b border-slate-100 pb-4">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-code text-rose-500"></i> API Access Keys</span>
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">Developers</span>
-                    </h2>
-
-                    <div class="space-y-4">
-                        @foreach($apiKeys as $index => $key)
-                            <div class="p-5 rounded-[1.5rem] border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-colors group">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-2 h-2 rounded-full bg-{{ $key['color'] }}-500 animate-pulse"></div>
-                                        <h4 class="text-sm font-black text-slate-900 tracking-tight">{{ $key['name'] }}</h4>
-                                    </div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Used: {{ $key['last_used'] }}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs text-slate-600 overflow-hidden relative">
-                                        <span id="key-mask-{{ $index }}" class="tracking-[0.2em] font-black">sk_live_••••••••••••••••••</span>
-                                        <span id="key-raw-{{ $index }}" class="hidden">{{ $key['key'] }}</span>
-                                    </div>
-                                    <button @click="revealKey({{ $index }})" @mouseenter="playHover()" class="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-colors flex items-center justify-center shadow-sm focus:outline-none shrink-0" data-tooltip="Reveal Key">
-                                        <i id="eye-icon-{{ $index }}" class="fa-regular fa-eye text-sm"></i>
-                                    </button>
-                                    <button @click="copyToClipboard('{{ $key['key'] }}', 'API Key copied to clipboard.')" @mouseenter="playHover()" class="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-colors flex items-center justify-center shadow-sm focus:outline-none shrink-0" data-tooltip="Copy Key">
-                                        <i class="fa-regular fa-copy text-sm"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        @endforeach
-                        <button @click="playClick(); $dispatch('notify', {message: 'New API Key generated.', type: 'success'})" @mouseenter="playHover()" class="w-full py-4 border-2 border-dashed border-slate-200 rounded-[1.5rem] text-sm font-black text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2 focus:outline-none">
-                            <i class="fa-solid fa-plus"></i> Generate New Key
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Connected Nodes (Active Sessions) --}}
-                <div class="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] p-8 md:p-10 relative overflow-hidden">
-                    <h2 class="text-xl font-black text-slate-900 mb-6 flex items-center justify-between tracking-tight border-b border-slate-100 pb-4">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-network-wired text-sky-500"></i> Connected Nodes</span>
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">Active Sessions</span>
-                    </h2>
-
-                    <div class="space-y-4">
-                        @foreach($activeSessions as $session)
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-[1.5rem] border {{ $session['active'] ? 'border-emerald-200 bg-emerald-50/50 shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300 transition-colors' }}">
-                                <div class="flex items-center gap-4 mb-4 sm:mb-0">
-                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {{ $session['active'] ? 'bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-inner' : 'bg-white text-slate-400 border border-slate-200 shadow-sm' }}">
-                                        <i class="fa-solid {{ $session['icon'] }} text-lg"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-sm font-black text-slate-900 tracking-tight">{{ $session['device'] }}</h4>
-                                        <p class="text-xs font-bold text-slate-500 mt-0.5">{{ $session['browser'] }} <span class="mx-1 opacity-50">•</span> {{ $session['location'] }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-1.5">
-                                    @if($session['active'])
-                                        <span class="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm shadow-emerald-500/30">Current Node</span>
-                                    @else
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Last seen: {{ $session['time'] }}</span>
-                                    @endif
-                                    <span class="text-[11px] font-mono font-bold text-slate-500 bg-white/50 px-2 py-0.5 rounded-lg border border-slate-200/50 shadow-inner">{{ $session['ip'] }}</span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-            </div>
+                {{-- This session (real request data) --}}
+                <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
+                    <h2 class="text-xl font-black text-slate-900 flex items-center gap-3 tracking-tight"><i class="fa-solid fa-display text-indigo-500"></i> This session</h2>
+                    <dl class="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
+                        <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4"><dt class="text-[11px] font-black uppercase tracking-widest text-slate-400">IP address</dt><dd class="mt-1 font-mono font-semibold text-slate-800">{{ request()->ip() }}</dd></div>
+                        <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4"><dt class="text-[11px] font-black uppercase tracking-widest text-slate-400">Browser</dt><dd class="mt-1 font-semibold text-slate-800 truncate" title="{{ request()->userAgent() }}">{{ \Illuminate\Support\Str::limit(request()->userAgent() ?? 'Unknown', 60) }}</dd></div>
+                    </dl>
+                </div>            </div>
 
             {{-- RIGHT COLUMN: Cryptographic Audit Log --}}
             <div class="xl:col-span-5 bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] p-8 md:p-10 flex flex-col h-[900px] relative overflow-hidden group">
@@ -393,9 +259,6 @@
                     <h2 class="text-xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
                         <i class="fa-solid fa-clipboard-list text-indigo-500"></i> Event Ledger
                     </h2>
-                    <button @click="playClick(); $dispatch('notify', {message: 'Downloading cryptographic logs...', type: 'info'})" @mouseenter="playHover()" class="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 transition-colors flex items-center justify-center shadow-sm focus:outline-none" data-tooltip="Export Ledger">
-                        <i class="fa-solid fa-download text-xs"></i>
-                    </button>
                 </div>
 
                 @if($activities->count())

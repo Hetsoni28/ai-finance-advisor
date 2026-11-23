@@ -27,7 +27,7 @@
             $resolvedCount++;
         }
     }
-    $averageWait = $resolvedCount > 0 ? round($totalWait / $resolvedCount, 1) : rand(2, 12);
+    $averageWait = $resolvedCount > 0 ? round($totalWait / $resolvedCount, 1) : null; // null = no resolved invites yet
 
     /* |--------------------------------------------------------------------------
        | ⏱️ LOGICAL GROUPING & TTL (TIME-TO-LIVE) ENGINE
@@ -158,7 +158,11 @@
                 <div class="translate-z-30 relative z-10">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg Resolution Time</p>
                     <div class="flex items-baseline gap-1">
+                        @if(is_null($averageWait))
+                        <h2 class="text-3xl font-black text-sky-600 tabular-nums tracking-tight" title="No accepted or declined invites yet">&mdash;</h2>
+                        @else
                         <h2 class="text-3xl font-black text-sky-600 tabular-nums tracking-tight" x-intersect.once="animateValue($el, {{ $averageWait }})">0</h2>
+                        @endif
                         <span class="text-lg font-bold text-sky-400">h</span>
                     </div>
                 </div>
@@ -362,9 +366,14 @@
                                     <div class="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30"><i class="fa-solid fa-trash-can text-xs"></i></div>
                                     <span class="text-white font-bold text-sm"><span x-text="selectedExpired.length" class="text-rose-400 font-black"></span> Nodes Selected</span>
                                 </div>
-                                <button @click="purgeSelected()" @mouseenter="playHoverSound()" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-[0_0_15px_rgba(225,29,72,0.4)] transition-all focus:outline-none">
-                                    Purge All Selected
-                                </button>
+                                <form method="POST" action="{{ route('user.families.invites.bulkDestroy', $familyId) }}" class="m-0" onsubmit="return confirm('Delete the selected expired invites? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <template x-for="id in selectedExpired" :key="id"><input type="hidden" name="invite_ids[]" :value="id"></template>
+                                    <button type="submit" @mouseenter="playHoverSound()" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-[0_0_15px_rgba(225,29,72,0.4)] transition-all focus:outline-none">
+                                        Delete selected
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -415,16 +424,6 @@
                         </div>
                     </div>
                     
-                    {{-- Easter Egg Schedule Nudge (Since User is building a project) --}}
-                    <div class="mt-10 pt-6 border-t border-slate-800">
-                        <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4 flex items-start gap-3">
-                            <i class="fa-solid fa-code text-indigo-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-xs font-bold text-indigo-100 mb-1">Architecture Audit</p>
-                                <p class="text-[10px] text-indigo-300/70 font-medium leading-relaxed">Ensure all `.env` mailing configurations are set before deploying invite triggers to production environments.</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -542,14 +541,6 @@ document.addEventListener('alpine:init', () => {
             this.playClickSound();
             this.selectedExpired = checked ? [...this.allExpiredIds] : [];
         },
-        purgeSelected() {
-            this.playClickSound();
-            // In a real app, this would trigger an AJAX request or form submission with the selected IDs.
-            // For now, we simulate success and reload.
-            this.showToast('Purging ' + this.selectedExpired.length + ' expired records...');
-            setTimeout(() => window.location.reload(), 1000);
-        },
-
         // Modern Async Clipboard API
         async copyToClipboard(text) {
             this.playClickSound();

@@ -131,28 +131,22 @@
             <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-50/80 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform duration-1000"></div>
 
             <div class="flex-1 relative z-10">
-                <div class="flex items-center gap-3 mb-4">
-                    <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-                        <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span></span>
-                        Network Active
-                    </span>
-                    <span class="text-[10px] font-bold text-slate-400 font-mono tracking-widest uppercase">IP: <span x-text="clientIp">Scanning...</span></span>
-                </div>
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">{{ now()->setTimezone('Asia/Kolkata')->format('l, j F Y') }}</p>
                 
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-none mb-3">
                     <span x-text="greeting">Welcome</span>, {{ explode(' ', auth()->user()->name ?? 'Operator')[0] }}.
                 </h1>
                 <p class="text-slate-500 text-base md:text-lg font-medium max-w-xl">
-                    Your cryptographic dashboard is fully synced. Review your telemetry and algorithmic forecasts below.
+                    Here's where your money stands, based on the income and expenses you've recorded.
                 </p>
             </div>
 
             {{-- Quick Action Grid --}}
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4 w-full xl:w-auto relative z-10">
-                <button @click="syncData()" @mouseenter="playHoverSound()" class="px-5 py-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-[1.25rem] font-bold text-[10px] uppercase tracking-widest shadow-sm hover:bg-white hover:text-indigo-600 hover:border-indigo-300 hover:-translate-y-1 hover:shadow-lg transition-all flex flex-col items-center justify-center gap-3 focus:outline-none group/btn">
-                    <i class="fa-solid fa-rotate text-indigo-500 text-2xl group-hover/btn:animate-spin"></i> 
-                    <span x-text="isSyncing ? 'Syncing...' : 'Sync Node'"></span>
-                </button>
+                <a href="{{ route('user.reports.index') }}" @mouseenter="playHoverSound()" class="px-5 py-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-[1.25rem] font-bold text-[10px] uppercase tracking-widest shadow-sm hover:bg-white hover:text-indigo-600 hover:border-indigo-300 hover:-translate-y-1 hover:shadow-lg transition-all flex flex-col items-center justify-center gap-3 focus:outline-none group/btn">
+                    <i class="fa-solid fa-chart-column text-indigo-500 text-2xl"></i>
+                    <span>View Reports</span>
+                </a>
                 
                 <a href="{{ Route::has('user.incomes.create') ? route('user.incomes.create') : '#' }}" @click.prevent="simulateNavigation('{{ Route::has('user.incomes.create') ? route('user.incomes.create') : '#' }}')" @mouseenter="playHoverSound()" class="px-5 py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-[1.25rem] font-bold text-[10px] uppercase tracking-widest shadow-sm hover:bg-emerald-500 hover:text-white hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/30 transition-all flex flex-col items-center justify-center gap-3 focus:outline-none group/in">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover/in:bg-white group-hover/in:text-emerald-500 transition-colors shadow-inner"><i class="fa-solid fa-arrow-trend-up text-sm"></i></div>
@@ -250,10 +244,7 @@
                         <h3 class="text-xl font-black text-slate-900 tracking-tight">Financial Velocity Trajectory</h3>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Trailing Telemetry</p>
                     </div>
-                    <div class="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 shadow-inner">
-                        <button class="px-4 py-1.5 rounded-lg bg-white text-slate-900 text-[10px] font-black uppercase tracking-widest shadow-sm">Monthly</button>
-                        <button class="px-4 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors focus:outline-none">Quarterly</button>
-                    </div>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-black uppercase tracking-widest text-slate-500">By month</span>
                 </div>
                 
                 <div class="flex-1 relative min-h-[350px] w-full">
@@ -389,9 +380,6 @@
                                 }
                                 $colorVars = $colorMap[$txColor];
                                 
-                                // Trace Hash
-                                $salt = ($tx->id ?? 'sys') . '-' . ($tx->date ?? rand());
-                                $traceHash = strtoupper(substr(md5($salt), 0, 8));
                             @endphp
 
                             <tr x-show="matchesFilters('{{ addslashes($tx->title) }}', '{{ $tx->type }}')"
@@ -405,9 +393,7 @@
                                         </div>
                                         <div>
                                             <span class="block text-sm font-black text-slate-900">{{ $tx->title }}</span>
-                                            <button @click="copyTrace('EXP-{{ $traceHash }}')" @mouseenter="playHoverSound()" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono mt-1 flex items-center gap-1.5 hover:text-indigo-600 transition-colors focus:outline-none" title="Copy Cryptographic Trace ID">
-                                                <i class="fa-regular fa-copy"></i> EXP-{{ $traceHash }}
-                                            </button>
+                                            <span class="text-[11px] font-bold text-slate-400 mt-1 block">{{ \Carbon\Carbon::parse($tx->date)->format('d M Y') }}</span>
                                         </div>
                                     </div>
                                 </td>
@@ -460,7 +446,10 @@
             
             <div class="p-4 bg-slate-50/80 border-t border-slate-100 flex justify-between items-center z-10">
                 <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Entries: {{ count($unifiedLedger) }}</span>
-                <button @mouseenter="playHoverSound()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-300 hover:shadow-sm rounded-xl text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none">Load More Telemetry &rarr;</button>
+                <div class="flex gap-2">
+                    <a href="{{ route('user.incomes.index') }}" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">All income &rarr;</a>
+                    <a href="{{ route('user.expenses.index') }}" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">All expenses &rarr;</a>
+                </div>
             </div>
         </div>
 
@@ -508,7 +497,6 @@ document.addEventListener('alpine:init', () => {
         toast: { show: false, message: '' },
         
         // Header States
-        clientIp: 'Scanning...',
         greeting: 'Welcome',
         isSyncing: false,
 
@@ -539,7 +527,6 @@ document.addEventListener('alpine:init', () => {
 
         init() {
             this.setGreeting();
-            this.fetchSimulatedIp();
             
             // Tab resizing observer
             this.resizeObserver = new ResizeObserver(() => {
@@ -685,21 +672,6 @@ document.addEventListener('alpine:init', () => {
             if (hour >= 5 && hour < 12) this.greeting = "Good Morning";
             else if (hour >= 12 && hour < 17) this.greeting = "Good Afternoon";
             else this.greeting = "Good Evening";
-        },
-
-        fetchSimulatedIp() {
-            setTimeout(() => { this.clientIp = '192.168.' + Math.floor(Math.random() * 255) + '.42'; }, 1500);
-        },
-
-        syncData() {
-            if(this.isSyncing) return;
-            this.playClickSound();
-            this.isSyncing = true;
-            
-            setTimeout(() => {
-                this.isSyncing = false;
-                this.showToast('Local telemetry synced successfully.');
-            }, 2000);
         },
 
         // High-Performance Number Animation (requestAnimationFrame)

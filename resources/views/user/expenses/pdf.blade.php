@@ -687,7 +687,7 @@
                 <strong style="color: #0f172a;">SYS_RECORDS_PROCESSED:</strong> <span class="font-mono">{{ $count }}</span><br>
                 <strong style="color: #0f172a;">NET_OUTFLOW_CALCULATED:</strong> <span class="font-mono">{{ $currency($total) }}</span><br>
                 <strong style="color: #0f172a;">SHA256_CHECKSUM:</strong> <span class="font-mono">{{ $verificationHash }}</span><br><br>
-                <span>This document was generated automatically by the FinanceAI reporting engine. Alteration of this document will invalidate the cryptographic hash and fail strict-mode database reconciliation.</span>
+                <span>This document was generated automatically by FinanceAI from your recorded expenses.</span>
             </td>
             <td style="width: 20%; text-align: right; vertical-align: bottom;">
                 {{-- Simulated Audit Stamp using pure CSS/SVG shapes --}}

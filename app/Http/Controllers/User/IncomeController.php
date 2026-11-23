@@ -171,20 +171,6 @@ class IncomeController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | SHOW: Record Details
-    |--------------------------------------------------------------------------
-    */
-    public function show(Income $income): View
-    {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
-        abort_unless($income->user_id === $user->id, 403, 'Permission Denied.');
-
-        return view('user.income.show', compact('income'));
-    }
-
-    /*
-    |--------------------------------------------------------------------------
     | EDIT: Modification Form
     |--------------------------------------------------------------------------
     */

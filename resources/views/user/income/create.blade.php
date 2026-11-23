@@ -51,9 +51,6 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button @click="autoFillSimulate()" type="button" class="px-5 py-3.5 bg-slate-50 text-emerald-600 border border-emerald-100 rounded-xl font-bold text-sm hover:bg-emerald-50 hover:border-emerald-300 transition-all flex items-center gap-2 focus:outline-none shadow-sm">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Fill via AI
-                </button>
                 <a href="{{ route('user.incomes.index') ?? '#' }}" class="px-5 py-3.5 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 hover:text-emerald-600 transition-all shadow-sm focus:outline-none flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Cancel
                 </a>

@@ -5,6 +5,7 @@
 @php
     /** @var \App\Models\User|null $user */
     $user = auth()->user();
+    $unreadAlertCount = $user ? \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->count() : 0;
 
     // ================= 1. ENTERPRISE MENU ARCHITECTURE =================
     // Structured with dynamic color themes and role-based access visibility
@@ -13,7 +14,7 @@
             'section' => 'Financial Command',
             'expanded' => true, // Controls default accordion state
             'items' => [
-                ['route' => 'user.dashboard', 'match' => ['user.dashboard*', 'dashboard'], 'icon' => 'fa-chart-pie', 'label' => 'Global Dashboard', 'color' => 'indigo', 'shortcut' => '⌘D'],
+                ['route' => 'user.dashboard', 'match' => ['user.dashboard*', 'dashboard'], 'icon' => 'fa-chart-pie', 'label' => 'Global Dashboard', 'color' => 'indigo'],
                 ['route' => 'user.incomes.index', 'match' => 'user.incomes.*', 'icon' => 'fa-arrow-trend-up', 'label' => 'Capital Inflow', 'color' => 'emerald', 'shortcut' => '⇧I'],
                 ['route' => 'user.expenses.index', 'match' => 'user.expenses.*', 'icon' => 'fa-arrow-trend-down', 'label' => 'Capital Outflow', 'color' => 'rose', 'shortcut' => '⇧E'],
                 ['route' => 'user.families.index', 'match' => 'user.families.*', 'icon' => 'fa-network-wired', 'label' => 'Shared Ledgers', 'color' => 'sky'],
@@ -24,7 +25,7 @@
             'expanded' => true,
             'items' => [
                 ['route' => 'user.reports.index', 'match' => ['user.reports.*', 'reports.*'], 'icon' => 'fa-file-invoice-dollar', 'label' => 'Analytics Hub', 'color' => 'amber'],
-                ['route' => 'user.notifications.index', 'match' => 'user.notifications.*', 'icon' => 'fa-bell', 'label' => 'System Alerts', 'color' => 'orange', 'badge' => 3, 'dot' => true],
+                ['route' => 'user.notifications.index', 'match' => 'user.notifications.*', 'icon' => 'fa-bell', 'label' => 'System Alerts', 'color' => 'orange'] + ($unreadAlertCount > 0 ? ['badge' => $unreadAlertCount, 'dot' => true] : []),
                 ['route' => 'user.ai.chat', 'match' => 'user.ai.*', 'icon' => 'fa-brain', 'label' => 'AI Assistant', 'color' => 'fuchsia', 'badge' => 'BETA'],
             ]
         ],
@@ -110,7 +111,6 @@
             
             <div class="p-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
                 <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 pl-2">Switch Ledger Context</p>
-                <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-[8px] font-black text-slate-500 shadow-sm uppercase tracking-widest">v3.1</span>
             </div>
             <div class="p-2 space-y-1">
                 <a href="{{ url('/dashboard') }}" @click="if(typeof simulateNavigation === 'function') simulateNavigation()" class="flex items-center gap-3 p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-indigo-700 transition-colors">
@@ -240,7 +240,7 @@
                                         $badgeBg = $isTextBadge ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200' : 'bg-rose-50 text-rose-600 border-rose-200';
                                     @endphp
                                     <span x-show="!collapsed" class="ml-2 text-[9px] font-black px-1.5 py-0.5 rounded-md border shadow-sm transition-opacity duration-300 tracking-wider uppercase {{ $badgeBg }} {{ $isTextBadge ? 'animate-pulse' : '' }}" x-transition.opacity>
-                                        {{ $item['badge'] > 99 ? '99+' : $item['badge'] }}
+                                        {{ is_numeric($item['badge']) && $item['badge'] > 99 ? '99+' : $item['badge'] }}
                                     </span>
                                 @endif
                             </a>
@@ -253,7 +253,7 @@
                                 
                                 <div class="flex items-center gap-2">
                                     @if(isset($item['badge']))
-                                        <span class="{{ $isTextBadge ? 'bg-fuchsia-500' : 'bg-rose-500' }} text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-inner uppercase tracking-widest">{{ $item['badge'] > 99 ? '99+' : $item['badge'] }}</span>
+                                        <span class="{{ $isTextBadge ? 'bg-fuchsia-500' : 'bg-rose-500' }} text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-inner uppercase tracking-widest">{{ is_numeric($item['badge']) && $item['badge'] > 99 ? '99+' : $item['badge'] }}</span>
                                     @endif
                                     @if(isset($item['shortcut']))
                                         <kbd class="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-600 text-[10px] font-mono font-bold text-slate-300 shadow-inner ml-1">{{ $item['shortcut'] }}</kbd>
@@ -270,46 +270,16 @@
         {{-- ================= 4. TELEMETRY WIDGETS ================= --}}
         <div x-show="!collapsed" x-transition.opacity.duration.500ms class="mt-4 pt-6 border-t border-slate-100 px-2 space-y-4 pb-4">
             
-            {{-- Storage & Quota Widget --}}
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] relative overflow-hidden group/quota">
-                <div class="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-full blur-2xl transition-colors group-hover/quota:bg-indigo-500/10"></div>
-                
-                {{-- AI Compute --}}
-                <div class="mb-4 relative z-10">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-microchip text-indigo-500"></i> AI Ops</span>
-                        <span class="text-[9px] font-bold text-slate-400">62%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden shadow-inner">
-                        <div class="bg-indigo-500 h-1 rounded-full shadow-[0_0_5px_rgba(79,70,229,0.5)]" style="width: 62%"></div>
-                    </div>
-                </div>
-
-                {{-- Secure Vault Storage --}}
-                <div class="mb-4 relative z-10">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-database text-sky-500"></i> Vault Data</span>
-                        <span class="text-[9px] font-bold text-slate-400">8.4GB</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden shadow-inner">
-                        <div class="bg-sky-500 h-1 rounded-full shadow-[0_0_5px_rgba(14,165,233,0.5)]" style="width: 45%"></div>
-                    </div>
-                </div>
-
-                <a href="{{ Route::has('user.profile.subscription') ? route('user.profile.subscription') : '#' }}" @click="if(typeof simulateNavigation === 'function') simulateNavigation()" class="block w-full text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100 transition-colors relative z-10 text-center bg-indigo-50 py-2.5 rounded-lg border border-indigo-100">Upgrade Nodes &rarr;</a>
+            {{-- Current plan (real data from the user's subscription) --}}
+            @if($user)
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                <p class="text-[11px] font-black uppercase tracking-widest text-slate-400">Your plan</p>
+                <p class="mt-1 text-base font-black text-slate-900">{{ $user->current_plan_name }}</p>
+                <a href="{{ route('user.subscription.index') }}" class="mt-4 block w-full text-[11px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100 transition-colors text-center bg-indigo-50 py-2.5 rounded-lg border border-indigo-100">
+                    {{ ($user->current_plan_slug ?? 'free') === 'free' ? 'See plans' : 'Manage plan' }} &rarr;
+                </a>
             </div>
-
-            {{-- System Health Pulse --}}
-            <div class="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 shadow-inner">
-                <div class="flex items-center gap-2">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-500">System Status</span>
-                </div>
-                <span class="text-[10px] font-mono font-bold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-100 shadow-sm">14ms</span>
-            </div>
+            @endif
         </div>
 
     </div>
@@ -340,14 +310,6 @@
                         <div class="w-6 h-6 rounded border border-transparent group-hover:border-indigo-200 group-hover:bg-white flex items-center justify-center transition-all"><i class="fa-solid fa-sliders text-slate-400 group-hover:text-indigo-500"></i></div>
                         Identity Settings
                     </div>
-                    <kbd class="text-[9px] font-mono text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">⌘,</kbd>
-                </a>
-                <a href="#" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors group">
-                    <div class="flex items-center gap-3">
-                        <div class="w-6 h-6 rounded border border-transparent group-hover:border-indigo-200 group-hover:bg-white flex items-center justify-center transition-all"><i class="fa-solid fa-book-open text-slate-400 group-hover:text-indigo-500"></i></div>
-                        API Documentation
-                    </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-300 group-hover:text-indigo-400"></i>
                 </a>
             </div>
             

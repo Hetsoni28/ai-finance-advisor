@@ -24,11 +24,13 @@
     $healthIndex = min(max($healthIndex, -100), 100);
     $isProfit = $netRevenue >= 0;
 
-    // Simulated Enterprise Telemetry (For UI Realism)
-    $activeSessions = rand(12, 48);
-    $serverLoad = rand(18, 34);
-    $dbLatency = rand(8, 22);
-@endphp
+    // Real platform counts
+    $platformStats = [
+        ['Users', \App\Models\User::count(), 'fa-users', 'indigo'],
+        ['Blocked users', \App\Models\User::where('is_blocked', true)->count(), 'fa-user-lock', 'rose'],
+        ['Unread messages', \App\Models\Contact::where('is_read', false)->count(), 'fa-envelope', 'amber'],
+        ['Family hubs', \App\Models\Family::count(), 'fa-people-roof', 'emerald'],
+    ];@endphp
 
 <div x-data="adminDashboard()" class="min-h-screen bg-[#f8fafc] pb-32 font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden">
 
@@ -68,10 +70,7 @@
             <div class="flex flex-wrap items-center gap-3 relative z-10">
                 
                 {{-- 🔥 NEW FUN: Interactive Sync Button --}}
-                <button @click="syncData()" class="px-5 py-3.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-white hover:text-indigo-600 hover:border-indigo-300 transition-all flex items-center gap-2 shadow-sm focus:outline-none w-full sm:w-auto justify-center">
-                    <i class="fa-solid fa-rotate text-indigo-500" :class="isSyncing ? 'animate-spin' : ''"></i> 
-                    <span x-text="isSyncing ? 'Syncing...' : 'Sync Telemetry'"></span>
-                </button>
+                <a href="{{ url()->current() }}" class="px-5 py-3.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-white hover:text-indigo-600 hover:border-indigo-300 transition-all flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> Refresh</a>
 
                 <a href="{{ Route::has('admin.users.index') ? route('admin.users.index') : '#' }}" class="px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-indigo-600 hover:shadow-indigo-500/30 transition-all flex items-center gap-2 hover:-translate-y-0.5 focus:outline-none w-full sm:w-auto justify-center">
                     <i class="fa-solid fa-users-gear text-indigo-400"></i> Manage Identities
@@ -165,45 +164,21 @@
             {{-- System Health & Activity Sidebar --}}
             <div class="lg:col-span-4 space-y-8 h-full flex flex-col">
                 
-                {{-- 🚨 FIX: Infrastructure Load Widget (Now pristine Light White) --}}
-                <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 relative overflow-hidden group">
-                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
-
-                    <h3 class="text-lg font-black text-slate-900 tracking-tight mb-6 relative z-10 flex items-center gap-2">
-                        <i class="fa-solid fa-server text-indigo-500"></i> Infrastructure Load
+                {{-- Platform at a glance (real counts) --}}
+                <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8">
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-simple text-indigo-500"></i> Platform at a glance
                     </h3>
-
-                    <div class="space-y-5 relative z-10">
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Active Sessions</span>
-                                <span class="text-xs font-black text-slate-900 font-mono">{{ $activeSessions }}</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 shadow-inner">
-                                <div class="bg-indigo-500 h-1.5 rounded-full" style="width: {{ ($activeSessions/100)*100 }}%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">CPU Allocation</span>
-                                <span class="text-xs font-black text-slate-900 font-mono">{{ $serverLoad }}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 shadow-inner">
-                                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $serverLoad }}%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">DB Latency</span>
-                                <span class="text-xs font-black text-slate-900 font-mono">{{ $dbLatency }}ms</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 shadow-inner">
-                                <div class="bg-sky-500 h-1.5 rounded-full" style="width: {{ ($dbLatency/50)*100 }}%"></div>
-                            </div>
-                        </div>
-                    </div>
+                    <ul class="grid grid-cols-2 gap-3">
+                        @foreach($platformStats as [$label, $value, $icon, $color])
+                            <li class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                <i class="fa-solid {{ $icon }} text-{{ $color }}-500"></i>
+                                <p class="mt-3 text-2xl font-black text-slate-900 tabular-nums">{{ number_format($value) }}</p>
+                                <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">{{ $label }}</p>
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
-
                 {{-- Cryptographic Activity Timeline --}}
                 <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col flex-1 relative overflow-hidden group">
                     <div class="absolute -right-10 -top-10 w-40 h-40 bg-slate-100/50 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>

@@ -77,9 +77,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3 relative z-10">
-                <button @click="pingCluster()" class="px-6 py-3.5 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-300 transition-all flex items-center gap-2 shadow-sm focus:outline-none">
-                    <i class="fa-solid fa-satellite-dish text-indigo-500"></i> Ping Cluster
-                </button>
                 @if(Route::has('admin.reports.pdf'))
                 <a href="{{ route('admin.reports.pdf') }}" class="px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-indigo-600 hover:shadow-indigo-500/30 transition-all flex items-center gap-2 hover:-translate-y-0.5 focus:outline-none">
                     <i class="fa-solid fa-file-pdf text-indigo-300"></i> Export Whitepaper

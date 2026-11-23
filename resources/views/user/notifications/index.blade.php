@@ -85,21 +85,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3 relative z-10 shrink-0">
-                {{-- Live Polling Toggle --}}
-                <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm mr-2 hidden sm:flex">
-                    <div class="flex flex-col items-end">
-                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest" :class="isPolling ? 'text-indigo-600' : ''">Auto-Sync</span>
-                        <span class="text-[8px] font-bold text-slate-400" x-text="isPolling ? 'Active' : 'Paused'"></span>
-                    </div>
-                    <button @click="togglePolling()" @mouseenter="playHover()" class="w-10 h-5 rounded-full relative transition-colors focus:outline-none shadow-inner border border-slate-200" :class="isPolling ? 'bg-indigo-500 border-indigo-600' : 'bg-slate-300'">
-                        <div class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300" :class="isPolling ? 'translate-x-5' : 'translate-x-0'"></div>
-                    </button>
-                </div>
-
-                <button @click="simulateLiveAlert()" @mouseenter="playHover()" class="px-5 py-3.5 bg-white text-indigo-600 border border-slate-200 rounded-2xl font-bold text-sm hover:bg-indigo-50 hover:border-indigo-300 hover:-translate-y-0.5 transition-all flex items-center gap-2 focus:outline-none shadow-sm hover:shadow-md">
-                    <i class="fa-solid fa-satellite-dish animate-pulse"></i> Inject Test
-                </button>
-                
                 <button @click="markAllReadBatch()" @mouseenter="playHover()" id="btnMarkAllRead" class="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-[0_10px_20px_-5px_rgba(15,23,42,0.4)] hover:bg-indigo-600 hover:shadow-[0_10px_20px_-5px_rgba(79,70,229,0.4)] transition-all flex items-center gap-2 hover:-translate-y-0.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-check-double"></i> <span>Acknowledge All</span>
                 </button>
@@ -144,23 +129,16 @@
                 </div>
             </div>
 
-            {{-- Event Velocity --}}
-            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-[0_15px_30px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group relative overflow-hidden transform-style-3d">
-                <div class="relative z-10 translate-z-20">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Event Velocity</p>
-                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tabular-nums tracking-tight"><span x-text="velocity">14</span><span class="text-sm font-bold text-slate-400">/min</span></h2>
+            {{-- Net balance (real: total income minus total expenses) --}}
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-[0_15px_30px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Balance</p>
+                    @php $netBalance = $totalIncome - $totalExpense; @endphp
+                    <h2 class="text-2xl md:text-3xl font-black tabular-nums tracking-tight {{ $netBalance >= 0 ? 'text-slate-900' : 'text-rose-600' }}"><span class="{{ $netBalance >= 0 ? 'text-indigo-500' : 'text-rose-500' }}">₹</span>{{ number_format($netBalance, 0) }}</h2>
                 </div>
-                
-                <div class="flex items-end gap-1.5 h-10 relative z-10 opacity-60 group-hover:opacity-100 transition-opacity translate-z-30">
-                    <div class="w-1.5 bg-sky-400 rounded-full animate-waveform shadow-sm" style="height: 40%; animation-delay: 0.0s"></div>
-                    <div class="w-1.5 bg-indigo-400 rounded-full animate-waveform shadow-sm" style="height: 80%; animation-delay: 0.2s"></div>
-                    <div class="w-1.5 bg-indigo-600 rounded-full animate-waveform shadow-sm" style="height: 100%; animation-delay: 0.4s"></div>
-                    <div class="w-1.5 bg-indigo-400 rounded-full animate-waveform shadow-sm" style="height: 60%; animation-delay: 0.6s"></div>
-                    <div class="w-1.5 bg-sky-400 rounded-full animate-waveform shadow-sm" style="height: 30%; animation-delay: 0.8s"></div>
-                </div>
+                <div class="w-14 h-14 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center border border-indigo-100 shadow-sm group-hover:scale-110 transition-transform"><i class="fa-solid fa-scale-balanced text-xl"></i></div>
             </div>
         </div>
-
         {{-- ================= 3. SAAS INBOX LAYOUT ================= --}}
         <div class="grid lg:grid-cols-12 gap-8 items-start">
             
@@ -211,33 +189,6 @@
                         </li>
                     </ul>
 
-                    {{-- NEW FUN: System Telemetry Node --}}
-                    <div class="mt-8 pt-6 border-t border-slate-100">
-                        <div class="bg-slate-900 rounded-2xl p-5 shadow-inner relative overflow-hidden group">
-                            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
-                            <div class="absolute -right-5 -top-5 w-20 h-20 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/40 transition-colors"></div>
-                            
-                            <h4 class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2 relative z-10">
-                                <i class="fa-solid fa-satellite-dish animate-pulse"></i> Node Telemetry
-                            </h4>
-                            
-                            <div class="space-y-2.5 relative z-10">
-                                <div class="flex justify-between items-center text-xs">
-                                    <span class="text-slate-400 font-bold">Uptime</span>
-                                    <span class="text-white font-mono" x-text="uptime">00:00:00</span>
-                                </div>
-                                <div class="flex justify-between items-center text-xs">
-                                    <span class="text-slate-400 font-bold">DB Ping</span>
-                                    <span class="text-emerald-400 font-mono" x-text="dbPing + 'ms'">12ms</span>
-                                </div>
-                                <div class="flex justify-between items-center text-xs">
-                                    <span class="text-slate-400 font-bold">Encryption</span>
-                                    <span class="text-white font-mono text-[9px] bg-white/10 px-1.5 py-0.5 rounded border border-white/20">AES-256-GCM</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
@@ -275,23 +226,6 @@
                             $theme = $themeMap[$rawType] ?? $themeMap['info'];
                             $category = $theme['cat']; 
                             
-                            // Mock Metadata for the Payload expansion drawer
-                            $mockIp = '192.168.' . rand(1, 255) . '.' . rand(1, 255);
-                            $mockId = 'EVT-' . strtoupper(substr(md5($note->id ?? rand()), 0, 12));
-                            $mockPayload = json_encode([
-                                "event_id" => $mockId,
-                                "timestamp" => $fullTime,
-                                "source_ip" => $mockIp,
-                                "level" => strtoupper($priority),
-                                "category" => strtoupper($category),
-                                "message" => $message,
-                                "metadata" => [
-                                    "node" => "aws-ap-south-1a",
-                                    "latency_ms" => rand(12, 45),
-                                    "encrypted" => true,
-                                    "status_code" => 200
-                                ]
-                            ], JSON_PRETTY_PRINT);
                         @endphp
 
                         <div x-data="{ expanded: false, isVisible: true, isResolving: false }"
@@ -334,7 +268,6 @@
                                                 <i class="fa-solid fa-bolt text-rose-500 mr-0.5"></i> Urgent
                                             </span>
                                         @endif
-                                        <span class="text-[9px] font-bold text-slate-400 font-mono ml-2 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-block bg-slate-100 px-2 py-0.5 rounded">ID: {{ substr($mockId, 0, 12) }}...</span>
                                     </div>
                                 </div>
                                 
@@ -350,18 +283,13 @@
                             <div x-show="expanded" x-collapse.duration.300ms>
                                 <div class="p-5 border-t border-slate-100 bg-slate-50/50 rounded-b-[1.2rem] mt-1 flex flex-col lg:flex-row gap-6">
                                     
-                                    {{-- Left: SYNTAX HIGHLIGHTED JSON PAYLOAD --}}
-                                    <div class="flex-1 bg-[#0f172a] rounded-[1.25rem] border border-slate-700 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col">
-                                        <div class="bg-[#1e293b] px-5 py-3 border-b border-slate-700 flex justify-between items-center">
-                                            <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest font-mono flex items-center gap-2">
-                                                <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div></div>
-                                                <span class="ml-2">Event Payload</span>
-                                            </span>
-                                            <button @click="copyToClipboard(`{{ str_replace('"', '\"', $mockPayload) }}`, 'Payload copied')" @mouseenter="playHover()" class="text-slate-400 hover:text-white transition-colors focus:outline-none" title="Copy JSON"><i class="fa-regular fa-copy text-sm"></i></button>
-                                        </div>
-                                        <div class="p-5 overflow-x-auto text-[11px] font-mono leading-loose whitespace-pre" x-html="syntaxHighlight(`{{ str_replace('"', '\"', $mockPayload) }}`)"></div>
-                                    </div>
-
+                                    {{-- Left: alert details (real fields only) --}}
+                                    <dl class="flex-1 bg-white rounded-[1.25rem] border border-slate-200 p-5 grid sm:grid-cols-2 gap-4 text-sm">
+                                        <div class="sm:col-span-2"><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Message</dt><dd class="mt-1 font-semibold text-slate-800">{{ $message }}</dd></div>
+                                        <div><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Type</dt><dd class="mt-1 font-semibold text-slate-800">{{ ucfirst($rawType) }}</dd></div>
+                                        <div><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Priority</dt><dd class="mt-1 font-semibold text-slate-800">{{ ucfirst($priority) }}</dd></div>
+                                        <div class="sm:col-span-2"><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">When</dt><dd class="mt-1 font-semibold text-slate-800">{{ $fullTime }}</dd></div>
+                                    </dl>
                                     {{-- Right: Actions & Resolution --}}
                                     <div class="w-full lg:w-64 shrink-0 flex flex-col gap-3">
                                         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 border-b border-slate-200 pb-2">Resolution Actions</h4>
@@ -375,15 +303,10 @@
                                             </form>
                                         @endif
                                         
-                                        <button @click="copyToClipboard('{{ $mockId }}', 'Trace ID copied')" @mouseenter="playHover()" class="w-full px-4 py-3.5 rounded-xl text-xs font-bold transition-all shadow-sm focus:outline-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 hover:-translate-y-0.5">
-                                            <i class="fa-solid fa-share-nodes"></i> Forward to Slack
-                                        </button>
-
-                                        @if($priority === 'high')
-                                            <button @mouseenter="playHover()" class="w-full mt-auto px-4 py-3.5 rounded-xl text-xs font-bold transition-all shadow-sm focus:outline-none flex items-center justify-center gap-2 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white hover:shadow-[0_5px_15px_rgba(225,29,72,0.3)] hover:-translate-y-0.5">
-                                                <i class="fa-solid fa-ticket"></i> Escalate to Jira
-                                            </button>
-                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -492,57 +415,11 @@ document.addEventListener('alpine:init', () => {
         totalUnread: {{ $unreadCount }},
         totalCount: {{ $totalCount }},
         visibleCount: {{ $totalCount }},
-        velocity: 14,
-        
-        // Live Polling Engine
-        isPolling: true,
-        pollInterval: null,
-        uptime: '00:00:00',
-        uptimeSeconds: 0,
-        dbPing: 12,
-
         init() {
             setTimeout(() => this.updateVisibleCount(), 100);
-
-            // System Uptime Clock
-            setInterval(() => {
-                this.uptimeSeconds++;
-                const h = Math.floor(this.uptimeSeconds / 3600).toString().padStart(2, '0');
-                const m = Math.floor((this.uptimeSeconds % 3600) / 60).toString().padStart(2, '0');
-                const s = (this.uptimeSeconds % 60).toString().padStart(2, '0');
-                this.uptime = `${h}:${m}:${s}`;
-            }, 1000);
-
-            // DB Ping Simulation
-            setInterval(() => { this.dbPing = Math.floor(Math.random() * 15) + 8; }, 2000);
-
-            // Velocity simulation
-            setInterval(() => { this.velocity = Math.floor(Math.random() * (22 - 8 + 1) + 8); }, 3000);
-
-            if(this.isPolling) this.startPolling();
         },
-
-        playClick() { window.audioEngine.playClick(); },
-        playHover() { window.audioEngine.playHover(); },
-
-        togglePolling() {
-            this.isPolling = !this.isPolling;
-            this.playClick();
-            if(this.isPolling) {
-                this.startPolling();
-                this.$dispatch('notify', { message: 'Live auto-sync resumed.', type: 'success' });
-            } else {
-                clearInterval(this.pollInterval);
-                this.$dispatch('notify', { message: 'Live auto-sync paused.', type: 'info' });
-            }
-        },
-
-        startPolling() {
-            this.pollInterval = setInterval(() => {
-                // In production, an AJAX fetch would happen here.
-                console.log('Background polling executed.');
-            }, 10000);
-        },
+        playClick() { if (window.audioEngine) window.audioEngine.playClick(); },
+        playHover() { if (window.audioEngine) window.audioEngine.playHover(); },
 
         // JSON Syntax Highlighter
         syntaxHighlight(json) {
@@ -611,10 +488,8 @@ document.addEventListener('alpine:init', () => {
             if (this.totalUnread > 0) {
                 this.totalUnread--;
                 document.getElementById('unreadCountText').innerText = this.totalUnread;
-                document.getElementById('navUnreadCount').innerText = this.totalUnread;
             }
 
-            window.audioEngine.playSuccess();
             this.$dispatch('notify', { message: 'Alert officially acknowledged.', type: 'success' });
 
             // 2. ZEN MODE (Auto Hide)
@@ -631,7 +506,7 @@ document.addEventListener('alpine:init', () => {
                 }
             }, 1500);
 
-            // 3. Background Sync (Mocked for Demo, execute real if form action exists)
+            // 3. Save the change on the server
             if(form.action && form.action !== window.location.href) {
                 fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .catch(err => console.error("Sync failed", err));
@@ -654,109 +529,6 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        // Live WebSocket Injection Simulation
-        simulateLiveAlert() {
-            this.playClick();
-            const feed = document.getElementById('notificationFeed');
-            const newId = Math.floor(Math.random() * 100000);
-            
-            // Format the time exactly as Blade does
-            const d = new Date();
-            const h = d.getHours().toString().padStart(2,'0');
-            const m = d.getMinutes().toString().padStart(2,'0');
-            const s = d.getSeconds().toString().padStart(2,'0');
-            const timeStr = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')} ${h}:${m}:${s} UTC`;
-
-            const rawObj = {
-                event_id: `EVT-MOCK-${newId}`,
-                timestamp: timeStr,
-                source_ip: "192.168.1.42",
-                level: "HIGH",
-                category: "SECURITY",
-                message: "Unrecognized Login Attempt Detected (Eastern Europe)",
-                metadata: { node: "aws-eu-central-1", latency_ms: 14, encrypted: true, status_code: 401 }
-            };
-            
-            const rawPayloadString = JSON.stringify(rawObj, null, 2).replace(/"/g, '&quot;');
-            
-            const html = `
-                <div x-data="{ expanded: false, isVisible: true }" id="note-${newId}" x-show="isVisible" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 scale-100 h-[auto]" x-transition:leave-end="opacity-0 scale-95 h-0 overflow-hidden mb-0 pb-0 border-0" class="notification-card group bg-white border border-rose-300 ring-4 ring-rose-50/50 rounded-[1.5rem] p-1.5 shadow-sm transition-all duration-500 unread-card opacity-0 -translate-y-4 scale-95" style="will-change: transform, opacity;">
-                    <div @click="expanded = !expanded; playClick()" @mouseenter="playHover()" class="p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-start cursor-pointer rounded-[1.2rem] hover:bg-slate-50 transition-colors relative overflow-hidden">
-                        <div class="absolute inset-0 bg-indigo-50/50 opacity-0 transition-opacity duration-300 pointer-events-none" :class="expanded ? 'opacity-100' : ''"></div>
-                        <div class="shrink-0 relative z-10">
-                            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-lg shadow-sm transition-transform duration-300" :class="expanded ? 'scale-110' : 'group-hover:scale-110'">
-                                <i class="fa-solid fa-shield-virus animate-pulse"></i>
-                            </div>
-                            <div id="unread-dot-${newId}" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 border-[3px] border-white rounded-full shadow-sm animate-pulse transition-transform duration-500 scale-100"></div>
-                        </div>
-                        <div class="flex-1 w-full relative z-10">
-                            <div class="flex flex-col sm:flex-row justify-between items-start gap-2 mb-1.5">
-                                <h3 class="text-base font-bold text-slate-900 leading-snug pr-4 transition-colors" :class="expanded ? 'text-indigo-700' : ''">Unrecognized Login Attempt Detected (Eastern Europe)</h3>
-                                <span class="text-[10px] font-bold text-rose-500 whitespace-nowrap uppercase tracking-widest flex items-center gap-1.5"><i class="fa-regular fa-clock"></i> Just now</span>
-                            </div>
-                            <div class="flex items-center gap-2 mt-2">
-                                <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-200">Security</span>
-                                <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-200 shadow-sm"><i class="fa-solid fa-bolt text-rose-500 mr-0.5"></i> Urgent</span>
-                                <span class="text-[9px] font-bold text-slate-400 font-mono ml-2 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-block bg-slate-100 px-2 py-0.5 rounded">ID: EVT-MOCK-${newId}</span>
-                            </div>
-                        </div>
-                        <div class="shrink-0 flex items-center gap-3 relative z-10 mt-2 sm:mt-0">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 bg-white border border-slate-200 shadow-sm transition-all duration-300" :class="expanded ? 'bg-indigo-50 border-indigo-200 text-indigo-600 rotate-180' : 'group-hover:bg-slate-100'">
-                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div x-show="expanded" x-collapse.duration.300ms style="display: none;">
-                        <div class="p-5 border-t border-slate-100 bg-slate-50/50 rounded-b-[1.2rem] mt-1 flex flex-col lg:flex-row gap-6">
-                            <div class="flex-1 bg-[#0f172a] rounded-[1.25rem] border border-slate-700 shadow-inner overflow-hidden flex flex-col">
-                                <div class="bg-[#1e293b] px-5 py-3 border-b border-slate-700 flex justify-between items-center">
-                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest font-mono flex items-center gap-2">
-                                        <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div></div>
-                                        <span class="ml-2">Live Event Payload</span>
-                                    </span>
-                                    <button @click="copyToClipboard('${rawPayloadString}', 'Payload copied')" @mouseenter="playHover()" class="text-slate-400 hover:text-white transition-colors"><i class="fa-regular fa-copy text-sm"></i></button>
-                                </div>
-                                <div class="p-5 overflow-x-auto text-[11px] font-mono leading-loose whitespace-pre" x-html="syntaxHighlight('${rawPayloadString}')"></div>
-                            </div>
-                            <div class="w-full lg:w-64 shrink-0 flex flex-col gap-3">
-                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 border-b border-slate-200 pb-2">Resolution Actions</h4>
-                                <form action="#" class="m-0" @submit.prevent="optimisticMarkRead($event, ${newId})">
-                                    <button type="submit" id="btn-read-${newId}" @mouseenter="playHover()" class="w-full px-4 py-3.5 rounded-xl text-xs font-bold transition-all shadow-sm focus:outline-none flex items-center justify-center gap-2 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-md hover:-translate-y-0.5">
-                                        <i class="fa-solid fa-check"></i> <span>Mark as Read</span>
-                                    </button>
-                                </form>
-                                <button class="w-full mt-auto px-4 py-3.5 rounded-xl text-xs font-bold transition-all shadow-sm focus:outline-none flex items-center justify-center gap-2 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white">
-                                    <i class="fa-solid fa-ticket"></i> Escalate to Jira
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            const emptyState = document.querySelector('[x-show="visibleCount === 0"]');
-            if(emptyState && this.visibleCount === 0) emptyState.style.display = 'none';
-
-            feed.insertAdjacentHTML('afterbegin', html);
-            const newEl = document.getElementById(`note-${newId}`);
-            
-            // Trigger Animation
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    newEl.classList.remove('scale-95', 'opacity-0', '-translate-y-4');
-                    newEl.classList.add('scale-100', 'opacity-100', 'translate-y-0');
-                });
-            });
-
-            this.totalUnread++;
-            this.totalCount++;
-            this.visibleCount++;
-            document.getElementById('unreadCountText').innerText = this.totalUnread;
-            document.getElementById('navUnreadCount').innerText = this.totalUnread;
-
-            window.audioEngine.playSuccess();
-            this.$dispatch('notify', { message: 'Critical Security Alert Received', type: 'error' });
-        }
     }));
 
     // Toast Listener

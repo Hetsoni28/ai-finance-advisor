@@ -340,25 +340,6 @@
 
     $colorPalette = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#e11d48', '#a855f7', '#64748b'];
 
-    // ================= HEATMAP & SERVER NODE MOCK DATA GENERATION =================
-    // Generating deterministic mock data based on report ID to keep it consistent
-    $seed = crc32($reportId);
-    srand($seed);
-    
-    $heatmapData = [];
-    for($i=0; $i<12; $i++) {
-        $val = rand(1, 5); // 1 to 5 heat intensity
-        $heatmapData[] = $val;
-    }
-
-    $serverNodes = [
-        ['name' => 'DB-01', 'status' => rand(1,10) > 2 ? 'node-optimal' : 'node-warn'],
-        ['name' => 'DB-02', 'status' => rand(1,10) > 1 ? 'node-optimal' : 'node-critical'],
-        ['name' => 'RD-01', 'status' => rand(1,10) > 2 ? 'node-optimal' : 'node-warn'],
-        ['name' => 'RD-02', 'status' => 'node-optimal'],
-        ['name' => 'WK-01', 'status' => 'node-optimal'],
-        ['name' => 'WK-02', 'status' => rand(1,10) > 3 ? 'node-optimal' : 'node-warn'],
-    ];
 @endphp
 
 {{-- ================= BACKGROUND WATERMARK ================= --}}
@@ -484,7 +465,7 @@
     </tr>
 </table>
 
-{{-- AI SUMMARY & SERVER NODES --}}
+{{-- AI SUMMARY --}}
 <table class="layout-table avoid-break" style="margin-bottom: 25px; margin-top: 15px;">
     <tr>
         <td width="20%" style="vertical-align: top;">
@@ -492,23 +473,6 @@
                 <span style="font-size: 32px; font-weight: 900; color: #0f172a; font-family: monospace;">{{ $score }}</span>
             </div>
             
-            <div style="margin-top: 15px;">
-                <h3 style="text-align: center; margin-bottom: 5px;">Server Nodes</h3>
-                <table class="node-matrix">
-                    <tr>
-                        <td class="{{ $serverNodes[0]['status'] }}">{{ $serverNodes[0]['name'] }}</td>
-                        <td class="{{ $serverNodes[1]['status'] }}">{{ $serverNodes[1]['name'] }}</td>
-                    </tr>
-                    <tr>
-                        <td class="{{ $serverNodes[2]['status'] }}">{{ $serverNodes[2]['name'] }}</td>
-                        <td class="{{ $serverNodes[3]['status'] }}">{{ $serverNodes[3]['name'] }}</td>
-                    </tr>
-                    <tr>
-                        <td class="{{ $serverNodes[4]['status'] }}">{{ $serverNodes[4]['name'] }}</td>
-                        <td class="{{ $serverNodes[5]['status'] }}">{{ $serverNodes[5]['name'] }}</td>
-                    </tr>
-                </table>
-            </div>
         </td>
         <td width="80%" style="vertical-align: top; padding-left: 15px;">
             <div class="ai-panel">
@@ -530,16 +494,6 @@
                 </table>
             </div>
 
-            <div style="margin-top: 15px; padding-left: 5px;">
-                <h3 style="color:#64748b; font-size: 9px; margin-bottom: 5px;">Global Transaction Velocity Heatmap (Trailing 12M)</h3>
-                <table class="heatmap-table">
-                    <tr>
-                        @foreach($heatmapData as $heat)
-                            <td class="heat-{{ $heat }}">&nbsp;</td>
-                        @endforeach
-                    </tr>
-                </table>
-            </div>
         </td>
     </tr>
 </table>
@@ -721,7 +675,7 @@
                 <strong class="text-slate-dark">SYS_NODES_POLLED:</strong> <span class="font-mono">{{ number_format($activeUsers) }}</span><br>
                 <strong class="text-slate-dark">ALGORITHM_VERSION:</strong> <span class="font-mono">v3.1.4-LTS</span><br>
                 <strong class="text-slate-dark">SHA256_CHECKSUM:</strong> <span class="font-mono text-emerald">{{ $auditHash }}</span><br><br>
-                <span>This document was compiled autonomously by the FinanceAI Master Node. Structural alteration of this file will invalidate the cryptographic hash and fail strict-mode audit reconciliation protocols.</span>
+                <span>This document was generated automatically by FinanceAI from platform records.</span>
             </td>
             <td style="width: 25%; text-align: right; vertical-align: bottom;">
                 {{-- Pure HTML/CSS Barcode Simulation --}}
@@ -764,10 +718,6 @@
         <strong>Capital Burn Ratio:</strong> The percentage of gross inflow consumed by expenses. Values > 100% indicate an active structural deficit.
     </p>
     
-    <h3 style="margin-top: 15px;">Server Node Health Matrix</h3>
-    <p style="font-size: 9px; margin-bottom: 10px; color: #475569;">
-        The Server Node Matrix visualizes the current operational status of the underlying AWS and database infrastructure supporting the FinanceAI platform. Nodes marked in <strong style="color: #e11d48;">Red</strong> indicate high latency or resource starvation and require immediate DevOps intervention.
-    </p>
 </div>
 
 {{-- Page Number Injection Script for DomPDF --}}

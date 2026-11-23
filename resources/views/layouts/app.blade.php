@@ -113,11 +113,8 @@
             <div class="absolute inset-0 border-4 border-indigo-600 rounded-[2rem] border-t-transparent animate-spin"></div>
             <i class="fa-solid fa-cube text-indigo-600 text-2xl animate-pulse shadow-sm"></i>
         </div>
-        <h2 class="text-slate-900 font-black tracking-[0.2em] uppercase text-xs mb-2">FinanceAI Terminal</h2>
-        <div class="flex items-center gap-2">
-            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
-            <p class="text-slate-400 font-bold text-[9px] uppercase tracking-widest">Securing 256-Bit Connection</p>
-        </div>
+        <h2 class="text-slate-900 font-black tracking-[0.2em] uppercase text-xs mb-2">FinanceAI</h2>
+        <p class="text-slate-400 font-bold text-[11px] uppercase tracking-widest">Loading</p>
     </div>
 
     {{-- ================= 2. TOP SPA NAVIGATION LOADER ================= --}}
@@ -202,17 +199,6 @@
             </div>
         </main>
 
-        {{-- Micro Telemetry Footer (NEW FUN!) --}}
-        <div class="h-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between px-4 shrink-0 z-50 no-print" :class="zenMode ? 'hidden' : ''">
-            <div class="flex items-center gap-4 text-[9px] font-mono text-slate-500">
-                <span class="flex items-center gap-1.5"><i class="fa-solid fa-code-branch text-indigo-500"></i> Main</span>
-                <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> Laravel {{ app()->version() }}</span>
-            </div>
-            <div class="flex items-center gap-4 text-[9px] font-mono text-slate-500">
-                <span class="hidden sm:inline-block">Session: {{ session()->getId() ? substr(session()->getId(), 0, 8) : 'Guest' }}</span>
-                <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span> DB: <span x-text="networkPing"></span>ms</span>
-            </div>
-        </div>
 
     </div>
 
@@ -230,7 +216,7 @@
              class="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col pointer-events-auto border-l border-slate-200" @click.stop>
             
             <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <span class="text-sm font-black text-slate-900 tracking-tight uppercase flex items-center gap-2"><i class="fa-solid fa-sliders text-indigo-500"></i> Node Inspector</span>
+                <span class="text-sm font-black text-slate-900 tracking-tight uppercase flex items-center gap-2"><i class="fa-solid fa-sliders text-indigo-500"></i> View settings</span>
                 <button @click="toggleInspector()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors focus:outline-none shadow-sm"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
@@ -244,28 +230,14 @@
                     </div>
                 </div>
 
-                {{-- API Key Block --}}
+                {{-- Current session (real values from this request) --}}
                 <div>
-                    <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center justify-between">
-                        REST API Key <span class="px-2 py-0.5 bg-rose-50 text-rose-500 rounded text-[8px]">Secret</span>
-                    </h5>
-                    <div class="relative group">
-                        <input type="password" value="sk_live_9f8g7h6j5k4l3m2n1b" readonly class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-mono text-slate-900 outline-none select-all cursor-text">
-                        <button @click="copyApiKey()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 shadow-sm transition-colors"><i class="fa-regular fa-copy text-[10px]"></i></button>
-                    </div>
-                </div>
-
-                {{-- Active Sessions --}}
-                <div>
-                    <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Active Network Sessions</h5>
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
-                            <i class="fa-solid fa-laptop text-indigo-500 text-lg"></i>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-bold text-slate-900 truncate">MacBook Pro (Current)</p>
-                                <p class="text-[9px] text-slate-500 font-mono mt-0.5">IP: 192.168.1.1</p>
-                            </div>
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>
+                    <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">This session</h5>
+                    <div class="flex items-center gap-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
+                        <i class="fa-solid fa-display text-indigo-500 text-lg" aria-hidden="true"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-slate-900 truncate">Signed in as {{ auth()->user()->email ?? '' }}</p>
+                            <p class="text-[11px] text-slate-500 font-mono mt-0.5">IP: {{ request()->ip() }}</p>
                         </div>
                     </div>
                 </div>
@@ -294,7 +266,7 @@
             </div>
 
             <div class="max-h-[60vh] overflow-y-auto p-3 bg-white" id="cmdPaletteList">
-                <div class="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400" x-text="searchQuery === '' ? 'Recent Telemetry' : 'Search Results'"></div>
+                <div class="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400" x-text="searchQuery === '' ? 'Go to' : 'Results'"></div>
                 
                 <template x-for="(action, index) in filteredActions" :key="action.name">
                     <a :href="action.route" 
@@ -361,7 +333,7 @@
                     <div class="flex gap-1"><kbd class="px-2 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-mono text-slate-600">Shift</kbd><kbd class="px-2 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-mono text-slate-600">Z</kbd></div>
                 </div>
                 <div class="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors">
-                    <span class="text-sm font-bold text-slate-600">Node Inspector</span>
+                    <span class="text-sm font-bold text-slate-600">View settings</span>
                     <div class="flex gap-1"><kbd class="px-2 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-mono text-slate-600">⌘</kbd><kbd class="px-2 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-mono text-slate-600">I</kbd></div>
                 </div>
                 <div class="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors">
@@ -450,8 +422,6 @@
                 scrollProgress: 0,
                 zenMode: false,
                 
-                networkPing: 12, 
-                
                 // Feature States
                 commandPalette: false,
                 inspectorOpen: false,
@@ -463,8 +433,15 @@
                 actions: [
                     { name: 'Record Capital Inflow', context: 'Log Income', route: '{{ Route::has("user.incomes.create") ? route("user.incomes.create") : "#" }}', icon: 'fa-arrow-trend-up', color: 'emerald', shortcut: 'Shift+I' },
                     { name: 'Record Capital Outflow', context: 'Log Expense', route: '{{ Route::has("user.expenses.create") ? route("user.expenses.create") : "#" }}', icon: 'fa-arrow-trend-down', color: 'rose', shortcut: 'Shift+E' },
-                    { name: 'Global Command Dashboard', context: 'Home Overview', route: '{{ Route::has("user.dashboard") ? route("user.dashboard") : "#" }}', icon: 'fa-chart-pie', color: 'indigo', shortcut: 'Cmd+D' },
-                    { name: 'Identity & Security Profile', context: 'Settings', route: '{{ Route::has("user.profile.index") ? route("user.profile.index") : "#" }}', icon: 'fa-fingerprint', color: 'slate', shortcut: 'Cmd+,' },
+                    { name: 'Dashboard', context: 'Overview', route: '{{ route("dashboard") }}', icon: 'fa-chart-pie', color: 'indigo', shortcut: null },
+                    { name: 'Expenses', context: 'All expenses', route: '{{ route("user.expenses.index") }}', icon: 'fa-receipt', color: 'rose', shortcut: null },
+                    { name: 'Income', context: 'All income', route: '{{ route("user.incomes.index") }}', icon: 'fa-wallet', color: 'emerald', shortcut: null },
+                    { name: 'Reports', context: 'Trends & breakdowns', route: '{{ route("user.reports.index") }}', icon: 'fa-chart-line', color: 'sky', shortcut: null },
+                    { name: 'Family hub', context: 'Shared budgets', route: '{{ route("user.families.index") }}', icon: 'fa-people-roof', color: 'violet', shortcut: null },
+                    { name: 'AI advisor', context: 'Ask about your money', route: '{{ route("user.ai.chat") }}', icon: 'fa-robot', color: 'indigo', shortcut: null },
+                    { name: 'Notifications', context: 'Alerts', route: '{{ route("user.notifications.index") }}', icon: 'fa-bell', color: 'amber', shortcut: null },
+                    { name: 'Profile', context: 'Account settings', route: '{{ route("user.profile.index") }}', icon: 'fa-user', color: 'slate', shortcut: null },
+                    { name: 'Plan & billing', context: 'Subscription', route: '{{ route("user.subscription.index") }}', icon: 'fa-credit-card', color: 'slate', shortcut: null },
                 ],
                 get filteredActions() {
                     if (this.searchQuery === '') return this.actions;
@@ -489,11 +466,6 @@
                     window.addEventListener('resize', () => {
                         if(!this.zenMode) this.sidebarOpen = window.innerWidth >= 1024;
                     });
-
-                    // Network Ping Simulator
-                    setInterval(() => {
-                        this.networkPing = Math.floor(Math.random() * (18 - 10 + 1) + 10);
-                    }, 3000);
 
                     // Reset Command Palette Index on Search
                     this.$watch('searchQuery', () => { this.cmdIndex = 0; });
@@ -534,12 +506,6 @@
                 toggleZenMode() {
                     this.zenMode = !this.zenMode;
                     this.triggerGlobalToast({ message: this.zenMode ? 'Focus Mode Activated' : 'Standard Mode Restored', type: 'success' });
-                    window.playClickSound();
-                },
-
-                copyApiKey() {
-                    navigator.clipboard.writeText('sk_live_9f8g7h6j5k4l3m2n1b');
-                    this.triggerGlobalToast({ message: 'API Key copied to clipboard.', type: 'success' });
                     window.playClickSound();
                 },
 

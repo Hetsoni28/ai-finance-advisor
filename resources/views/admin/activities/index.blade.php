@@ -318,17 +318,11 @@
                                     </div>
                                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
                                         <pre id="json-{{ $index }}" class="text-[12px] font-mono leading-loose json-syntax">{
-  <span class="text-indigo-600">"event_id"</span>: <span class="text-emerald-600">"{{ $activity->id ?? 'evt_'.uniqid() }}"</span>,
+  <span class="text-indigo-600">"event_id"</span>: <span class="text-emerald-600">"{{ $activity->id }}"</span>,
   <span class="text-indigo-600">"actor"</span>: <span class="text-emerald-600">"{{ e(optional($activity->user)->email ?? 'system@internal') }}"</span>,
   <span class="text-indigo-600">"action"</span>: <span class="text-emerald-600">"{{ e($activity->description) }}"</span>,
-  <span class="text-indigo-600">"ip_address"</span>: <span class="text-emerald-600">"192.168.1.{{ rand(10,250) }}"</span>,
-  <span class="text-indigo-600">"user_agent"</span>: <span class="text-emerald-600">"Mozilla/5.0 (Macintosh; Intel Mac OS X)"</span>,
   <span class="text-indigo-600">"timestamp"</span>: <span class="text-emerald-600">"{{ optional($activity->created_at)->toIso8601String() }}"</span>,
-  <span class="text-indigo-600">"severity"</span>: <span class="text-emerald-600">"{{ e($sevLabel) }}"</span>,
-  <span class="text-indigo-600">"metadata"</span>: {
-    <span class="text-indigo-600">"status"</span>: <span class="text-emerald-600">"success"</span>,
-    <span class="text-indigo-600">"verified"</span>: <span class="text-amber-500">true</span>
-  }
+  <span class="text-indigo-600">"severity"</span>: <span class="text-emerald-600">"{{ e($sevLabel) }}"</span>
 }</pre>
                                     </div>
                                 </td>

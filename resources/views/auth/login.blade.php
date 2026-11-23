@@ -74,16 +74,16 @@
                 {{-- Trust Indicators --}}
                 <div class="auth-hero__trust">
                     <div class="auth-hero__trust-item">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        SOC2 Certified
+                        <i class="fa-solid fa-building-columns"></i>
+                        No bank login needed
                     </div>
                     <div class="auth-hero__trust-item">
                         <i class="fa-solid fa-lock"></i>
                         256-bit TLS
                     </div>
                     <div class="auth-hero__trust-item">
-                        <i class="fa-solid fa-award"></i>
-                        GDPR Compliant
+                        <i class="fa-solid fa-key"></i>
+                        Hashed passwords
                     </div>
                 </div>
             </div>

@@ -113,14 +113,11 @@
                 </div>
                 <p class="text-slate-500 text-sm font-medium flex items-center gap-2 max-w-xl leading-relaxed">
                     <i class="fa-solid fa-lock text-emerald-500"></i>
-                    Encrypted Multi-Party Ledger. {{ $family->description ?? 'AI optimization active.' }}
+                    {{ $family->description ?: 'Shared family budget.' }}
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3 relative z-10 shrink-0">
-                <button @click="syncLedger()" @mouseenter="playHover()" class="px-5 py-3.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl font-bold text-sm hover:bg-white hover:text-indigo-600 hover:border-indigo-300 hover:shadow-sm transition-all flex items-center gap-2 focus:outline-none focus:ring-4 focus:ring-indigo-500/10">
-                    <i class="fa-solid fa-rotate text-indigo-500" :class="syncing ? 'animate-spin' : ''"></i> Sync
-                </button>
 
                 <a href="{{ route('user.incomes.create', ['family_id' => $family->id]) }}" @mouseenter="playHover()" class="px-6 py-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-bold text-sm shadow-sm hover:bg-emerald-600 hover:text-white hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)] transition-all flex items-center gap-2 hover:-translate-y-0.5 focus:outline-none">
                     <i class="fa-solid fa-arrow-turn-down transform rotate-90"></i> Record Inflow
@@ -349,7 +346,7 @@
                         </div>
                         
                         <p class="text-xs font-medium text-slate-500 leading-relaxed mb-6">
-                            Deploy a cryptographic invite to a collaborator.
+                            Invite someone by email. They join with a one-click link.
                         </p>
 
                         <form method="POST" action="{{ route('user.families.invite', $family->id) }}" @submit="submitInvite($event)" class="space-y-4">
@@ -384,7 +381,7 @@
                 <div class="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
                     <div>
                         <h3 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                            <i class="fa-solid fa-book-journal-whills text-indigo-500"></i> Cryptographic Ledger
+                            <i class="fa-solid fa-book-journal-whills text-indigo-500"></i> Shared Ledger
                         </h3>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Transaction History</p>
                     </div>
@@ -423,8 +420,6 @@
                                     $icon = $isInc ? 'fa-arrow-turn-down transform rotate-90' : 'fa-tag';
                                     
                                     // Robust Trace Hash Fallback
-                                    $salt = ($data->id ?? 'sys') . '-' . ($data->created_at ?? rand());
-                                    $traceHash = strtoupper(substr(md5($salt), 0, 8));
                                 @endphp
                                 <tr x-show="activeTab === 'all' || activeTab === '{{ $txn->type }}'" 
                                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
@@ -439,9 +434,6 @@
                                                 <div class="flex items-center gap-2 mt-1">
                                                     <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-widest border shadow-sm {{ $badgeColor }}">{{ $isInc ? 'INFLOW' : 'OUTFLOW' }}</span>
                                                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1"><i class="fa-regular fa-clock"></i> {{ $date }}</span>
-                                                    <button @click="copyTrace('EXP-{{ $traceHash }}')" @mouseenter="playHover()" class="text-[8px] font-mono text-slate-400 hover:text-indigo-600 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 px-1.5 py-0.5 rounded shadow-sm transition-all focus:outline-none flex items-center gap-1" title="Copy Cryptographic Trace ID">
-                                                        <i class="fa-regular fa-copy"></i> EXP-{{ $traceHash }}
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

@@ -6,8 +6,11 @@
     /** @var \App\Models\User|null $user */
     $user = auth()->user();
     
-    // 1. Telemetry & Alert Data Simulation (Fallback safe)
-    $unreadAlerts = $unreadAlerts ?? 3;
+    // 1. Real unread alerts for the signed-in user (no placeholder data)
+    $recentAlerts = $user
+        ? \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->latest()->limit(5)->get()
+        : collect();
+    $unreadAlerts = $user ? \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->count() : 0;
     $hasAlerts = $unreadAlerts > 0;
     
     // 2. User Identity & Role Logic (CRASH-PROOF ENGINE)
@@ -90,15 +93,7 @@
                 <div class="flex flex-col">
                     {{-- Environment Badge & Clock --}}
                     <div class="flex items-center gap-3 mb-1">
-                        <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100 shadow-inner group cursor-default">
-                            <span class="relative flex h-1.5 w-1.5">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
-                            </span>
-                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600">Production Node</span>
-                            <span class="text-[9px] font-bold text-indigo-400 font-mono ml-1 opacity-0 group-hover:opacity-100 transition-opacity" x-text="networkPing + 'ms'"></span>
-                        </div>
-                        <span class="text-[9px] font-bold text-slate-400 font-mono tracking-widest">{{ $systemTime }}</span>
+                        <span class="text-[11px] font-bold text-slate-400">{{ now()->setTimezone('Asia/Kolkata')->format('l, j F Y') }}</span>
                     </div>
 
                     {{-- Dynamic Breadcrumbs --}}
@@ -166,7 +161,7 @@
                 <div x-show="quickAdd" x-cloak
                      x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                      x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-                     class="absolute top-full right-0 mt-4 w-[450px] bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-[2rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden z-[100] p-3 flex gap-3">
+                     class="absolute top-full right-0 mt-4 w-[300px] bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-[2rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden z-[100] p-3 flex gap-3">
                     
                     {{-- Left Column: Actions --}}
                     <div class="flex-1 flex flex-col gap-1">
@@ -196,64 +191,10 @@
                             <span class="text-[9px] font-black text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity bg-rose-100/50 px-1.5 py-0.5 rounded">⇧E</span>
                         </a>
                     </div>
-
-                    {{-- Right Column: Intelligence --}}
-                    <div class="w-40 bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col justify-between">
-                        <div>
-                            <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-3"><i class="fa-solid fa-brain text-xs"></i></div>
-                            <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-900 mb-1">Smart Sync</h4>
-                            <p class="text-[9px] font-bold text-slate-500 leading-relaxed">Connect your bank API to automate these entries.</p>
-                        </div>
-                        <a href="#" class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors mt-4">Setup API &rarr;</a>
-                    </div>
                 </div>
             </div>
 
             <div class="w-px h-8 bg-slate-200 mx-1 hidden sm:block"></div>
-
-            {{-- ---------------------------------------------------- --}}
-            {{-- B. BACKGROUND TASK RUNNER (DYNAMIC)                  --}}
-            {{-- ---------------------------------------------------- --}}
-            <div class="relative hidden sm:block" x-data="{ tasksOpen: false }" @click.away="tasksOpen = false">
-                <button @click="tasksOpen = !tasksOpen" 
-                        @mouseenter="triggerHoverSound()"
-                        class="relative w-11 h-11 rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/50 flex items-center justify-center shadow-sm transition-all duration-300 focus:outline-none group">
-                    <i class="fa-solid fa-gear text-base transition-transform duration-1000" :class="activeTasks.length > 0 ? 'animate-spin-slow text-indigo-500' : ''"></i>
-                    {{-- Dynamic Task Indicator --}}
-                    <span x-show="activeTasks.length > 0" class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 border-2 border-white rounded-full shadow-sm"></span>
-                </button>
-
-                <div x-show="tasksOpen" x-cloak
-                     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-                     class="absolute top-full right-0 mt-4 w-80 bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-[2rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden z-[100] p-2.5">
-                    
-                    <div class="px-4 pt-3 pb-3 border-b border-slate-100 mb-2 flex justify-between items-center bg-slate-50 rounded-xl">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-2"><i class="fa-solid fa-server text-indigo-500"></i> Background Ops</span>
-                        <span class="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm"><span x-text="activeTasks.length"></span> Running</span>
-                    </div>
-
-                    <div class="space-y-1 p-1">
-                        <template x-for="task in activeTasks" :key="task.id">
-                            <div class="p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-black text-slate-900" x-text="task.name"></span>
-                                    <span class="text-[9px] font-bold uppercase tracking-widest" :class="'text-' + task.color + '-600'" x-text="task.status"></span>
-                                </div>
-                                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                    <div class="h-full transition-all duration-300 ease-out" 
-                                         :class="'bg-' + task.color + '-500 shadow-[0_0_5px_rgba(var(--tw-colors-' + task.color + '-500),0.5)]'" 
-                                         :style="`width: ${task.progress}%`"></div>
-                                </div>
-                            </div>
-                        </template>
-                        <div x-show="activeTasks.length === 0" class="py-6 text-center">
-                            <i class="fa-solid fa-check-double text-2xl text-emerald-400 mb-2"></i>
-                            <p class="text-xs font-bold text-slate-500">All queues processed.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {{-- ---------------------------------------------------- --}}
             {{-- C. NOTIFICATION HUB                                  --}}
@@ -277,34 +218,29 @@
                      class="absolute top-full right-0 mt-4 w-[320px] sm:w-[380px] bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-[2rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden z-[100]">
                     
                     <div class="px-6 py-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                        <span class="text-sm font-black text-slate-900 tracking-tight">System Telemetry</span>
-                        <button class="text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-700 transition-colors focus:outline-none bg-indigo-50 px-2 py-1 rounded border border-indigo-100 shadow-sm hover:shadow">Mark Read</button>
+                        <span class="text-sm font-black text-slate-900 tracking-tight">Notifications</span>
                     </div>
 
                     <div class="max-h-[60vh] overflow-y-auto p-2">
-                        {{-- Dummy Alert 1 --}}
-                        <a href="#" class="flex gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-transparent hover:border-slate-100 group">
-                            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200 shadow-sm"><i class="fa-solid fa-check text-sm"></i></div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate">Stripe Sync Complete</p>
-                                <p class="text-xs text-slate-500 font-medium line-clamp-2 mt-0.5">Successfully pulled 42 new transactions from connected bank nodes.</p>
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">2 Mins Ago</p>
+                        @forelse($recentAlerts as $alert)
+                            <a href="{{ route('user.notifications.index') }}" class="flex gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-transparent hover:border-slate-100 group">
+                                <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100"><i class="fa-solid fa-bell text-sm" aria-hidden="true"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-2">{{ $alert->message }}</p>
+                                    <p class="text-[11px] font-bold text-slate-400 mt-1.5">{{ $alert->created_at?->diffForHumans() }}</p>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="px-6 py-10 text-center">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400"><i class="fa-regular fa-bell-slash" aria-hidden="true"></i></div>
+                                <p class="mt-3 text-sm font-bold text-slate-700">No new alerts</p>
+                                <p class="mt-1 text-xs text-slate-500">Your spending insights live on the notifications page.</p>
                             </div>
-                        </a>
-                        {{-- Dummy Alert 2 --}}
-                        <a href="#" class="flex gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-transparent hover:border-slate-100 group">
-                            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200 shadow-sm"><i class="fa-solid fa-triangle-exclamation text-sm"></i></div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate">Burn Rate Anomaly</p>
-                                <p class="text-xs text-slate-500 font-medium line-clamp-2 mt-0.5">Cloud infrastructure expenses exceeded projected budget by 14%.</p>
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">1 Hour Ago</p>
-                            </div>
-                        </a>
+                        @endforelse
                     </div>
-                    
-                    @if(Route::has('user.notifications.index'))
+                                        @if(Route::has('user.notifications.index'))
                     <div class="p-3 bg-slate-50 border-t border-slate-100 text-center">
-                        <a href="{{ route('user.notifications.index') }}" @click="triggerClick()" class="text-xs font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-widest transition-colors block py-1">View Audit Log &rarr;</a>
+                        <a href="{{ route('user.notifications.index') }}" @click="triggerClick()" class="text-xs font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-widest transition-colors block py-1">View all notifications &rarr;</a>
                     </div>
                     @endif
                 </div>
@@ -374,11 +310,10 @@
                             <div class="flex items-center gap-2">
                                 <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
                                 <div class="flex flex-col">
-                                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Session Secure</span>
-                                    <span class="text-[10px] font-mono font-bold text-emerald-400" x-text="sessionIp">192.168.1.1</span>
+                                    <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">Signed in from</span>
+                                    <span class="text-[11px] font-mono font-bold text-emerald-400">{{ request()->ip() }}</span>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 text-[8px] font-black uppercase tracking-widest">MFA Active</span>
                         </div>
                     </div>
 
@@ -454,60 +389,25 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('navbarEngine', () => ({
         
-        // 1. Search Typewriter Engine
+        // Search hint typewriter: cycles through pages the command palette can actually open
         searchPlaceholders: [
-            'Search secure ledgers...', 
-            'Calculate runway projection...', 
-            'Jump to security settings...', 
-            'Generate PDF tax report...'
+            'Go to expenses...',
+            'Open reports...',
+            'Ask the AI advisor...',
+            'Find your family hub...'
         ],
         typewriterText: '',
         phIndex: 0,
         charIndex: 0,
         isDeleting: false,
-        
-        // 2. Simulated Telemetry
-        networkPing: 12,
-        sessionIp: 'Scanning...',
-        
-        // 3. Dynamic Task Engine (SAFE FALLBACK FOR ERROR AVOIDANCE)
-        activeTasks: [
-            { id: 1, name: 'Stripe Webhook Sync', status: 'Processing', progress: 65, color: 'indigo' },
-            { id: 2, name: 'ML Category Heuristics', status: 'Analyzing', progress: 82, color: 'emerald' },
-            { id: 3, name: 'AES-256 Vault Backup', status: 'Pending', progress: 10, color: 'slate' }
-        ],
 
         init() {
-            // Start Typewriter
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                this.typewriterText = 'Search pages...';
+                return;
+            }
             this.typeEffect();
-            
-            // Simulate Network Ping Fluctuations
-            setInterval(() => {
-                this.networkPing = Math.floor(Math.random() * (18 - 10 + 1) + 10);
-            }, 2000);
-
-            // Fetch simulated IP
-            setTimeout(() => {
-                this.sessionIp = '192.168.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255);
-            }, 1000);
-
-            // Dynamic Task Progression Simulation
-            setInterval(() => {
-                if(this.activeTasks.length > 0) {
-                    this.activeTasks.forEach((task, index) => {
-                        if(task.progress < 100) {
-                            task.progress += Math.floor(Math.random() * 5);
-                            if(task.progress >= 100) {
-                                task.progress = 100;
-                                task.status = 'Completed';
-                                setTimeout(() => { this.activeTasks.splice(index, 1); }, 2000);
-                            }
-                        }
-                    });
-                }
-            }, 1000);
         },
-
         typeEffect() {
             const currentString = this.searchPlaceholders[this.phIndex];
             

@@ -5,8 +5,15 @@
 @section('content')
 
 @php
-    // Safe Fallbacks for UI demonstration
-    $stats = $stats ?? ['total'=>1250, 'active'=>1100, 'blocked'=>145, 'admins'=>5];
+    $stats = $stats ?? ['total'=>0, 'active'=>0, 'blocked'=>0, 'admins'=>0];
+
+    // Real sign-ups per week for the last 6 weeks (oldest first)
+    $growthLabels = []; $growthData = [];
+    for ($w = 5; $w >= 0; $w--) {
+        $from = now()->subWeeks($w)->startOfWeek(); $to = now()->subWeeks($w)->endOfWeek();
+        $growthLabels[] = $w === 0 ? 'This wk' : $from->format('d M');
+        $growthData[] = \App\Models\User::whereBetween('created_at', [$from, $to])->count();
+    }
     $users = $users ?? collect([]); 
     
     $total   = (int) ($stats['total'] ?? 0);
@@ -40,9 +47,6 @@
                 <button onclick="exportCleanCSV()" class="group relative px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold shadow-sm hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md transition-all flex items-center gap-2 focus:outline-none">
                     <i class="fa-solid fa-file-csv"></i> Export Data
                 </button>
-                <a href="#" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-[0_4px_15px_rgba(79,70,229,0.3)] hover:bg-indigo-700 hover:shadow-[0_6px_25px_rgba(79,70,229,0.4)] transition-all flex items-center gap-2 hover:-translate-y-0.5">
-                    <i class="fa-solid fa-user-plus"></i> Invite User
-                </a>
             </div>
         </div>
 
@@ -78,7 +82,7 @@
             <div class="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Network Growth</h3>
-                    <p class="text-2xl font-black text-slate-900 mb-6">Last 30 Days</p>
+                    <p class="text-2xl font-black text-slate-900 mb-6">New users per week</p>
                 </div>
                 <div class="h-40 w-full relative">
                     <canvas id="growthChart"></canvas>
@@ -174,7 +178,7 @@
                                 </td>
 
                                 {{-- User Profile --}}
-                                <td class="px-6 py-4" onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}')">
+                                <td class="px-6 py-4" onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}', '{{ optional($usr->created_at)->format('d M Y') }}')">
                                     <div class="flex items-center gap-4">
                                         <img src="https://ui-avatars.com/api/?name={{ urlencode($usr->name) }}&background=e2e8f0&color=475569&bold=true" class="w-12 h-12 rounded-2xl border border-slate-200 shadow-sm group-hover:border-indigo-200 transition-colors" alt="Avatar">
                                         <div>
@@ -195,7 +199,7 @@
                                 </td>
 
                                 {{-- Role Badge --}}
-                                <td class="px-6 py-4" onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}')">
+                                <td class="px-6 py-4" onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}', '{{ optional($usr->created_at)->format('d M Y') }}')">
                                     @if($isAdmin)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold shadow-sm" data-export="role">
                                             <i class="fa-solid fa-shield-halved text-[10px]"></i> Admin
@@ -208,7 +212,7 @@
                                 </td>
 
                                 {{-- Status Badge --}}
-                                <td class="px-6 py-4" onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}')">
+                                <td class="px-6 py-4" onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}', '{{ optional($usr->created_at)->format('d M Y') }}')">
                                     @if($isBlocked)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 text-xs font-bold shadow-sm" data-export="status">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Suspended
@@ -223,7 +227,7 @@
                                 {{-- Actions --}}
                                 <td class="px-6 py-4 text-right" onclick="event.stopPropagation();">
                                     <div class="flex items-center justify-end gap-2">
-                                        <button onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 flex items-center justify-center transition-all shadow-sm" title="View Profile">
+                                        <button onclick="openUserDrawer('{{ e($usr->name) }}', '{{ e($usr->email) }}', '{{ $usr->id }}', '{{ $isAdmin ? 'Admin' : 'User' }}', '{{ $isBlocked ? 'Blocked' : 'Active' }}', '{{ optional($usr->created_at)->format('d M Y') }}')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 flex items-center justify-center transition-all shadow-sm" title="View Profile">
                                             <i class="fa-solid fa-eye text-sm"></i>
                                         </button>
 
@@ -306,8 +310,6 @@
         {{-- Tabs Navigation --}}
         <div class="flex border-b border-slate-200 bg-white px-6">
             <button class="drawer-tab active px-4 py-4 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 transition-colors" data-target="tab-overview">Overview</button>
-            <button class="drawer-tab px-4 py-4 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-800 transition-colors" data-target="tab-security">Security</button>
-            <button class="drawer-tab px-4 py-4 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-800 transition-colors" data-target="tab-logs">Activity Logs</button>
         </div>
 
         {{-- Tab Content: Overview --}}
@@ -327,56 +329,10 @@
                 </div>
                 <div class="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Date Joined</p>
-                    <p class="font-bold text-lg text-slate-800">12 May 2025</p>
+                    <p class="font-bold text-lg text-slate-800" id="drawerJoined">—</p>
                 </div>
             </div>
             
-            <div class="space-y-4 pt-6 border-t border-slate-200">
-                <button class="w-full py-4 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-invoice"></i> View Billing History
-                </button>
-                <button class="w-full py-4 rounded-xl bg-white border-2 border-rose-200 text-rose-600 font-bold hover:bg-rose-50 transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-ban"></i> Suspend Account
-                </button>
-            </div>
-        </div>
-
-        {{-- Tab Content: Security (Dummy Data for Demo) --}}
-        <div id="tab-security" class="drawer-content p-8 hidden">
-            <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">Authentication Status</h4>
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-6">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="font-bold text-slate-700">Two-Factor Auth</span>
-                    <span class="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-black uppercase rounded-lg">Enabled</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="font-bold text-slate-700">Last Password Change</span>
-                    <span class="text-sm font-medium text-slate-500">2 months ago</span>
-                </div>
-            </div>
-            <button class="w-full py-4 rounded-xl bg-slate-900 text-white font-bold shadow-md hover:bg-indigo-600 transition-colors">
-                Force Password Reset
-            </button>
-        </div>
-
-        {{-- Tab Content: Logs (Dummy Data for Demo) --}}
-        <div id="tab-logs" class="drawer-content p-8 hidden">
-            <div class="space-y-4">
-                <div class="flex gap-4">
-                    <div class="w-2 h-2 mt-2 rounded-full bg-emerald-500"></div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-sm">Successful Login</p>
-                        <p class="text-xs text-slate-500 font-mono mt-1">IP: 192.168.1.1 • Today, 10:42 AM</p>
-                    </div>
-                </div>
-                <div class="flex gap-4">
-                    <div class="w-2 h-2 mt-2 rounded-full bg-indigo-500"></div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-sm">Generated AI Forecast</p>
-                        <p class="text-xs text-slate-500 font-mono mt-1">Via Web Dashboard • Yesterday, 2:15 PM</p>
-                    </div>
-                </div>
-            </div>
         </div>
 
     </div>
@@ -454,9 +410,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. USER GROWTH CHART (Chart.js)
     const ctx = document.getElementById('growthChart');
     if(ctx) {
-        // Dummy data for visual effect
-        const labels = ['1W', '2W', '3W', '4W', '5W', 'Now'];
-        const data = [850, 920, 1050, 1100, 1180, 1250];
+        // Real weekly sign-ups (computed server-side)
+        const labels = @json($growthLabels);
+        const data = @json($growthData);
         
         const grad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 160);
         grad.addColorStop(0, 'rgba(79, 70, 229, 0.4)');
@@ -576,7 +532,8 @@ function exportCleanCSV() {
 }
 
 // 7. SLIDING DRAWER LOGIC
-function openUserDrawer(name, email, id, role, status) {
+function openUserDrawer(name, email, id, role, status, joined) {
+    document.getElementById('drawerJoined').innerText = joined || '—';
     document.getElementById('drawerName').innerText = name;
     document.getElementById('drawerEmail').innerText = email;
     document.getElementById('drawerId').innerText = '#' + String(id).padStart(5, '0');

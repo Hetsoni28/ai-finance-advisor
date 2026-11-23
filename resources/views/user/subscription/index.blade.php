@@ -14,20 +14,11 @@
     $remainingText = $subscription ? $subscription->remaining_text : 'Free Tier — No Expiry';
     $endDate = $subscription && $subscription->end_date ? $subscription->end_date->format('M d, Y') : null;
     
-    // Simulated Usage Data (Cosmetic — kept from original UI)
-    $usage = [
-        'ai_queries' => ['used' => 840, 'total' => 1000, 'percent' => 84],
-        'api_calls'  => ['used' => 12500, 'total' => 100000, 'percent' => 12.5],
-    ];
-
-    // Simulated Payment Method (Cosmetic)
-    $paymentMethod = [
-        'brand' => 'visa',
-        'last4' => '4242',
-        'exp'   => '12/28',
-        'status'=> 'valid'
-    ];
-
+    // Real usage for this month (no simulated quotas)
+    $monthStart = now()->startOfMonth();
+    $aiMessagesThisMonth = \App\Models\AiChat::where('user_id', $user->id)->where('sender', 'user')->where('created_at', '>=', $monthStart)->count();
+    $recordsThisMonth = \App\Models\Income::where('user_id', $user->id)->where('created_at', '>=', $monthStart)->count()
+        + \App\Models\Expense::where('user_id', $user->id)->where('created_at', '>=', $monthStart)->count();
     // ✅ REAL Invoice History from DB
     $dbInvoices = \App\Models\UserSubscription::with('plan')
         ->where('user_id', $user->id)
@@ -63,7 +54,7 @@
                 Scale your financial intelligence.
             </h1>
             <p class="text-lg text-slate-500 font-medium">
-                Cancel anytime. Secure billing powered by Stripe. No hidden fees.
+                Switch or cancel your plan anytime. No hidden fees.
             </p>
         </div>
 
@@ -125,75 +116,23 @@
                         @endif
                     </div>
                     
-                    @if($currentPlan !== 'starter' && $currentPlan !== 'free')
-                    <div class="mt-6 pt-6 border-t border-slate-100">
-                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-[1.25rem] border border-slate-200 group hover:border-indigo-200 transition-colors">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-8 bg-white rounded border border-slate-200 shadow-sm flex items-center justify-center text-indigo-600 font-black italic text-lg">
-                                    VISA
-                                </div>
-                                <div>
-                                    <p class="text-xs font-black text-slate-900 tracking-tight">•••• {{ $paymentMethod['last4'] }}</p>
-                                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Exp {{ $paymentMethod['exp'] }}</p>
-                                </div>
-                            </div>
-                            <button onclick="openPaymentModal()" onmouseenter="audioEngine.playHover()" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 shadow-sm flex items-center justify-center transition-all focus:outline-none hover:-translate-y-0.5" title="Update Payment Method">
-                                <i class="fa-solid fa-pen text-xs"></i>
-                            </button>
-                        </div>
-                    </div>
-                    @endif
                 </div>
 
-                {{-- Live Usage Quotas --}}
-                <div class="lg:col-span-8 flex flex-col justify-center gap-8">
-                    
-                    {{-- AI Queries --}}
-                    <div class="group">
-                        <div class="flex justify-between items-end mb-3">
-                            <div>
-                                <span class="text-xs font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-brain text-indigo-500"></i> AI Heuristic Queries</span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 block">Monthly Token Limit</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-lg font-black text-indigo-600 tabular-nums">{{ number_format($usage['ai_queries']['used']) }}</span>
-                                <span class="text-xs font-bold text-slate-400">/ {{ number_format($usage['ai_queries']['total']) }}</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/50 shadow-inner">
-                            @php $aiColor = $usage['ai_queries']['percent'] > 85 ? 'bg-rose-500' : ($usage['ai_queries']['percent'] > 60 ? 'bg-amber-500' : 'bg-indigo-500'); @endphp
-                            <div class="{{ $aiColor }} h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden" style="width: {{ $usage['ai_queries']['percent'] }}%">
-                                <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] translate-x-[-100%]" style="background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);"></div>
-                            </div>
-                        </div>
-                        @if($usage['ai_queries']['percent'] >= 80)
-                            <p class="text-[10px] text-rose-500 font-black uppercase tracking-widest mt-2.5 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Approaching compute threshold.</p>
-                        @endif
+                {{-- This month's real activity --}}
+                <div class="lg:col-span-8 grid sm:grid-cols-2 gap-6 content-center">
+                    <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6">
+                        <span class="text-xs font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-robot text-indigo-500"></i> AI advisor messages</span>
+                        <p class="mt-3 text-4xl font-black text-indigo-600 tabular-nums">{{ number_format($aiMessagesThisMonth) }}</p>
+                        <p class="mt-1 text-xs font-bold text-slate-500">sent this month</p>
                     </div>
-
-                    {{-- API Calls --}}
-                    <div class="group">
-                        <div class="flex justify-between items-end mb-3">
-                            <div>
-                                <span class="text-xs font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-network-wired text-sky-500"></i> Master Database Syncs</span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 block">Read/Write Operations</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-lg font-black text-sky-600 tabular-nums">{{ number_format($usage['api_calls']['used']) }}</span>
-                                <span class="text-xs font-bold text-slate-400">/ {{ number_format($usage['api_calls']['total']) }}</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/50 shadow-inner">
-                            @php $apiColor = $usage['api_calls']['percent'] > 85 ? 'bg-rose-500' : ($usage['api_calls']['percent'] > 60 ? 'bg-amber-500' : 'bg-sky-500'); @endphp
-                            <div class="{{ $apiColor }} h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden" style="width: {{ $usage['api_calls']['percent'] }}%">
-                                <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] translate-x-[-100%]" style="background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);"></div>
-                            </div>
-                        </div>
+                    <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6">
+                        <span class="text-xs font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-receipt text-sky-500"></i> Records added</span>
+                        <p class="mt-3 text-4xl font-black text-sky-600 tabular-nums">{{ number_format($recordsThisMonth) }}</p>
+                        <p class="mt-1 text-xs font-bold text-slate-500">income and expenses this month</p>
                     </div>
                 </div>
             </div>
         </div>
-
         {{-- ================= 3. PRICING CARDS ================= --}}
         <div class="pt-8 animate-fade-in-up" style="animation-delay: 200ms;">
             
@@ -293,7 +232,7 @@
                             @else
                                 <form method="POST" action="{{ $proPlan ? route('user.subscription.subscribe', $proPlan->id) : '#' }}" id="proUpgradeForm">
                                     @csrf
-                                    <button type="submit" onclick="simulateStripeCheckout(event, this)" onmouseenter="audioEngine.playHover()" class="w-full py-4 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] hover:bg-indigo-600 shadow-md hover:shadow-xl hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none relative overflow-hidden">
+                                    <button type="submit" onmouseenter="audioEngine.playHover()" class="w-full py-4 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] hover:bg-indigo-600 shadow-md hover:shadow-xl hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none relative overflow-hidden">
                                         <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] translate-x-[-100%]" style="background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);"></div>
                                         <span class="relative z-10">Initialize Upgrade</span>
                                     </button>
@@ -345,7 +284,7 @@
                         @else
                             <form method="POST" action="{{ $premiumPlan ? route('user.subscription.subscribe', $premiumPlan->id) : '#' }}" id="enterpriseUpgradeForm">
                                 @csrf
-                                <button type="submit" onclick="simulateStripeCheckout(event, this)" onmouseenter="audioEngine.playHover()" class="w-full py-4 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] hover:bg-amber-600 shadow-md hover:shadow-xl hover:shadow-amber-500/30 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none relative overflow-hidden">
+                                <button type="submit" onmouseenter="audioEngine.playHover()" class="w-full py-4 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] hover:bg-amber-600 shadow-md hover:shadow-xl hover:shadow-amber-500/30 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 focus:outline-none relative overflow-hidden">
                                     <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] translate-x-[-100%]" style="background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);"></div>
                                     <span class="relative z-10"><i class="fa-solid fa-rocket mr-1"></i> Initialize Enterprise</span>
                                 </button>
@@ -554,53 +493,6 @@
     </div>
 </div>
 
-{{-- Update Payment Modal --}}
-<div id="paymentModal" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="paymentModalContent" class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 border border-slate-200 relative">
-        <div class="p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black text-slate-900 tracking-tight">Update Billing</h3>
-                <button onclick="closePaymentModal()" onmouseenter="audioEngine.playHover()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors focus:outline-none"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Card Number</label>
-                    <div class="relative">
-                        <i class="fa-regular fa-credit-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" placeholder="0000 0000 0000 0000" class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none transition-all shadow-inner">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Expiry</label>
-                        <input type="text" placeholder="MM/YY" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none transition-all shadow-inner text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">CVC</label>
-                        <input type="text" placeholder="123" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none transition-all shadow-inner text-center">
-                    </div>
-                </div>
-                <button onclick="simulateStripeCheckout(event, this, 'Updating Vault...')" onmouseenter="audioEngine.playHover()" class="w-full mt-4 py-4 rounded-xl bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] shadow-[0_10px_20px_rgba(79,70,229,0.3)] hover:bg-indigo-700 transition-all hover:-translate-y-0.5 focus:outline-none relative overflow-hidden">
-                    <span class="relative z-10">Secure Vault Update</span>
-                </button>
-            </div>
-            <p class="text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-6 flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> Secured by Stripe 256-bit encryption</p>
-        </div>
-    </div>
-</div>
-
-{{-- Stripe Processing Overlay --}}
-<div id="stripeOverlay" class="fixed inset-0 z-[9999] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="w-24 h-24 bg-white rounded-2xl shadow-xl border border-slate-200 flex items-center justify-center mb-6 relative">
-        <div class="absolute inset-0 border-4 border-indigo-100 rounded-2xl"></div>
-        <div class="absolute inset-0 border-4 border-indigo-600 rounded-2xl border-t-transparent animate-spin"></div>
-        <i class="fa-brands fa-stripe text-3xl text-indigo-600"></i>
-    </div>
-    <h2 class="text-2xl font-black text-slate-900 tracking-tight mb-2">Processing Transaction</h2>
-    <p id="stripeOverlayText" class="text-sm font-bold text-slate-500 font-mono tracking-widest uppercase">Contacting payment gateway...</p>
-</div>
-
 {{-- Notification Toast --}}
 <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 backdrop-blur-xl text-white px-6 py-3.5 rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none border border-slate-700">
     <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
@@ -788,67 +680,5 @@ window.closeCancelModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
 }
 
-window.openPaymentModal = function() {
-    audioEngine.playClick();
-    const modal = document.getElementById('paymentModal');
-    const content = document.getElementById('paymentModalContent');
-    modal.classList.remove('hidden'); modal.classList.add('flex');
-    setTimeout(() => {
-        modal.classList.remove('opacity-0'); modal.classList.add('opacity-100');
-        content.classList.remove('scale-95'); content.classList.add('scale-100');
-    }, 10);
-}
-
-window.closePaymentModal = function() {
-    audioEngine.playClick();
-    const modal = document.getElementById('paymentModal');
-    const content = document.getElementById('paymentModalContent');
-    modal.classList.remove('opacity-100'); modal.classList.add('opacity-0');
-    content.classList.remove('scale-100'); content.classList.add('scale-95');
-    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
-}
-
-// 6. STRIPE CHECKOUT SIMULATION
-window.simulateStripeCheckout = function(e, btn, startText = 'Contacting payment gateway...') {
-    e.preventDefault();
-    audioEngine.playClick();
-    
-    const form = btn.closest('form');
-    const overlay = document.getElementById('stripeOverlay');
-    const overlayText = document.getElementById('stripeOverlayText');
-    
-    // Lock screen
-    overlay.classList.remove('opacity-0', 'pointer-events-none');
-    overlayText.innerText = startText;
-    
-    setTimeout(() => {
-        overlayText.innerText = 'Validating cryptographic signature...';
-        audioEngine.playHover();
-        
-        setTimeout(() => {
-            overlayText.innerText = 'Transaction Approved.';
-            overlay.querySelector('.fa-stripe').className = "fa-solid fa-check text-5xl text-emerald-500";
-            overlay.querySelector('.animate-spin').classList.add('hidden');
-            overlay.querySelector('.border-indigo-100').classList.replace('border-indigo-100', 'border-emerald-100');
-            audioEngine.playSuccess();
-            
-            setTimeout(() => {
-                if(form.action && form.action !== window.location.href) {
-                    form.submit();
-                } else {
-                    closePaymentModal();
-                    overlay.classList.add('opacity-0', 'pointer-events-none');
-                    showToast("Vault updated successfully.");
-                    // Reset overlay for next time
-                    setTimeout(() => {
-                        overlay.querySelector('.fa-check').className = "fa-brands fa-stripe text-3xl text-indigo-600";
-                        overlay.querySelector('.hidden').classList.remove('hidden');
-                        overlay.querySelector('.border-emerald-100').classList.replace('border-emerald-100', 'border-indigo-100');
-                    }, 500);
-                }
-            }, 1000);
-        }, 1500);
-    }, 1000);
-}
 </script>
 @endpush

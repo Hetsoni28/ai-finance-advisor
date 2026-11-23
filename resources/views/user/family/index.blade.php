@@ -82,14 +82,11 @@
                 </nav>
                 <h1 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-2">Shared Workspaces</h1>
                 <p class="text-slate-500 text-sm font-medium flex items-center gap-2 max-w-xl leading-relaxed">
-                    Manage collaborative cryptographic ledgers. Pool capital, sync transactions in real-time, and execute joint financial strategies with enterprise-grade encryption.
+                    Share a budget with the people you live with. Track shared income and spending together, with clear roles for every membes with enterprise-grade encryption.
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3 relative z-10 shrink-0">
-                <button @click="syncLedgers()" @mouseenter="if(typeof window.audioEngine !== 'undefined') window.audioEngine.playHover()" class="px-5 py-3.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl font-bold text-sm hover:bg-white hover:text-indigo-600 hover:border-indigo-300 hover:shadow-sm transition-all flex items-center gap-2 focus:outline-none">
-                    <i class="fa-solid fa-rotate text-indigo-500" :class="syncing ? 'animate-spin' : ''"></i> Sync Nodes
-                </button>
 
                 @if($hasCreateRoute)
                 <a href="{{ route('user.families.create') }}" @mouseenter="if(typeof window.audioEngine !== 'undefined') window.audioEngine.playHover()" class="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-[0_10px_20px_rgba(15,23,42,0.2)] hover:bg-indigo-600 hover:shadow-[0_15px_30px_rgba(79,70,229,0.3)] transition-all flex items-center gap-2 hover:-translate-y-0.5 focus:outline-none border border-slate-800 hover:border-indigo-500">
@@ -223,8 +220,6 @@
                                     $memberCount = $family->users_count;
                                 }
                                 
-                                // Generate deterministic random initials for avatars
-                                $mockInitials = ['AB', 'JD', 'KL', 'MW', 'SP'];
                             @endphp
 
                             <div x-show="matchesFilter('{{ $role }}', '{{ addslashes($family->name) }}')"
@@ -276,28 +271,16 @@
                                     {{ $family->name }}
                                 </h3>
                                 <p class="text-xs font-bold text-slate-400 mb-8 flex-1 line-clamp-2 leading-relaxed">
-                                    {{ $family->description ?? 'Secure encrypted shared ledger. AI optimization active.' }}
+                                    {{ $family->description ?: 'No description yet.' }}
                                 </p>
 
                                 <div class="flex items-center justify-between pt-6 border-t border-slate-100">
                                     
-                                    {{-- 🔥 BEAST MODE: Overlapping Avatar Stack --}}
-                                    <div class="flex items-center -space-x-3 group/stack cursor-help" title="{{ $memberCount }} active members">
-                                        <div class="w-10 h-10 rounded-full bg-slate-900 border-[3px] border-white flex items-center justify-center text-[10px] font-black text-white shadow-sm z-40 relative group-hover/stack:-translate-y-1 transition-transform">
-                                            {{ $mockInitials[($index + 0) % 5] }}
-                                        </div>
-                                        @if($memberCount > 1)
-                                            <div class="w-10 h-10 rounded-full bg-slate-200 border-[3px] border-white flex items-center justify-center text-[10px] font-black text-slate-600 shadow-sm z-30 relative group-hover/stack:-translate-y-1 transition-transform" style="transition-delay: 50ms;">
-                                                {{ $mockInitials[($index + 1) % 5] }}
-                                            </div>
-                                        @endif
-                                        @if($memberCount > 2)
-                                            <div class="w-10 h-10 rounded-full bg-indigo-100 border-[3px] border-white flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm z-20 relative group-hover/stack:-translate-y-1 transition-transform" style="transition-delay: 100ms;">
-                                                +{{ $memberCount - 2 }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                    
+                                    {{-- Member count (real) --}}
+                                    <span class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-600">
+                                        <i class="fa-solid fa-users text-slate-400"></i> {{ $memberCount }} {{ \Illuminate\Support\Str::plural('member', $memberCount) }}
+                                    </span>
+
                                     @if($hasShowRoute)
                                     <a href="{{ route('user.families.show', $family->id) }}" @click="if(typeof simulateNavigation === 'function') simulateNavigation()" @mouseenter="if(typeof window.audioEngine !== 'undefined') window.audioEngine.playHover()" class="w-10 h-10 rounded-[12px] bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center group-hover/card:bg-indigo-600 group-hover/card:text-white group-hover/card:border-indigo-600 group-hover/card:shadow-md transition-all">
                                         <i class="fa-solid fa-arrow-right"></i>
@@ -381,8 +364,6 @@
                                             $icon = 'fa-pen';
                                         }
 
-                                        // Generate fake Trace Hash based on index/id for styling
-                                        $traceId = '0x' . strtoupper(substr(md5((string)($activity->id ?? $index)), 0, 8));
                                     @endphp
 
                                     <div class="relative flex items-start group/log cursor-default">
@@ -399,9 +380,6 @@
                                             <div class="flex items-center justify-between">
                                                 <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
                                                     <i class="fa-regular fa-clock"></i> {{ $time }}
-                                                </span>
-                                                <span class="text-[9px] font-mono text-slate-300 bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded opacity-0 group-hover/log:opacity-100 transition-opacity" title="Cryptographic Trace ID">
-                                                    {{ $traceId }}
                                                 </span>
                                             </div>
                                         </div>
