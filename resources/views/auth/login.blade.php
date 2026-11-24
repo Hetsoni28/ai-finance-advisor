@@ -12,7 +12,6 @@
     ═══════════════════════════════════════════════════ --}}
     <div class="auth-blob auth-blob--top"></div>
     <div class="auth-blob auth-blob--bottom"></div>
-    <div class="auth-grid-overlay"></div>
 
     <div class="auth-container">
 
@@ -332,17 +331,6 @@
     right: -200px;
     background: rgba(192, 132, 252, 0.25);
     animation: auth-float 16s ease-in-out infinite 3s;
-}
-
-.auth-grid-overlay {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-    pointer-events: none;
-    z-index: 0;
 }
 
 /* ─── AUTH CONTAINER ─── */
