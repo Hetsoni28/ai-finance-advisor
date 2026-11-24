@@ -147,36 +147,6 @@
         </div>
     </section>
 
-    {{-- Newsletter terminal --}}
-    <section class="py-20 sm:py-28 bg-[#0b0b1a] text-white grain">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12 items-center">
-            <div class="lg:col-span-5" data-reveal>
-                <p class="eyebrow text-indigo-300">Newsletter</p>
-                <h2 class="mt-4 text-3xl sm:text-5xl font-black tracking-[-0.03em] leading-[1.05]">Welcome to the <span class="font-serif-i text-indigo-300">FinanceAI Core.</span></h2>
-                <p class="mt-5 text-lg text-slate-300 leading-relaxed">Subscribe to receive architectural post-mortems and system patches directly to your inbox. Zero spam.</p>
-            </div>
-            <div class="lg:col-span-7" data-reveal style="--d: 120ms">
-                <div class="rounded-2xl border border-white/10 bg-black/40 overflow-hidden">
-                    <div class="px-5 h-11 flex items-center border-b border-white/10 font-mono text-[11px] text-slate-500">bash — dev@financeai:~/newsletter</div>
-                    <div class="p-6 font-mono text-sm h-64 flex flex-col cursor-text" @click="focusTerminal()">
-                        <div class="space-y-2 flex-1 overflow-y-auto scrollbar-hide" id="term-output">
-                            <template x-for="log in terminalLogs" :key="log.id">
-                                <div x-html="log.html" class="text-slate-300"></div>
-                            </template>
-                            <div x-show="subscribeState === 'idle'" class="flex items-center">
-                                <span class="text-indigo-300 mr-3 shrink-0">dev@node:~$</span>
-                                <span class="text-sky-300 mr-2 shrink-0">subscribe</span>
-                                <label class="sr-only" for="term-email">Email</label>
-                                <input id="term-email" type="text" x-model="email" x-ref="termInput" @keydown.enter="submitTerminal" @keydown="playKeySound()" placeholder="enter_email_here"
-                                       class="flex-1 min-w-0 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-slate-600" spellcheck="false" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     {{-- Reading list drawer --}}
     <div x-show="showReadingList" x-cloak class="fixed inset-0 z-[9999] flex justify-end" @keydown.escape.window="showReadingList = false">
         <div x-show="showReadingList" x-transition.opacity @click="toggleReadingList()" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>

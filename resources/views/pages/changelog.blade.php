@@ -6,18 +6,12 @@
 
 @section('content')
 @php
-    $metrics = [
-        ['label' => 'Total Deployments', 'value' => '142', 'icon' => 'fa-rocket'],
-        ['label' => 'Security Patches', 'value' => '38', 'icon' => 'fa-shield-halved'],
-        ['label' => 'Platform Uptime', 'value' => '99.99%', 'icon' => 'fa-server'],
-    ];
 
     $releases = [
         [
             'version' => '3.1.0', 'date' => 'April 14, 2026', 'type' => 'major',
             'title' => 'Contact Module & Geolocation Tracking',
             'description' => 'A complete overhaul of the public ingress system. We introduced a highly secure, rate-limited contact architecture with automated geographical routing.',
-            'authors' => ['12', '33'],
             'changes' => [
                 ['tag' => 'feature', 'text' => 'Full contact form with AJAX submission and secure geolocation capture.'],
                 ['tag' => 'feature', 'text' => 'Admin contact inbox with KPI cards, read/unread toggle, and interactive Leaflet maps.'],
@@ -29,7 +23,6 @@
             'version' => '3.0.0', 'date' => 'March 28, 2026', 'type' => 'major',
             'title' => 'Neural Engine 3.0 & AI Financial Assistant',
             'description' => 'The largest update in FinanceAI history. We replaced standard algorithmic categorization with a custom-trained LLM architecture utilizing Retrieval-Augmented Generation (RAG).',
-            'authors' => ['45', '11', '68'],
             'changes' => [
                 ['tag' => 'feature', 'text' => 'Gemini-powered AI financial advisor integrated directly into the user dashboard.'],
                 ['tag' => 'feature', 'text' => 'Real-time market data ingestion via Alpha Vantage and CoinGecko APIs.'],
@@ -42,7 +35,6 @@
             'version' => '2.5.0', 'date' => 'February 12, 2026', 'type' => 'minor',
             'title' => 'SaaS Subscription System',
             'description' => 'Transitioned from a single-tenant model to a fully scalable SaaS architecture with integrated billing limits and compute quotas.',
-            'authors' => ['32', '59'],
             'changes' => [
                 ['tag' => 'feature', 'text' => 'Three-tier subscription model (Core Node, Pro Hub, Enterprise) deployed.'],
                 ['tag' => 'feature', 'text' => 'Custom Laravel middleware engineered for feature-based access control.'],
@@ -54,7 +46,6 @@
             'version' => '2.4.0', 'date' => 'January 05, 2026', 'type' => 'minor',
             'title' => 'Family Hub & Shared Ledgers',
             'description' => 'Enabled multi-node collaboration. Families and financial teams can now operate securely within isolated, shared database clusters.',
-            'authors' => ['12'],
             'changes' => [
                 ['tag' => 'feature', 'text' => 'Multi-user workspace system with strict Role-Based Access Control (RBAC).'],
                 ['tag' => 'feature', 'text' => 'Cryptographic family invitation system with secure email token dispatch.'],
@@ -66,7 +57,6 @@
             'version' => '2.3.1', 'date' => 'December 18, 2025', 'type' => 'patch',
             'title' => 'Security Hardening & Performance',
             'description' => 'Routine infrastructure maintenance and database optimization to support scaling load.',
-            'authors' => ['68', '33'],
             'changes' => [
                 ['tag' => 'security', 'text' => 'Upgraded to TLS 1.3 requirement for all API endpoint communications.'],
                 ['tag' => 'security', 'text' => 'Rate limiting applied to all authentication and password reset endpoints.'],
@@ -74,6 +64,14 @@
                 ['tag' => 'fix', 'text' => 'Fixed a memory leak in the global notification polling service.'],
             ],
         ],
+    ];
+
+    // Figures below are counted from the release list itself, so they always match what's shown.
+    $allChanges = collect($releases)->pluck('changes')->flatten(1);
+    $metrics = [
+        ['label' => 'Releases', 'value' => count($releases)],
+        ['label' => 'Changes shipped', 'value' => $allChanges->count()],
+        ['label' => 'Security fixes', 'value' => $allChanges->where('tag', 'security')->count()],
     ];
 
     $tagStyles = [
@@ -157,18 +155,6 @@
                                     </li>
                                 @endforeach
                             </ul>
-
-                            <footer class="mt-6 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-[10px] uppercase tracking-wider text-slate-400">Shipped By</span>
-                                    <div class="flex -space-x-2">
-                                        @foreach($release['authors'] as $author)
-                                            <img src="https://i.pravatar.cc/100?img={{ $author }}" class="w-7 h-7 rounded-full border-2 border-[#fbfbfa] grayscale" alt="Engineer" loading="lazy">
-                                        @endforeach
-                                    </div>
-                                </div>
-                                <a href="#" class="font-mono text-[11px] uppercase tracking-wider text-slate-500 hover:text-slate-900">View PR Details &rarr;</a>
-                            </footer>
                         </div>
                     </article>
                 @endforeach
@@ -184,23 +170,6 @@
         </div>
     </section>
 
-    {{-- Subscribe --}}
-    <section class="py-20 sm:py-28 bg-[#0b0b1a] text-white grain">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-end">
-            <div class="lg:col-span-7" data-reveal>
-                <p class="eyebrow text-indigo-300">Release notes by email</p>
-                <h2 class="mt-4 text-3xl sm:text-5xl font-black tracking-[-0.03em] leading-[1.05]">Subscribe to Engine <span class="font-serif-i text-indigo-300">Telemetry</span></h2>
-                <p class="mt-5 text-lg text-slate-300 leading-relaxed max-w-xl">Join 12,000+ engineers receiving our cryptographic updates, AI financial forecasts, and feature drops directly.</p>
-            </div>
-            <form @submit.prevent="playClick(); $dispatch('notify', {message: 'Payload secured. Welcome to the network.', type: 'success'})" class="lg:col-span-5 flex flex-col sm:flex-row gap-3" data-reveal style="--d: 120ms">
-                <label class="sr-only" for="cl-email">Email</label>
-                <input id="cl-email" type="email" required placeholder="developer@node.com" class="flex-1 h-12 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-400/20">
-                <button type="submit" @mouseenter="playHover()" class="h-12 px-6 rounded-xl bg-white text-slate-900 font-bold hover:bg-indigo-100 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30">
-                    Subscribe <i class="fa-solid fa-arrow-right ml-1 text-sm" aria-hidden="true"></i>
-                </button>
-            </form>
-        </div>
-    </section>
 </div>
 @endsection
 

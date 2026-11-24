@@ -37,8 +37,8 @@ use App\Http\Controllers\Admin\ContactController as AdminContactController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::view('/features', 'pages.features')->name('features');
-Route::view('/pricing', 'pages.pricing')->name('pricing');
-Route::view('/about', 'pages.about')->name('about');
+Route::get('/pricing', [HomeController::class, 'pricing'])->name('pricing');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::view('/privacy', 'pages.privacy')->name('privacy');
 Route::view('/terms', 'pages.terms')->name('terms');
 Route::view('/changelog', 'pages.changelog')->name('changelog');

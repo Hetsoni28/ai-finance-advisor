@@ -68,19 +68,6 @@
                         Real-time analytics
                     </div>
                 </div>
-
-                {{-- Social Proof --}}
-                <div class="auth-hero__social-proof">
-                    <div class="auth-hero__avatars">
-                        <div class="auth-hero__avatar" style="background:#6366f1;">H</div>
-                        <div class="auth-hero__avatar" style="background:#8b5cf6;">S</div>
-                        <div class="auth-hero__avatar" style="background:#a78bfa;">M</div>
-                        <div class="auth-hero__avatar" style="background:#c084fc;">R</div>
-                    </div>
-                    <p class="auth-hero__proof-text">
-                        Join <strong>2,400+</strong> professionals already using FinanceAI
-                    </p>
-                </div>
             </div>
         </div>
 
