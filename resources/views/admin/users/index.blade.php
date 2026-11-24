@@ -9,11 +9,14 @@
     $filtered = request()->filled('search') || request()->filled('role') || request()->filled('status');
 
     // Real sign-ups per week for the last 8 weeks (oldest first)
+    // One query for all eight weeks, bucketed in PHP.
     $growthLabels = []; $growthData = [];
-    for ($w = 7; $w >= 0; $w--) {
-        $from = now()->subWeeks($w)->startOfWeek(); $to = now()->subWeeks($w)->endOfWeek();
+    $weeks = collect(range(7, 0))->map(fn ($w) => now()->subWeeks($w)->startOfWeek());
+    $signups = \App\Models\User::where('created_at', '>=', $weeks->first())->pluck('created_at');
+    foreach ($weeks as $from) {
+        $to = $from->copy()->endOfWeek();
         $growthLabels[] = $from->format('d M');
-        $growthData[] = \App\Models\User::whereBetween('created_at', [$from, $to])->count();
+        $growthData[] = $signups->filter(fn ($d) => $d && $d->between($from, $to))->count();
     }
 @endphp
 

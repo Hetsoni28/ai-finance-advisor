@@ -5,7 +5,6 @@
 @section('meta_description', 'Track income and expenses in rupees, run a shared family budget, see a financial health score, and get answers from an AI advisor that knows your numbers. Free to start.')
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
     .font-serif-i { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
     .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
@@ -88,11 +87,15 @@
 <section class="relative overflow-hidden bg-[#0b0b1a] text-white grain">
     {{-- Background photo: full-bleed on mobile, right ~65% fading into the dark on desktop --}}
     <div class="absolute inset-0 lg:left-auto lg:w-[66%]" aria-hidden="true">
-        <img src="{{ asset('img/landing/hero-couple.jpg') }}"
-             srcset="{{ asset('img/landing/hero-couple.jpg') }} 1400w, {{ asset('img/landing/hero-couple-2400.jpg') }} 2400w"
-             sizes="(min-width: 1024px) 66vw, 100vw"
-             alt="" width="2400" height="1600" fetchpriority="high" decoding="async"
-             class="hero-img absolute inset-0 w-full h-full object-cover object-[55%_30%] lg:object-[50%_35%]">
+        <picture>
+            <source type="image/webp" sizes="(min-width: 1024px) 66vw, 100vw"
+                    srcset="{{ asset('img/landing/hero-couple.webp') }} 1400w, {{ asset('img/landing/hero-couple-2400.webp') }} 2400w">
+            <img src="{{ asset('img/landing/hero-couple.jpg') }}"
+                 srcset="{{ asset('img/landing/hero-couple.jpg') }} 1400w, {{ asset('img/landing/hero-couple-2400.jpg') }} 2400w"
+                 sizes="(min-width: 1024px) 66vw, 100vw"
+                 alt="" width="2400" height="1600" fetchpriority="high" decoding="async"
+                 class="hero-img absolute inset-0 w-full h-full object-cover object-[55%_30%] lg:object-[50%_35%]">
+        </picture>
         {{-- Mobile: darken evenly, heavier at the bottom where the buttons sit --}}
         <div class="absolute inset-0 bg-[#0b0b1a]/65 lg:hidden"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-[#0b0b1a] via-[#0b0b1a]/40 to-transparent lg:hidden"></div>

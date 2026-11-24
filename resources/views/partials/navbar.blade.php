@@ -7,10 +7,11 @@
     $user = auth()->user();
     
     // 1. Real unread alerts for the signed-in user (no placeholder data)
-    $recentAlerts = $user
+    // $unreadAlerts comes from the view composer in AppServiceProvider (one query per request).
+    $unreadAlerts = (int) ($unreadAlerts ?? 0);
+    $recentAlerts = ($user && $unreadAlerts > 0)
         ? \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->latest()->limit(5)->get()
         : collect();
-    $unreadAlerts = $user ? \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->count() : 0;
     $hasAlerts = $unreadAlerts > 0;
     
     // 2. User Identity & Role Logic (CRASH-PROOF ENGINE)

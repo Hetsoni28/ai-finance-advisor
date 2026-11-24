@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -13,10 +14,13 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        $plans = Plan::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get();
+        // Plans change rarely; caching avoids a round trip to the remote database on every visit.
+        $plans = Cache::store('file')->remember('home.active_plans', now()->addMinutes(10), function () {
+            return Plan::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get();
+        });
 
         return view('home', ['plans' => $plans]);
     }

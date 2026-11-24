@@ -1,7 +1,6 @@
 {{-- Shared editorial design layer for public pages (matches the homepage). Include once per page. --}}
 @once
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
     .font-serif-i { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
     .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }

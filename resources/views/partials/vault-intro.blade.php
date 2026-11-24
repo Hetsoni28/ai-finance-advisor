@@ -13,7 +13,6 @@
         }
     } catch (e) { document.documentElement.setAttribute('data-intro-seen', ''); }
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
     html[data-intro-seen] #vault-intro { display: none !important; }
     html[data-intro-open], html[data-intro-open] body { overflow: hidden !important; }

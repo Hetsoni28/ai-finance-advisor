@@ -23,20 +23,21 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         /**
-         * Share unread AI alert count globally
-         * Used by Navbar, Sidebar, Notification Bell
+         * Unread alert count for the navbar bell and sidebar badge.
+         * Scoped to the navbar (a '*' composer ran this query for every component on the page)
+         * and memoised so it runs at most once per request.
          */
-        View::composer('*', function ($view) {
+        View::composer(['partials.navbar', 'partials.sidebar'], function ($view) {
+            // Memo lives on the request object, so it can never leak between users or requests.
+            $attrs = request()->attributes;
 
-            $unreadAlerts = 0;
-
-            if (Auth::check()) {
-                $unreadAlerts = Alert::where('user_id', Auth::id())
-                    ->where('is_read', false)
-                    ->count();
+            if (!$attrs->has('unread_alerts')) {
+                $attrs->set('unread_alerts', Auth::check()
+                    ? Alert::where('user_id', Auth::id())->where('is_read', false)->count()
+                    : 0);
             }
 
-            $view->with('unreadAlerts', $unreadAlerts);
+            $view->with('unreadAlerts', $attrs->get('unread_alerts'));
         });
     }
 }

@@ -254,20 +254,20 @@ class ReportController extends Controller
         $incomeSeries = collect();
         $expenseSeries = collect();
 
-        $incCol = \Illuminate\Support\Facades\Schema::hasColumn('incomes', 'income_date') ? 'income_date' : 'created_at';
-        $expCol = \Illuminate\Support\Facades\Schema::hasColumn('expenses', 'expense_date') ? 'expense_date' : 'created_at';
+        // Two grouped queries instead of twelve per-month sums.
+        $from = now()->subMonthsNoOverflow(5)->startOfMonth();
+        $incomeByMonth = Income::where('income_date', '>=', $from)
+            ->selectRaw("DATE_FORMAT(income_date, '%Y-%m') as ym, SUM(amount) as total")
+            ->groupBy('ym')->pluck('total', 'ym');
+        $expenseByMonth = Expense::where('expense_date', '>=', $from)
+            ->selectRaw("DATE_FORMAT(expense_date, '%Y-%m') as ym, SUM(amount) as total")
+            ->groupBy('ym')->pluck('total', 'ym');
 
         for ($i = 5; $i >= 0; $i--) {
-            $monthStart = now()->subMonths($i)->startOfMonth();
-            $monthEnd   = now()->subMonths($i)->endOfMonth();
-
-            $labels->push($monthStart->format('M'));
-
-            $incomeSum = (float) Income::whereBetween($incCol, [$monthStart, $monthEnd])->sum('amount');
-            $expenseSum = (float) Expense::whereBetween($expCol, [$monthStart, $monthEnd])->sum('amount');
-
-            $incomeSeries->push($incomeSum);
-            $expenseSeries->push($expenseSum);
+            $month = now()->subMonthsNoOverflow($i);
+            $labels->push($month->format('M'));
+            $incomeSeries->push((float) ($incomeByMonth[$month->format('Y-m')] ?? 0));
+            $expenseSeries->push((float) ($expenseByMonth[$month->format('Y-m')] ?? 0));
         }
 
         return [$labels->toArray(), $incomeSeries->toArray(), $expenseSeries->toArray()];

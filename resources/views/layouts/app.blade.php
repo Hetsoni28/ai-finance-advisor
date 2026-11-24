@@ -10,31 +10,14 @@
     {{-- Typography --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     {{-- FontAwesome --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    {{-- Tailwind CSS (JIT) --}}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { 
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: { brand: '#4f46e5' }, // Enterprise Indigo
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-                        'soft': '0 10px 40px -10px rgba(0,0,0,0.05)',
-                        'floating': '0 20px 60px -10px rgba(79, 70, 229, 0.15)',
-                    }
-                }
-            }
-        }
-    </script>
+    {{-- Compiled Tailwind (npm run css). Version query busts the CDN cache when the file changes. --}}
+    <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ @filemtime(public_path('css/site.css')) }}">
 
     {{-- Alpine.js Ecosystem --}}
     {{-- Alpine plugins MUST load before Alpine core (x-collapse / x-intersect / x-trap) --}}

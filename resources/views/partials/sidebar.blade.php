@@ -9,7 +9,7 @@
     /** @var \App\Models\User|null $user */
     $user = auth()->user();
     $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
-    $unreadAlertCount = $user ? \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->count() : 0;
+    $unreadAlertCount = (int) ($unreadAlerts ?? 0); // from the view composer (one query per request)
 
     // This month's real totals
     $monthIn = 0; $monthOut = 0;
