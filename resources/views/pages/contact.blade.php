@@ -4,191 +4,104 @@
 @section('meta_description', 'Get in touch with FinanceAI for enterprise support, partnership inquiries, or technical assistance. We typically respond within 24 hours.')
 
 @section('content')
+@include('partials.site-type')
+<div class="paper">
 
-<section class="relative py-20 sm:py-28 lg:py-32 bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
+    <x-site.hero eyebrow="Support Online" lead="Contact" accent="FinanceAI"
+        lede="Enterprise support. Partnership inquiries. Technical assistance. We typically respond within 24 hours." />
 
-    {{-- Decorative Background Orbs --}}
-    <div class="absolute top-[-15%] right-[-10%] w-[600px] h-[600px] bg-indigo-200/30 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-200/20 rounded-full blur-[100px] pointer-events-none"></div>
+    <section class="py-16 sm:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {{-- Form --}}
+            <div class="lg:col-span-7 lg:order-2" data-reveal>
+                <p class="eyebrow text-indigo-600">Write to us</p>
+                <h2 class="mt-4 text-3xl sm:text-4xl font-black tracking-[-0.03em] text-slate-900">Send a <span class="font-serif-i text-indigo-600">Transmission</span></h2>
+                <p class="mt-3 text-slate-500">Every field marked <span class="text-rose-500">*</span> is required</p>
 
-        {{-- Page Header --}}
-        <div class="text-center mb-12 sm:mb-16 lg:mb-20">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm mb-6">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Support Online</span>
-            </div>
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mb-4">
-                Contact <span class="text-indigo-600">FinanceAI</span>
-            </h1>
-            <p class="text-base sm:text-lg text-slate-500 font-medium max-w-xl mx-auto leading-relaxed">
-                Enterprise support. Partnership inquiries. Technical assistance.<br class="hidden sm:block">
-                We typically respond within <strong class="text-slate-700">24 hours</strong>.
-            </p>
-        </div>
+                @if(session('success'))
+                    <div class="mt-6 border-l-2 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ session('success') }}</div>
+                @endif
+                @if(session('error'))
+                    <div class="mt-6 border-l-2 border-rose-500 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{{ session('error') }}</div>
+                @endif
 
-        {{-- Main Grid --}}
-        <div class="grid lg:grid-cols-5 gap-8 lg:gap-12 items-start">
+                <form id="contactForm" method="POST" action="{{ route('contact.store') }}" class="mt-8 space-y-6" novalidate>
+                    @csrf
+                    <input type="hidden" name="latitude" id="geoLatitude">
+                    <input type="hidden" name="longitude" id="geoLongitude">
 
-            {{-- LEFT COLUMN: Info + Map --}}
-            <div class="lg:col-span-2 space-y-8">
-
-                {{-- Contact Info Cards --}}
-                <div class="space-y-4">
-                    @foreach([
-                        ['icon' => 'fa-envelope', 'color' => 'indigo', 'title' => 'Email Support', 'text' => 'support@financeai.com'],
-                        ['icon' => 'fa-globe', 'color' => 'sky', 'title' => 'Global Coverage', 'text' => 'Remote Team Worldwide'],
-                        ['icon' => 'fa-bolt', 'color' => 'amber', 'title' => 'Enterprise SLA', 'text' => 'Fast Priority Response'],
-                    ] as $info)
-                    <div class="group flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                        <div class="w-12 h-12 rounded-xl bg-{{ $info['color'] }}-50 text-{{ $info['color'] }}-600 flex items-center justify-center border border-{{ $info['color'] }}-100 shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fa-solid {{ $info['icon'] }} text-lg"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{{ $info['title'] }}</p>
-                            <p class="text-sm font-bold text-slate-700">{{ $info['text'] }}</p>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-
-                {{-- Leaflet Map --}}
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-location-dot text-indigo-500"></i>
-                            <span class="text-xs font-black text-slate-700 uppercase tracking-widest">Your Location</span>
-                        </div>
-                        <span id="locationStatusBadge" class="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-slate-100 text-slate-400 border border-slate-200">
-                            Detecting...
-                        </span>
-                    </div>
-                    <div id="contactMap" class="w-full h-[220px] sm:h-[260px]"></div>
-                </div>
-
-                {{-- Response Time Badge --}}
-                <div class="hidden lg:flex items-center gap-3 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-clock text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-indigo-700">Average Response: <strong>4 hours</strong></p>
-                        <p class="text-[10px] text-indigo-500 font-medium mt-0.5">Enterprise plans receive priority routing</p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- RIGHT COLUMN: Contact Form --}}
-            <div class="lg:col-span-3">
-                <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-[2rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.06)] border border-slate-100 relative overflow-hidden">
-
-                    {{-- Decorative Strip --}}
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
-
-                    {{-- Form Header --}}
-                    <div class="mb-8">
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Send a Transmission</h2>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Every field marked <span class="text-rose-500">*</span> is required</p>
-                    </div>
-
-                    {{-- Success/Error Static Banners (fallback for non-JS) --}}
-                    @if(session('success'))
-                        <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold flex items-center gap-3">
-                            <i class="fa-solid fa-circle-check text-emerald-500"></i>
-                            {{ session('success') }}
-                        </div>
-                    @endif
-                    @if(session('error'))
-                        <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold flex items-center gap-3">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
-                    {{-- Contact Form --}}
-                    <form id="contactForm" method="POST" action="{{ route('contact.store') }}" class="space-y-5" novalidate>
-                        @csrf
-
-                        {{-- Hidden Geo Fields --}}
-                        <input type="hidden" name="latitude" id="geoLatitude">
-                        <input type="hidden" name="longitude" id="geoLongitude">
-
-                        {{-- Name --}}
+                    <div class="grid sm:grid-cols-2 gap-6">
                         <div class="contact-field-group">
                             <label for="contactName" class="contact-label">Name <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
-                                <input type="text" id="contactName" name="name"
-                                       value="{{ old('name') }}"
-                                       placeholder="Enter your full name"
-                                       class="contact-input pl-11"
-                                       required>
-                            </div>
-                            <p class="contact-error hidden" id="nameError">@error('name') {{ $message }} @enderror</p>
+                            <input type="text" id="contactName" name="name" value="{{ old('name') }}" placeholder="Enter your full name" class="contact-input" required autocomplete="name">
+                            <p class="contact-error {{ $errors->has('name') ? '' : 'hidden' }}" id="nameError">@error('name'){{ $message }}@enderror</p>
                         </div>
-
-                        {{-- Email --}}
                         <div class="contact-field-group">
                             <label for="contactEmail" class="contact-label">Email <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
-                                <input type="email" id="contactEmail" name="email"
-                                       value="{{ old('email') }}"
-                                       placeholder="you@company.com"
-                                       class="contact-input pl-11"
-                                       required>
-                            </div>
-                            <p class="contact-error hidden" id="emailError">@error('email') {{ $message }} @enderror</p>
+                            <input type="email" id="contactEmail" name="email" value="{{ old('email') }}" placeholder="you@company.com" class="contact-input" required autocomplete="email">
+                            <p class="contact-error {{ $errors->has('email') ? '' : 'hidden' }}" id="emailError">@error('email'){{ $message }}@enderror</p>
                         </div>
+                    </div>
 
-                        {{-- Subject --}}
-                        <div class="contact-field-group">
-                            <label for="contactSubject" class="contact-label">Subject</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-tag absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
-                                <input type="text" id="contactSubject" name="subject"
-                                       value="{{ old('subject') }}"
-                                       placeholder="What is this regarding?"
-                                       class="contact-input pl-11">
-                            </div>
+                    <div class="contact-field-group">
+                        <label for="contactSubject" class="contact-label">Subject</label>
+                        <input type="text" id="contactSubject" name="subject" value="{{ old('subject') }}" placeholder="What is this regarding?" class="contact-input">
+                    </div>
+
+                    <div class="contact-field-group">
+                        <div class="flex items-center justify-between">
+                            <label for="contactMessage" class="contact-label">Message <span class="text-rose-500">*</span></label>
+                            <span id="charCounter" class="text-[10px] font-bold text-slate-400 font-mono">0 / 5000</span>
                         </div>
+                        <textarea id="contactMessage" name="message" rows="6" placeholder="Describe your inquiry or issue in detail..." class="contact-input resize-none" maxlength="5000" required>{{ old('message') }}</textarea>
+                        <p class="contact-error {{ $errors->has('message') ? '' : 'hidden' }}" id="messageError">@error('message'){{ $message }}@enderror</p>
+                    </div>
 
-                        {{-- Message --}}
-                        <div class="contact-field-group">
-                            <div class="flex items-center justify-between">
-                                <label for="contactMessage" class="contact-label">Message <span class="text-rose-500">*</span></label>
-                                <span id="charCounter" class="text-[10px] font-bold text-slate-400 font-mono">0 / 5000</span>
-                            </div>
-                            <textarea id="contactMessage" name="message" rows="5"
-                                      placeholder="Describe your inquiry or issue in detail..."
-                                      class="contact-input resize-none"
-                                      maxlength="5000"
-                                      required>{{ old('message') }}</textarea>
-                            <p class="contact-error hidden" id="messageError">@error('message') {{ $message }} @enderror</p>
-                        </div>
-
-                        {{-- Submit Button --}}
-                        <button type="submit" id="contactSubmitBtn" class="w-full flex items-center justify-center gap-3 py-4 px-8 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-5 pt-2">
+                        <button type="submit" id="contactSubmitBtn" class="group shrink-0 inline-flex items-center justify-center gap-2 h-12 px-7 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.6)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0">
                             <span id="submitBtnText">Send Message</span>
-                            <i id="submitBtnIcon" class="fa-solid fa-paper-plane text-indigo-200 text-xs"></i>
-                            <div id="submitBtnSpinner" class="hidden w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <i id="submitBtnIcon" class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
+                            <div id="submitBtnSpinner" class="hidden w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         </button>
-
-                        {{-- Privacy Note --}}
-                        <p class="text-[11px] text-slate-400 text-center font-medium leading-relaxed mt-4">
-                            <i class="fa-solid fa-shield-halved text-slate-300 mr-1"></i>
-                            Your data is encrypted and handled per our 
-                            <a href="{{ route('privacy') ?? '#' }}" class="text-indigo-500 hover:text-indigo-700 underline underline-offset-2">Privacy Policy</a>.
-                            We never share your information.
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Your data is encrypted and handled per our <a href="{{ route('privacy') }}" class="text-indigo-600 font-semibold underline underline-offset-2">Privacy Policy</a>. We never share your information.
                         </p>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
 
+            {{-- Details + map --}}
+            <aside class="lg:col-span-5 lg:order-1 space-y-8" data-reveal style="--d: 120ms">
+                <dl class="border-t border-slate-900">
+                    @foreach([
+                        ['icon' => 'fa-envelope', 'title' => 'Email Support', 'text' => 'support@financeai.com'],
+                        ['icon' => 'fa-globe', 'title' => 'Global Coverage', 'text' => 'Remote Team Worldwide'],
+                        ['icon' => 'fa-bolt', 'title' => 'Enterprise SLA', 'text' => 'Fast Priority Response'],
+                    ] as $info)
+                        <div class="flex items-center justify-between gap-4 py-4 border-b border-slate-200">
+                            <dt class="eyebrow text-slate-400 flex items-center gap-2"><i class="fa-solid {{ $info['icon'] }}" aria-hidden="true"></i>{{ $info['title'] }}</dt>
+                            <dd class="font-semibold text-slate-900 text-right">{{ $info['text'] }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+
+                <figure class="card-site overflow-hidden">
+                    <figcaption class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+                        <span class="eyebrow text-slate-500">Your Location</span>
+                        <span id="locationStatusBadge" class="font-mono text-[10px] uppercase tracking-wider text-slate-400">Detecting...</span>
+                    </figcaption>
+                    <div id="contactMap" class="w-full h-[240px] sm:h-[280px]"></div>
+                </figure>
+
+                <p class="border-l-2 border-indigo-600 pl-4 text-sm text-slate-600">
+                    <span class="font-semibold text-slate-900">Average Response: 4 hours</span><br>
+                    Enterprise plans receive priority routing
+                </p>
+            </aside>
         </div>
-    </div>
-</section>
+    </section>
+</div>
 
 {{-- Leaflet CSS --}}
 @push('styles')
@@ -200,37 +113,30 @@
     }
     .contact-label {
         display: block;
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: #334155;
-        margin-bottom: 6px;
-        letter-spacing: 0.025em;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .14em;
+        color: #64748b;
+        margin-bottom: 8px;
     }
     .contact-input {
         width: 100%;
-        padding: 14px 16px;
-        border: 1.5px solid rgba(15, 23, 42, 0.1);
-        border-radius: 14px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: #1e293b;
-        background: #fafbfc;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 13px 14px;
+        border: 1px solid #e2e0da;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        color: #0f172a;
+        background: #fff;
+        transition: border-color .2s ease, box-shadow .2s ease;
         outline: none;
     }
     .contact-input::placeholder {
         color: #94a3b8;
         font-weight: 400;
     }
-    .contact-input:hover {
-        border-color: rgba(99, 102, 241, 0.3);
-        background: #fff;
-    }
-    .contact-input:focus {
-        border-color: #6366f1;
-        background: #fff;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08), 0 2px 8px rgba(99, 102, 241, 0.06);
-    }
+    .contact-input:hover { border-color: #cbd5e1; }
+    .contact-input:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
     .contact-input.input-error {
         border-color: #ef4444;
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
@@ -333,11 +239,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Update badge
                 badge.textContent = 'Located';
-                badge.className = 'text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200';
+                badge.className = 'font-mono text-[10px] uppercase tracking-wider text-emerald-700';
             },
             function(error) {
                 badge.textContent = 'Not Available';
-                badge.className = 'text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-slate-100 text-slate-400 border border-slate-200';
+                badge.className = 'font-mono text-[10px] uppercase tracking-wider text-slate-400';
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );

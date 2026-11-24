@@ -1,144 +1,102 @@
 @extends('layouts.landing')
+@include('partials.site-type')
 
 @section('title', 'SOC 2 Compliance | FinanceAI Enterprise')
 @section('meta_description', 'FinanceAI\'s SOC 2 Type II compliance framework. Learn about our security controls, audit reports, and trust service criteria.')
 
 @section('content')
+@php
+    $criteria = [
+        ['icon' => 'fa-shield-halved', 'title' => 'Security', 'status' => 'Verified', 'desc' => 'Protection against unauthorized access through multi-layered security controls, WAFs, IDS, and role-based access.'],
+        ['icon' => 'fa-server', 'title' => 'Availability', 'status' => 'Verified', 'desc' => '99.99% uptime SLA with multi-AZ deployments, automated failover, and incident response under 15 minutes.'],
+        ['icon' => 'fa-microchip', 'title' => 'Processing Integrity', 'status' => 'Verified', 'desc' => 'All financial computations are deterministic. Data inputs, transformations, and outputs are verifiable and auditable.'],
+        ['icon' => 'fa-lock', 'title' => 'Confidentiality', 'status' => 'Verified', 'desc' => 'Financial telemetry is classified as confidential. Data is encrypted everywhere and accessible only via authenticated IAM roles.'],
+        ['icon' => 'fa-user-shield', 'title' => 'Privacy', 'status' => 'Verified', 'desc' => 'GDPR and CCPA compliant. Data subjects retain full rights over their data. Zero-knowledge architecture with no data selling.'],
+    ];
+    $posture = [
+        ['icon' => 'fa-lock', 'label' => 'Encryption Status', 'value' => 'AES-256 Active'],
+        ['icon' => 'fa-server', 'label' => 'Infrastructure Uptime', 'value' => '99.997%'],
+        ['icon' => 'fa-shield-halved', 'label' => 'Firewall (WAF)', 'value' => 'All Rules Active'],
+        ['icon' => 'fa-eye', 'label' => 'Intrusion Detection', 'value' => '0 Threats'],
+        ['icon' => 'fa-code-commit', 'label' => 'Last SOC 2 Audit', 'value' => 'March 2026'],
+        ['icon' => 'fa-certificate', 'label' => 'SSL Certificate', 'value' => 'Grade A+'],
+    ];
+@endphp
+<div class="paper">
 
-<div class="bg-[#f8fafc] font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden"
-     x-data="socEngine()">
-
-    {{-- Ambient --}}
-    <div class="fixed inset-0 pointer-events-none z-0">
-        <div class="absolute top-[-10%] left-[-10%] w-[900px] h-[900px] bg-indigo-500/10 blur-[120px] rounded-full"></div>
-        <div class="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] bg-emerald-500/5 blur-[100px] rounded-full"></div>
-    </div>
-
-    {{-- ================= 1. HERO ================= --}}
-    <section class="relative pt-40 pb-20 lg:pt-48 lg:pb-24 overflow-hidden z-10 border-b border-slate-200/60 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-black uppercase tracking-widest mb-8 shadow-sm reveal-up">
-                <i class="fa-solid fa-shield-check"></i> Compliance Verified
-            </div>
-
-            <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] reveal-up" style="transition-delay: 100ms;">
-                SOC 2 Type II Compliance
-            </h1>
-
-            <p class="mt-8 text-lg text-slate-500 font-medium leading-relaxed max-w-3xl mx-auto reveal-up" style="transition-delay: 200ms;">
-                FinanceAI undergoes annual third-party audits to verify our security posture meets the highest industry standards. Our SOC 2 Type II report examines operational effectiveness over a continuous period.
-            </p>
-
-            {{-- Trust Badges --}}
-            <div class="mt-12 flex flex-wrap items-center justify-center gap-4 reveal-up" style="transition-delay: 300ms;">
-                @foreach([
-                    ['bg-emerald-500', 'fa-shield-halved', 'SOC 2 Type II'],
-                    ['bg-indigo-500', 'fa-lock', 'AES-256'],
-                    ['bg-sky-500', 'fa-globe', 'GDPR Ready'],
-                    ['bg-slate-800', 'fa-network-wired', 'TLS 1.3']
-                ] as $badge)
-                <span class="flex items-center gap-2 px-4 py-2.5 {{ $badge[0] }} text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
-                    <i class="fa-solid {{ $badge[1] }}"></i> {{ $badge[2] }}
-                </span>
+    <x-site.hero eyebrow="Compliance Verified" lead="SOC 2" accent="Type II" tail="Compliance"
+        lede="FinanceAI undergoes annual third-party audits to verify our security posture meets the highest industry standards. Our SOC 2 Type II report examines operational effectiveness over a continuous period.">
+        <x-slot name="meta">
+            <ul class="flex flex-wrap gap-x-8 gap-y-3">
+                @foreach([['fa-shield-halved', 'SOC 2 Type II'], ['fa-lock', 'AES-256'], ['fa-globe', 'GDPR Ready'], ['fa-network-wired', 'TLS 1.3']] as [$icon, $label])
+                    <li class="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-slate-300">
+                        <i class="fa-solid {{ $icon }} text-indigo-300" aria-hidden="true"></i> {{ $label }}
+                    </li>
                 @endforeach
-            </div>
-        </div>
-    </section>
+            </ul>
+        </x-slot>
+    </x-site.hero>
 
-    {{-- ================= 2. TRUST SERVICE CRITERIA ================= --}}
-    <section class="py-24 bg-[#f8fafc] relative z-10">
+    {{-- Trust service criteria --}}
+    <section class="py-20 sm:py-28">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16 reveal-up">
-                <h2 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-6">Trust Service Criteria</h2>
-                <p class="text-slate-500 text-lg font-medium">Our SOC 2 audit evaluates controls across all five AICPA Trust Service Criteria principles.</p>
-            </div>
+            <x-site.section-head label="01 — Criteria" title="Trust Service" accent="Criteria"
+                lede="Our SOC 2 audit evaluates controls across all five AICPA Trust Service Criteria principles." />
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @php
-                $criteria = [
-                    ['icon' => 'fa-shield-halved', 'color' => 'indigo', 'title' => 'Security', 'status' => 'Verified', 'desc' => 'Protection against unauthorized access through multi-layered security controls, WAFs, IDS, and role-based access.'],
-                    ['icon' => 'fa-server', 'color' => 'emerald', 'title' => 'Availability', 'status' => 'Verified', 'desc' => '99.99% uptime SLA with multi-AZ deployments, automated failover, and incident response under 15 minutes.'],
-                    ['icon' => 'fa-microchip', 'color' => 'sky', 'title' => 'Processing Integrity', 'status' => 'Verified', 'desc' => 'All financial computations are deterministic. Data inputs, transformations, and outputs are verifiable and auditable.'],
-                    ['icon' => 'fa-lock', 'color' => 'purple', 'title' => 'Confidentiality', 'status' => 'Verified', 'desc' => 'Financial telemetry is classified as confidential. Data is encrypted everywhere and accessible only via authenticated IAM roles.'],
-                    ['icon' => 'fa-user-shield', 'color' => 'rose', 'title' => 'Privacy', 'status' => 'Verified', 'desc' => 'GDPR and CCPA compliant. Data subjects retain full rights over their data. Zero-knowledge architecture with no data selling.']
-                ];
-                @endphp
-
-                @foreach($criteria as $idx => $c)
-                <div class="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 reveal-up group relative overflow-hidden {{ $idx === 4 ? 'lg:col-span-1 md:col-span-2 lg:col-span-1' : '' }}" style="transition-delay: {{ $idx * 80 }}ms;">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-{{ $c['color'] }}-500/5 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
-                    
-                    <div class="flex items-center justify-between mb-6 relative z-10">
-                        <div class="w-12 h-12 rounded-xl bg-{{ $c['color'] }}-100 text-{{ $c['color'] }}-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid {{ $c['icon'] }} text-xl"></i>
-                        </div>
-                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-md border border-emerald-200">
-                            <i class="fa-solid fa-check mr-1"></i> {{ $c['status'] }}
+            <ol class="mt-14 border-t border-slate-200">
+                @foreach($criteria as $i => $c)
+                    <li class="grid grid-cols-12 gap-4 sm:gap-8 py-7 border-b border-slate-200" data-reveal style="--d: {{ $i * 60 }}ms">
+                        <span class="col-span-2 sm:col-span-1 font-mono text-sm text-slate-400 pt-1">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                        <h3 class="col-span-10 sm:col-span-4 text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-3">
+                            <i class="fa-solid {{ $c['icon'] }} text-base text-slate-400" aria-hidden="true"></i>{{ $c['title'] }}
+                        </h3>
+                        <p class="col-span-12 sm:col-span-5 sm:col-start-6 text-slate-600 leading-relaxed">{{ $c['desc'] }}</p>
+                        <span class="col-span-12 sm:col-span-2 sm:text-right font-mono text-[11px] uppercase tracking-wider text-emerald-700 pt-1.5">
+                            <i class="fa-solid fa-check mr-1" aria-hidden="true"></i>{{ $c['status'] }}
                         </span>
-                    </div>
-                    <h3 class="text-lg font-black text-slate-900 mb-3 relative z-10">{{ $c['title'] }}</h3>
-                    <p class="text-sm text-slate-500 font-medium leading-relaxed relative z-10">{{ $c['desc'] }}</p>
-                </div>
+                    </li>
                 @endforeach
-            </div>
+            </ol>
         </div>
     </section>
 
-    {{-- ================= 3. LIVE SECURITY STATUS ================= --}}
-    <section class="py-24 bg-slate-900 relative z-10 overflow-hidden text-white">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-full bg-indigo-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+    {{-- Security posture --}}
+    <section class="py-20 sm:py-28 bg-[#0b0b1a] text-white grain">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-site.section-head dark label="02 — Posture" title="Live Security" accent="Posture"
+                lede="Real-time compliance and security diagnostics across the FinanceAI architecture." />
 
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center mb-16 reveal-up">
-                <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">Live Security Posture</h2>
-                <p class="text-indigo-200 font-medium text-lg">Real-time compliance and security diagnostics across the FinanceAI architecture.</p>
-            </div>
-
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 reveal-up" style="transition-delay: 100ms;">
-                @foreach([
-                    ['icon' => 'fa-lock', 'label' => 'Encryption Status', 'value' => 'AES-256 Active', 'status' => 'nominal'],
-                    ['icon' => 'fa-server', 'label' => 'Infrastructure Uptime', 'value' => '99.997%', 'status' => 'nominal'],
-                    ['icon' => 'fa-shield-halved', 'label' => 'Firewall (WAF)', 'value' => 'All Rules Active', 'status' => 'nominal'],
-                    ['icon' => 'fa-eye', 'label' => 'Intrusion Detection', 'value' => '0 Threats', 'status' => 'nominal'],
-                    ['icon' => 'fa-code-commit', 'label' => 'Last SOC 2 Audit', 'value' => 'March 2026', 'status' => 'nominal'],
-                    ['icon' => 'fa-certificate', 'label' => 'SSL Certificate', 'value' => 'Grade A+', 'status' => 'nominal']
-                ] as $idx => $item)
-                <div class="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-[1.5rem] p-6 relative overflow-hidden group hover:border-slate-600 transition-colors">
-                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="flex items-center justify-between mb-4 relative z-10">
-                        <i class="fa-solid {{ $item['icon'] }} text-slate-400 text-lg"></i>
-                        <span class="flex items-center gap-1.5">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <dl class="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-white/10">
+                @foreach($posture as $i => $item)
+                    <div class="border-b border-r border-white/10 p-7" data-reveal style="--d: {{ $i * 60 }}ms">
+                        <dt class="flex items-center justify-between">
+                            <span class="font-mono text-[11px] uppercase tracking-wider text-slate-400">{{ $item['label'] }}</span>
+                            <span class="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span> Nominal
                             </span>
-                            <span class="text-[8px] font-black uppercase tracking-widest text-emerald-400">Nominal</span>
-                        </span>
+                        </dt>
+                        <dd class="mt-6 flex items-end justify-between gap-3">
+                            <span class="text-2xl font-black tracking-tight">{{ $item['value'] }}</span>
+                            <i class="fa-solid {{ $item['icon'] }} text-slate-600" aria-hidden="true"></i>
+                        </dd>
                     </div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 relative z-10">{{ $item['label'] }}</p>
-                    <p class="text-lg font-black text-white font-mono relative z-10">{{ $item['value'] }}</p>
-                </div>
                 @endforeach
-            </div>
+            </dl>
         </div>
     </section>
 
-    {{-- ================= 4. AUDIT REQUEST CTA ================= --}}
-    <section class="py-24 bg-white border-t border-slate-200/60 relative z-10">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-slate-50 rounded-[3rem] border border-slate-200 p-10 md:p-16 relative overflow-hidden reveal-up">
-                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="flex flex-col lg:flex-row items-center gap-10 relative z-10">
-                    <div class="flex-1">
-                        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center border border-indigo-100 shadow-sm mb-6">
-                            <i class="fa-solid fa-file-contract text-2xl"></i>
-                        </div>
-                        <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-4">Request a SOC 2 Report</h2>
-                        <p class="text-slate-500 font-medium leading-relaxed">Our full SOC 2 Type II audit report is available upon request to existing customers and verified enterprise prospects under NDA.</p>
-                    </div>
-                    <a href="{{ route('contact') }}" class="shrink-0 px-8 py-4 bg-slate-900 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-[0_10px_20px_rgba(0,0,0,0.1)] hover:bg-indigo-600 hover:shadow-indigo-500/30 transition-all">
-                        Contact Architecture <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+    {{-- Report request --}}
+    <section class="py-20 sm:py-28">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-10 items-end border-t border-slate-200 pt-12" data-reveal>
+                <div class="lg:col-span-8">
+                    <p class="eyebrow text-indigo-600">03 — Audit report</p>
+                    <h2 class="mt-4 text-3xl sm:text-5xl font-black tracking-[-0.03em] leading-[1.05] text-slate-900">Request a <span class="font-serif-i text-indigo-600">SOC 2</span> Report</h2>
+                    <p class="mt-5 text-lg text-slate-600 leading-relaxed max-w-2xl">Our full SOC 2 Type II audit report is available upon request to existing customers and verified enterprise prospects under NDA.</p>
+                </div>
+                <div class="lg:col-span-4 lg:text-right">
+                    <a href="{{ route('contact') }}" class="group inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-slate-900 text-white font-bold hover:bg-indigo-600 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200">
+                        Contact Architecture <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
                     </a>
                 </div>
             </div>
@@ -146,22 +104,3 @@
     </section>
 </div>
 @endsection
-
-@push('scripts')
-<style>
-    .reveal-up { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-    .reveal-up.is-visible { opacity: 1; transform: translateY(0); }
-</style>
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('socEngine', () => ({
-        init() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-visible'); });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
-        }
-    }));
-});
-</script>
-@endpush

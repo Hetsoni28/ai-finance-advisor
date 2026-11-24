@@ -1,4 +1,5 @@
 @extends('layouts.landing')
+@include('partials.site-type')
 
 @section('title', 'Pricing & Quotas | FinanceAI Enterprise')
 @section('meta_description', 'Transparent, scalable pricing for financial intelligence. Choose the right node for your organization.')
@@ -99,434 +100,253 @@
     ];
 @endphp
 
-<div class="bg-[#fcf9f2] font-sans selection:bg-[#bacdf3] selection:text-[#0f172a] relative overflow-hidden flex flex-col min-h-screen pt-24" 
-     x-data="pricingEngine()">
+<div class="paper" x-data="pricingEngine()">
 
-    {{-- Holographic Ambient Backgrounds (Fintech Palette) --}}
-    <div class="fixed inset-0 pointer-events-none z-0">
-        <div class="absolute top-[-20%] left-[10%] w-[1000px] h-[1000px] bg-[#bacdf3]/30 blur-[150px] rounded-full animate-float"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-[#9fb2df]/20 blur-[120px] rounded-full animate-float" style="animation-delay: -3s;"></div>
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
-    </div>
-
-    {{-- ================= 1. HERO & REAL-WORLD TOGGLE ================= --}}
-    <section class="relative pt-20 pb-12 lg:pt-32 lg:pb-24 overflow-hidden z-10 border-b border-[#bacdf3]/40 bg-white/60 backdrop-blur-3xl">
-        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            
-            <div class="flex justify-center items-center gap-4 mb-8 reveal-up">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#fcf9f2] border border-[#bacdf3] text-[#7284b5] text-[10px] font-black uppercase tracking-widest shadow-sm">
-                    <i class="fa-solid fa-scale-balanced"></i> Transparent Licensing
+    <x-site.hero eyebrow="Transparent Licensing" lead="Invest in absolute" accent="financial clarity."
+        lede="Deploy the FinanceAI engine for your household or enterprise. Scalable infrastructure designed to generate absolute ROI within the first 30 days.">
+        <x-slot name="actions">
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="inline-flex items-center rounded-xl border border-white/15 bg-white/5 p-1" role="radiogroup" aria-label="Billing period">
+                    <button type="button" role="radio" :aria-checked="(!annual).toString()" @click="if (annual) { toggleBilling(); playClick() }" @mouseenter="playHover()"
+                            class="h-10 px-5 rounded-lg text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                            :class="!annual ? 'bg-white text-slate-900' : 'text-slate-300 hover:text-white'">Monthly</button>
+                    <button type="button" role="radio" :aria-checked="annual.toString()" @click="if (!annual) { toggleBilling(); playClick() }" @mouseenter="playHover()"
+                            class="h-10 px-5 rounded-lg text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                            :class="annual ? 'bg-white text-slate-900' : 'text-slate-300 hover:text-white'">Annually</button>
                 </div>
-                
-                {{-- Live Currency Switcher --}}
+
                 <div class="relative" @click.away="currencyOpen = false">
-                    <button @click="currencyOpen = !currencyOpen; playClick()" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-colors focus:outline-none">
-                        <i class="fa-solid fa-globe text-slate-400"></i> <span x-text="currency"></span> <i class="fa-solid fa-chevron-down text-[8px] ml-1"></i>
+                    <button type="button" @click="currencyOpen = !currencyOpen; playClick()" :aria-expanded="currencyOpen.toString()"
+                            class="h-12 px-4 rounded-xl border border-white/15 bg-white/5 text-sm font-bold text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+                        <i class="fa-solid fa-globe text-slate-400 mr-1.5" aria-hidden="true"></i><span x-text="currency"></span><i class="fa-solid fa-chevron-down text-[9px] ml-2" aria-hidden="true"></i>
                     </button>
-                    <div x-show="currencyOpen" x-cloak x-transition class="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50">
-                        <button @click="setCurrency('INR'); playClick()" class="w-full text-left px-4 py-2 text-[10px] font-black hover:bg-slate-50 transition-colors">INR (₹)</button>
-                        <button @click="setCurrency('USD'); playClick()" class="w-full text-left px-4 py-2 text-[10px] font-black hover:bg-slate-50 transition-colors">USD ($)</button>
-                        <button @click="setCurrency('EUR'); playClick()" class="w-full text-left px-4 py-2 text-[10px] font-black hover:bg-slate-50 transition-colors">EUR (€)</button>
-                        <button @click="setCurrency('GBP'); playClick()" class="w-full text-left px-4 py-2 text-[10px] font-black hover:bg-slate-50 transition-colors">GBP (£)</button>
+                    <div x-show="currencyOpen" x-cloak x-transition.opacity class="absolute top-full left-0 mt-2 w-36 bg-white rounded-xl shadow-xl overflow-hidden z-50 py-1">
+                        @foreach(['INR' => '₹', 'USD' => '$', 'EUR' => '€', 'GBP' => '£'] as $code => $sym)
+                            <button type="button" @click="setCurrency('{{ $code }}'); playClick()" class="w-full text-left px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" :class="currency === '{{ $code }}' ? 'text-indigo-600' : ''">{{ $code }} ({{ $sym }})</button>
+                        @endforeach
                     </div>
                 </div>
             </div>
+        </x-slot>
+        <x-slot name="meta">
+            <p class="font-mono text-xs uppercase tracking-wider text-emerald-400"><i class="fa-solid fa-gift mr-1.5" aria-hidden="true"></i>Save 16% on Annual Deployment</p>
+        </x-slot>
+    </x-site.hero>
 
-            <h1 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.05] max-w-4xl mx-auto reveal-up text-balance" style="transition-delay: 100ms;">
-                Invest in absolute <br class="hidden md:block">
-                <span class="bg-gradient-to-r from-[#7284b5] via-[#879ac9] to-[#bacdf3] bg-clip-text text-transparent">financial clarity.</span>
-            </h1>
-
-            <p class="mt-6 text-lg text-slate-500 font-medium leading-relaxed max-w-2xl mx-auto reveal-up text-balance" style="transition-delay: 200ms;">
-                Deploy the FinanceAI engine for your household or enterprise. Scalable infrastructure designed to generate absolute ROI within the first 30 days.
-            </p>
-
-            {{-- Billing Toggle (Real-World Accurate) --}}
-            <div class="mt-14 flex flex-col items-center justify-center gap-5 reveal-up" style="transition-delay: 300ms;">
-                
-                <div class="flex items-center gap-2 bg-[#fcf9f2] p-1.5 rounded-full border border-[#bacdf3] shadow-inner relative w-[320px] h-[56px] cursor-pointer group" 
-                     @click="toggleBilling(); playClick()" @mouseenter="playHover()"
-                     role="switch" :aria-checked="annual.toString()">
-                    
-                    {{-- Sliding Pill --}}
-                    <div class="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-0.375rem)] bg-[#7284b5] rounded-full shadow-md transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) z-0" 
-                         :class="annual ? 'translate-x-[100%]' : 'translate-x-0'"></div>
-                    
-                    <button class="relative z-10 w-1/2 h-full flex items-center justify-center text-xs font-black uppercase tracking-widest transition-colors duration-300 focus:outline-none cursor-none" 
-                            :class="!annual ? 'text-white' : 'text-[#7284b5] group-hover:text-slate-900'">
-                        Monthly
-                    </button>
-                    <button class="relative z-10 w-1/2 h-full flex items-center justify-center text-xs font-black uppercase tracking-widest transition-colors duration-300 focus:outline-none cursor-none" 
-                            :class="annual ? 'text-white' : 'text-[#7284b5] group-hover:text-slate-900'">
-                        Annually
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-full animate-pulse shadow-sm">
-                    <i class="fa-solid fa-gift"></i> Save 16% on Annual Deployment
-                </div>
+    {{-- Logos --}}
+    <section class="border-b border-slate-200 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row md:items-center gap-5 md:gap-12">
+            <p class="eyebrow text-slate-400 shrink-0">Trusted by modern financial architects at</p>
+            <div class="flex flex-wrap items-center gap-x-10 gap-y-3 text-lg font-black uppercase tracking-tighter text-slate-300">
+                <span>TechFlow</span>
+                <span><i class="fa-solid fa-bolt text-base mr-1" aria-hidden="true"></i>Velocity</span>
+                <span>DataCore Inc</span>
+                <span><i class="fa-solid fa-wave-square text-base mr-1" aria-hidden="true"></i>Nexus Finance</span>
+                <span>Stark Industries</span>
             </div>
         </div>
     </section>
 
-    {{-- ================= 1.5 SOCIAL PROOF MARQUEE ================= --}}
-    <div class="border-b border-[#bacdf3]/40 bg-white relative z-10 overflow-hidden py-8 shadow-sm">
-        <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-        <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-        
-        <p class="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Trusted by modern financial architects at</p>
-        
-        <div class="flex whitespace-nowrap animate-marquee items-center gap-16 px-4 font-black text-xl text-slate-300 uppercase tracking-tighter">
-            @for ($i = 0; $i < 4; $i++)
-                <span class="hover:text-[#7284b5] transition-colors cursor-default">TechFlow</span>
-                <span class="hover:text-[#7284b5] transition-colors cursor-default"><i class="fa-solid fa-bolt text-lg mr-1"></i> Velocity</span>
-                <span class="hover:text-[#7284b5] transition-colors cursor-default">DataCore Inc</span>
-                <span class="hover:text-[#7284b5] transition-colors cursor-default"><i class="fa-solid fa-wave-square text-lg mr-1"></i> Nexus Finance</span>
-                <span class="hover:text-[#7284b5] transition-colors cursor-default">Stark Industries</span>
-            @endfor
-        </div>
-    </div>
-
-    {{-- ================= 2. PRICING TIERS (PERFECT FLEX ALIGNMENT) ================= --}}
-    <section class="py-24 relative z-10">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            
-            {{-- Flex container ensures cards stretch to equal height --}}
-            <div class="flex flex-col lg:flex-row gap-8 items-stretch justify-center">
-
+    {{-- Plans --}}
+    <section class="py-20 sm:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-3 gap-5 items-stretch">
                 @foreach($plans as $idx => $plan)
-                    <div class="flex-1 bg-white rounded-[3rem] border border-[#bacdf3]/50 p-10 flex flex-col h-full reveal-up relative overflow-hidden group transition-all duration-500 
-                                {{ $plan['highlight'] ? 'lg:scale-105 border-[3px] border-[#7284b5] shadow-[0_30px_80px_-15px_rgba(114,132,181,0.25)] z-20' : 'shadow-sm hover:shadow-[0_20px_50px_-10px_rgba(114,132,181,0.15)] hover:-translate-y-2 z-10' }}"
-                         style="transition-delay: {{ $idx * 100 }}ms">
-                        
-                        {{-- Generative CSS Patterns & Badges --}}
-                        @if($plan['highlight'])
-                            <div class="absolute inset-0 pattern-grid-lg opacity-[0.15] z-0 pointer-events-none"></div>
-                            <div class="absolute -right-20 -top-20 w-64 h-64 bg-[#bacdf3]/30 rounded-full blur-3xl pointer-events-none transition-transform group-hover:scale-150 duration-700 z-0"></div>
-                            
-                            {{-- FLAWLESS OPTIMAL CHOICE BADGE (As requested from image) --}}
-                            <div class="absolute top-0 inset-x-0 flex justify-center transform -translate-y-[2px] z-20">
-                                <div class="bg-[#7284b5] text-white px-6 py-2 rounded-b-2xl text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-2 border-x border-b border-[#bacdf3]">
-                                    <i class="fa-solid fa-star text-amber-300"></i> Optimal Choice
-                                </div>
-                            </div>
-                        @endif
+                    @php $hl = $plan['highlight']; @endphp
+                    <article class="relative flex flex-col rounded-2xl p-8 sm:p-9 {{ $hl ? 'bg-[#0b0b1a] text-white grain lg:-my-4 lg:py-12' : 'card-site' }}" data-reveal style="--d: {{ $idx * 90 }}ms">
+                        <div class="flex items-center justify-between">
+                            <p class="eyebrow {{ $hl ? 'text-indigo-300' : 'text-slate-400' }}">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }} — {{ $plan['id'] === 'core' ? 'Free' : ($plan['id'] === 'pro' ? 'Pro' : 'Scale') }}</p>
+                            @if($hl)
+                                <span class="font-mono text-[10px] uppercase tracking-wider text-amber-300"><i class="fa-solid fa-star mr-1" aria-hidden="true"></i>Optimal Choice</span>
+                            @endif
+                        </div>
 
-                        {{-- Card Header --}}
-                        <div class="relative z-10 pt-4">
-                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center border mb-6 shadow-sm group-hover:scale-110 transition-transform duration-500
-                                        {{ $plan['highlight'] ? 'bg-[#fcf9f2] text-[#7284b5] border-[#bacdf3]' : 'bg-slate-50 text-slate-500 border-slate-200' }}">
-                                <i class="fa-solid {{ $plan['id'] === 'core' ? 'fa-user' : ($plan['id'] === 'pro' ? 'fa-network-wired' : 'fa-server') }} text-xl"></i>
-                            </div>
-                            
-                            <h3 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">{{ $plan['name'] }}</h3>
-                            <p class="text-sm text-slate-500 font-medium h-12 leading-relaxed text-balance">{{ $plan['desc'] }}</p>
-                            
-                            {{-- REAL WORLD BILLING MATH (Perfectly Aligned) --}}
-                            <div class="mt-8 mb-10 pb-8 border-b border-slate-100 flex flex-col h-[100px] justify-end relative">
-                                @if($plan['base_monthly'] === -1)
-                                    <span class="text-5xl font-black text-slate-900 tracking-tight">Custom</span>
-                                    <span class="text-xs font-bold text-slate-400 mt-2">Tailored to your architectural scale</span>
-                                @else
-                                    <div class="flex items-end gap-1">
-                                        <span class="text-2xl text-slate-400 font-bold mb-1.5" x-text="currencySymbol">₹</span>
-                                        <span class="text-6xl font-black text-slate-900 tracking-tighter tabular-nums" 
-                                              x-text="formatPrice('{{ $plan['id'] }}')">
-                                            {{ number_format($plan['base_monthly']) }}
+                        <h2 class="mt-6 text-3xl font-black tracking-tight {{ $hl ? 'text-white' : 'text-slate-900' }}">{{ $plan['name'] }}</h2>
+                        <p class="mt-3 text-[15px] leading-relaxed min-h-[3rem] {{ $hl ? 'text-slate-300' : 'text-slate-600' }}">{{ $plan['desc'] }}</p>
+
+                        <div class="mt-8 pb-8 border-b {{ $hl ? 'border-white/10' : 'border-slate-200' }} min-h-[118px] flex flex-col justify-end">
+                            @if($plan['base_monthly'] === -1)
+                                <p class="font-serif-i text-6xl {{ $hl ? 'text-white' : 'text-slate-900' }}">Custom</p>
+                                <p class="mt-2 text-sm {{ $hl ? 'text-slate-400' : 'text-slate-500' }}">Tailored to your architectural scale</p>
+                            @else
+                                <p class="flex items-end gap-1">
+                                    <span class="text-2xl font-bold mb-1.5 {{ $hl ? 'text-slate-400' : 'text-slate-400' }}" x-text="currencySymbol">₹</span>
+                                    <span class="text-6xl font-black tracking-tighter tabular-nums {{ $hl ? 'text-white' : 'text-slate-900' }}" x-text="formatPrice('{{ $plan['id'] }}')">{{ number_format($plan['base_monthly']) }}</span>
+                                    <span class="text-sm font-semibold mb-2 {{ $hl ? 'text-slate-400' : 'text-slate-400' }}" x-text="annual ? '/yr' : '/mo'">/mo</span>
+                                </p>
+                                <p class="mt-3 h-5 text-sm {{ $hl ? 'text-slate-400' : 'text-slate-500' }}">
+                                    @if($plan['base_yearly'] > 0)
+                                        <span x-show="annual" x-cloak>
+                                            <span class="line-through" x-text="currencySymbol + formatExact('{{ $plan['id'] }}', false) + '/mo'"></span>
+                                            <span class="ml-1 font-mono text-[11px] uppercase tracking-wider {{ $hl ? 'text-indigo-300' : 'text-indigo-600' }}">Equivalent to <span x-text="currencySymbol + formatEquivalent('{{ $plan['id'] }}')"></span>/mo</span>
                                         </span>
-                                        <span class="text-sm font-bold text-slate-400 mb-2 transition-all duration-300" x-text="annual ? '/yr' : '/mo'">/mo</span>
-                                    </div>
-                                    
-                                    {{-- Authentic Subtext Billing Explanation --}}
-                                    <div class="mt-3 h-5 flex items-center gap-2">
-                                        @if($plan['base_yearly'] > 0)
-                                            {{-- Annual View: Show equivalent monthly cost + discount --}}
-                                            <div x-show="annual" x-cloak x-transition.opacity class="flex items-center gap-2">
-                                                <span class="text-xs font-bold text-slate-400 line-through" x-text="currencySymbol + formatExact('{{ $plan['id'] }}', false) + '/mo'"></span>
-                                                <span class="text-[10px] font-black uppercase tracking-widest text-[#7284b5] bg-[#bacdf3]/20 px-2 py-0.5 rounded border border-[#bacdf3]/50">
-                                                    Equivalent to <span x-text="currencySymbol + formatEquivalent('{{ $plan['id'] }}')"></span>/mo
-                                                </span>
-                                            </div>
-                                            {{-- Monthly View: Show standard billing warning --}}
-                                            <span x-show="!annual" class="text-xs font-medium text-slate-400">Billed exactly <span x-text="currencySymbol + formatExact('{{ $plan['id'] }}', false)"></span> every month</span>
-                                        @else
-                                            <span class="text-xs font-medium text-slate-400">Free forever. No credit card required.</span>
-                                        @endif
-                                    </div>
-                                @endif
-                            </div>
+                                        <span x-show="!annual">Billed exactly <span x-text="currencySymbol + formatExact('{{ $plan['id'] }}', false)"></span> every month</span>
+                                    @else
+                                        Free forever. No credit card required.
+                                    @endif
+                                </p>
+                            @endif
                         </div>
 
-                        {{-- Features List (flex-1 pushes the button to the bottom) --}}
-                        <div class="flex-1 space-y-4 relative z-10 mb-10">
+                        <ul class="mt-8 flex-1 space-y-3.5">
                             @foreach($plan['features'] as $feature)
-                                <div class="flex items-start gap-4">
-                                    <div class="mt-1 w-5 h-5 rounded-full flex items-center justify-center shrink-0 {{ $plan['highlight'] ? 'bg-[#7284b5] text-white' : 'bg-emerald-50 text-emerald-500 border border-emerald-100' }}">
-                                        <i class="fa-solid fa-check text-[9px]"></i>
-                                    </div>
-                                    <span class="text-sm font-bold text-slate-700 leading-snug">{{ $feature }}</span>
-                                </div>
+                                <li class="flex gap-3 text-[15px] {{ $hl ? 'text-slate-200' : 'text-slate-700' }}"><i class="fa-solid fa-check mt-1 text-xs {{ $hl ? 'text-indigo-300' : 'text-emerald-600' }}" aria-hidden="true"></i>{{ $feature }}</li>
                             @endforeach
-
                             @foreach($plan['missing'] as $feature)
-                                <div class="flex items-start gap-4 opacity-40">
-                                    <div class="mt-1 w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200">
-                                        <i class="fa-solid fa-xmark text-[9px]"></i>
-                                    </div>
-                                    <span class="text-sm font-bold text-slate-500 leading-snug">{{ $feature }}</span>
-                                </div>
+                                <li class="flex gap-3 text-[15px] {{ $hl ? 'text-slate-500' : 'text-slate-400' }} line-through decoration-1"><i class="fa-solid fa-xmark mt-1 text-xs" aria-hidden="true"></i>{{ $feature }}</li>
                             @endforeach
-                        </div>
+                        </ul>
 
-                        {{-- mt-auto guarantees perfect bottom alignment across all cards --}}
-                        <div class="mt-auto relative z-10">
-                            <a href="{{ route('register') ?? '#' }}" @mouseenter="playHover()" class="magnetic-target w-full block text-center px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 focus:outline-none cursor-none
-                                      {{ $plan['highlight'] ? 'bg-[#7284b5] text-white hover:bg-[#616dab] shadow-[0_10px_20px_rgba(114,132,181,0.3)] hover:shadow-[0_15px_30px_rgba(114,132,181,0.5)]' : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300' }}">
-                                {{ $plan['btn'] }}
-                            </a>
-                        </div>
-                    </div>
+                        <a href="{{ $plan['id'] === 'enterprise' ? route('contact') : route('register') }}" @mouseenter="playHover()"
+                           class="mt-10 inline-flex items-center justify-center gap-2 h-12 rounded-xl font-bold transition-colors focus:outline-none focus-visible:ring-4
+                                  {{ $hl ? 'text-white bg-gradient-to-br from-indigo-500 to-violet-600 hover:from-indigo-400 focus-visible:ring-indigo-400/40' : 'bg-slate-900 text-white hover:bg-indigo-600 focus-visible:ring-indigo-200' }}">
+                            {{ $plan['btn'] }} <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
+                        </a>
+                    </article>
                 @endforeach
             </div>
         </div>
     </section>
 
-    {{-- ================= 3. ADD-ON CONFIGURATOR (NEW FUN) ================= --}}
-    <section class="py-20 relative z-10 bg-[#fcf9f2] border-y border-[#bacdf3]/30">
-        <div class="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8 reveal-up">
-            <div class="text-center mb-12">
-                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4"><i class="fa-solid fa-puzzle-piece text-[#7284b5] mr-2"></i> Scale your Infrastructure</h3>
-                <p class="text-slate-500 font-medium">Require specific architectural upgrades? Attach dedicated modules to your base node.</p>
-            </div>
+    {{-- Add-ons --}}
+    <section class="py-20 sm:py-24 bg-white border-y border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-site.section-head label="Add-ons" title="Scale your" accent="Infrastructure"
+                lede="Require specific architectural upgrades? Attach dedicated modules to your base node." />
 
-            <div class="bg-white rounded-[2rem] border border-[#bacdf3] shadow-[0_20px_50px_-15px_rgba(114,132,181,0.15)] overflow-hidden">
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                    @foreach($addons as $addon)
-                        <div class="p-8 hover:bg-slate-50 transition-colors cursor-pointer group" @click="toggleAddon('{{ $addon['id'] }}'); playClick()" @mouseenter="playHover()">
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-black text-slate-900">{{ $addon['name'] }}</h4>
-                                <div class="w-6 h-6 rounded border transition-colors flex items-center justify-center shadow-sm"
-                                     :class="addons.includes('{{ $addon['id'] }}') ? 'bg-[#7284b5] border-[#7284b5] text-white' : 'bg-white border-slate-200 text-transparent'">
-                                    <i class="fa-solid fa-check text-[10px]"></i>
-                                </div>
-                            </div>
-                            <p class="text-xs text-slate-500 font-medium mb-6 leading-relaxed">{{ $addon['desc'] }}</p>
-                            <p class="text-lg font-black text-[#7284b5] font-mono tracking-tight">+<span x-text="currencySymbol">₹</span><span x-text="convertValue({{ $addon['price'] }})">{{ $addon['price'] }}</span><span class="text-[10px] text-slate-400 uppercase tracking-widest ml-1">/mo</span></p>
-                        </div>
-                    @endforeach
-                </div>
-                
-                {{-- Live Addon Total --}}
-                <div class="bg-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
-                    <span class="text-xs font-black uppercase tracking-widest text-[#bacdf3]">Dynamic Module Total</span>
-                    <span class="text-2xl font-black font-mono tracking-tighter"><span x-text="currencySymbol">₹</span><span x-text="addonTotal">0</span><span class="text-xs text-slate-400 ml-1">/mo</span></span>
-                </div>
+            <div class="mt-12 grid md:grid-cols-3 border-t border-l border-slate-200" data-reveal>
+                @foreach($addons as $addon)
+                    <button type="button" @click="toggleAddon('{{ $addon['id'] }}'); playClick()" @mouseenter="playHover()" :aria-pressed="addons.includes('{{ $addon['id'] }}').toString()"
+                            class="text-left p-7 border-b border-r border-slate-200 transition-colors focus:outline-none focus-visible:bg-slate-50"
+                            :class="addons.includes('{{ $addon['id'] }}') ? 'bg-indigo-50/60' : 'hover:bg-slate-50'">
+                        <span class="flex items-start justify-between gap-4">
+                            <span class="text-lg font-black tracking-tight text-slate-900">{{ $addon['name'] }}</span>
+                            <span class="h-5 w-5 shrink-0 rounded border flex items-center justify-center transition-colors" :class="addons.includes('{{ $addon['id'] }}') ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 text-transparent'" aria-hidden="true"><i class="fa-solid fa-check text-[10px]"></i></span>
+                        </span>
+                        <span class="mt-2 block text-[15px] text-slate-600 leading-relaxed">{{ $addon['desc'] }}</span>
+                        <span class="mt-6 block font-mono text-sm text-slate-900">+<span x-text="currencySymbol">₹</span><span x-text="convertValue({{ $addon['price'] }})">{{ $addon['price'] }}</span><span class="text-slate-400">/mo</span></span>
+                    </button>
+                @endforeach
+            </div>
+            <div class="flex items-center justify-between gap-4 border-b border-slate-900 py-5">
+                <span class="eyebrow text-slate-500">Dynamic Module Total</span>
+                <span class="text-2xl font-black tabular-nums text-slate-900"><span x-text="currencySymbol">₹</span><span x-text="addonTotal">0</span><span class="text-sm font-semibold text-slate-400 ml-1">/mo</span></span>
             </div>
         </div>
     </section>
 
-    {{-- ================= 4. THE ROI PLAN MATCHER (TRUE COST SIMULATOR) ================= --}}
-    <section class="py-24 relative z-10 border-b border-[#bacdf3]/30 bg-white">
-        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center reveal-up">
-            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-8"><i class="fa-solid fa-chart-line text-[#7284b5] mr-2"></i> True-Cost ROI Simulator</h3>
-            
-            <div class="bg-[#fcf9f2] p-10 rounded-[3rem] border border-[#bacdf3] shadow-sm relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-64 h-64 bg-[#bacdf3]/10 rounded-full blur-3xl pointer-events-none"></div>
-                
-                <div class="grid md:grid-cols-2 gap-12 items-center relative z-10">
-                    <div class="text-left bg-white p-8 rounded-[2rem] border border-[#bacdf3]/50 shadow-[0_10px_30px_-15px_rgba(114,132,181,0.2)]">
-                        <div class="flex justify-between items-end mb-6">
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Monthly Ledger Volume</span>
-                            <span class="text-3xl font-black text-[#7284b5] font-mono tracking-tight"><span x-text="txVolume"></span></span>
-                        </div>
-                        
-                        <input type="range" x-model="txVolume" min="10" max="10000" step="50" @input="playKeySound()" 
-                               class="w-full h-3 bg-slate-100 rounded-full appearance-none cursor-pointer border border-[#bacdf3] accent-[#7284b5] outline-none hover:bg-[#bacdf3]/30 transition-colors">
-                        
-                        <div class="flex justify-between mt-4 text-[9px] font-bold text-slate-400 font-mono">
-                            <span>10 tx</span>
-                            <span>5,000 tx</span>
-                            <span>10,000+ tx</span>
-                        </div>
-                    </div>
-
-                    <div class="text-left flex flex-col h-full justify-center">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2"><i class="fa-solid fa-clock-rotate-left"></i> Estimated Reconcilliation Time Saved</p>
-                        <div class="flex items-end gap-2 mb-6 border-b border-slate-200 pb-6">
-                            <span class="text-6xl font-black text-slate-900 tracking-tighter" x-text="hoursSaved"></span>
-                            <span class="text-sm font-bold text-slate-500 mb-2">hours per month</span>
-                        </div>
-                        
-                        <div>
-                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-3">Optimal Architecture Required</span>
-                            <span class="inline-flex px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-sm w-full justify-center"
-                                  :class="{
-                                      'bg-white text-slate-600 border border-slate-200': recommendedPlan === 'core',
-                                      'bg-[#7284b5] text-white border border-[#7284b5] shadow-md': recommendedPlan === 'pro',
-                                      'bg-slate-900 text-white border border-slate-800 shadow-md': recommendedPlan === 'enterprise'
-                                  }">
-                                <i class="fa-solid mt-0.5" :class="recommendedPlan === 'core' ? 'fa-user' : (recommendedPlan === 'pro' ? 'fa-network-wired' : 'fa-server')"></i>
-                                <span x-text="recommendedPlan === 'core' ? 'Developer Node (Free)' : (recommendedPlan === 'pro' ? 'Professional Hub (₹499/mo)' : 'Enterprise Scale (Custom)')" class="ml-2"></span>
-                            </span>
-                        </div>
-                    </div>
+    {{-- ROI matcher --}}
+    <section class="py-20 sm:py-24 bg-[#0b0b1a] text-white grain">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12 items-center">
+            <div class="lg:col-span-6" data-reveal>
+                <p class="eyebrow text-indigo-300">True-Cost ROI Simulator</p>
+                <div class="mt-6 flex items-end justify-between">
+                    <label for="tx-volume" class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Monthly Ledger Volume</label>
+                    <span class="text-3xl font-black tabular-nums" x-text="txVolume"></span>
                 </div>
+                <input id="tx-volume" type="range" x-model="txVolume" min="10" max="10000" step="50" @input="playKeySound()" class="roi-range mt-5 w-full" :style="`--p: ${(txVolume - 10) / 99.9}%`">
+                <div class="mt-3 flex justify-between font-mono text-[10px] uppercase tracking-wider text-slate-500"><span>10 tx</span><span>5,000 tx</span><span>10,000+ tx</span></div>
+            </div>
+            <div class="lg:col-span-6 border-t lg:border-t-0 lg:border-l border-white/15 pt-8 lg:pt-0 lg:pl-12" data-reveal style="--d: 120ms">
+                <p class="font-mono text-[11px] uppercase tracking-wider text-emerald-400">Estimated Reconcilliation Time Saved</p>
+                <p class="mt-3 flex items-end gap-3"><span class="text-7xl font-black tracking-tighter tabular-nums" x-text="hoursSaved"></span><span class="font-serif-i text-2xl text-indigo-300 mb-2">hours per month</span></p>
+                <p class="mt-8 font-mono text-[11px] uppercase tracking-wider text-slate-500">Optimal Architecture Required</p>
+                <p class="mt-2 text-xl font-black" x-text="recommendedPlan === 'core' ? 'Developer Node (Free)' : (recommendedPlan === 'pro' ? 'Professional Hub (₹499/mo)' : 'Enterprise Scale (Custom)')"></p>
             </div>
         </div>
     </section>
 
-    {{-- ================= 5. FEATURE COMPARISON MATRIX (FLAWLESS MOBILE STICKY) ================= --}}
-    <section class="py-32 bg-white relative z-10 border-y border-[#bacdf3]/40" id="matrix">
-        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="text-center mb-20 reveal-up">
-                <h2 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">Architectural Matrix</h2>
-                <p class="text-slate-500 font-medium text-lg">A deep technical breakdown of node capabilities.</p>
-            </div>
+    {{-- Matrix --}}
+    <section class="py-20 sm:py-28" id="matrix">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-site.section-head label="Compare" title="Architectural" accent="Matrix"
+                lede="A deep technical breakdown of node capabilities." />
 
-            {{-- Flawless Mobile-friendly overflow wrapper --}}
-            <div class="overflow-x-auto scrollbar-custom reveal-up bg-white rounded-[2rem] border border-slate-200 shadow-sm relative" style="transition-delay: 100ms; max-height: 800px;">
-                <table class="w-full text-left border-collapse min-w-[800px]">
+            <div class="mt-12 overflow-x-auto scrollbar-custom" data-reveal>
+                <table class="w-full text-left min-w-[760px]">
                     <thead>
-                        <tr>
-                            {{-- Dual Sticky: Top AND Left --}}
-                            <th class="w-1/4 p-6 text-xs font-black uppercase tracking-widest text-slate-400 border-b border-slate-200 sticky top-0 left-0 bg-white z-40 shadow-[4px_4px_12px_rgba(0,0,0,0.05)]">System Capability</th>
-                            
-                            {{-- Sticky Top Only --}}
-                            <th class="min-w-[200px] p-6 text-center text-xs font-black uppercase tracking-widest text-slate-900 border-b border-slate-200 sticky top-0 bg-slate-50/95 backdrop-blur z-30">Core Node</th>
-                            <th class="min-w-[200px] p-6 text-center text-xs font-black uppercase tracking-widest text-[#7284b5] border-b border-[#bacdf3] sticky top-0 bg-[#fcf9f2]/95 backdrop-blur z-30 shadow-sm">
-                                <div class="absolute top-0 inset-x-0 h-1 bg-[#7284b5]"></div>
-                                Pro Hub
-                            </th>
-                            <th class="min-w-[200px] p-6 text-center text-xs font-black uppercase tracking-widest text-slate-900 border-b border-slate-200 sticky top-0 bg-slate-50/95 backdrop-blur z-30">Enterprise</th>
+                        <tr class="border-b border-slate-900">
+                            <th class="w-1/4 py-4 pr-4 eyebrow font-normal text-slate-500 sticky left-0 bg-[#fbfbfa]">System Capability</th>
+                            <th class="py-4 px-4 text-center text-sm font-black text-slate-900">Core Node</th>
+                            <th class="py-4 px-4 text-center text-sm font-black text-indigo-600 bg-indigo-50/60">Pro Hub</th>
+                            <th class="py-4 px-4 text-center text-sm font-black text-slate-900">Enterprise</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm">
+                    <tbody class="text-[15px]">
                         @foreach($matrix as $category => $features)
                             <tr>
-                                {{-- Sticky Left Category Header --}}
-                                <td colspan="4" class="pt-10 pb-4 px-6 text-[10px] font-black uppercase tracking-widest text-[#7284b5] bg-white sticky left-0 z-20 shadow-[4px_0_12px_rgba(0,0,0,0.03)]"><i class="fa-solid fa-microchip mr-2 opacity-50"></i> {{ $category }}</td>
+                                <td colspan="4" class="pt-10 pb-3 eyebrow text-indigo-600 sticky left-0">{{ $category }}</td>
                             </tr>
                             @foreach($features as $feature)
-                                <tr class="group hover:bg-slate-50 transition-colors">
-                                    
-                                    {{-- Feature Name (Sticky Left with explicit bg to hide scrolling content) --}}
-                                    <td class="p-6 border-b border-slate-100 font-bold text-slate-700 sticky left-0 bg-white group-hover:bg-slate-50 transition-colors shadow-[4px_0_12px_rgba(0,0,0,0.05)] z-20 flex items-center gap-2">
-                                        <span class="{{ isset($feature['tooltip']) ? 'border-b border-dashed border-slate-400 cursor-help' : '' }}">{{ $feature['name'] }}</span>
-                                        
-                                        {{-- Intelligent Tooltip --}}
-                                        @if(isset($feature['tooltip']))
-                                            <div class="relative group/tooltip inline-block" @mouseenter="playHover()">
-                                                <i class="fa-solid fa-circle-info text-slate-300 text-[10px] hover:text-[#7284b5] transition-colors ml-1"></i>
-                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-4 bg-slate-900 text-white text-xs font-medium rounded-xl shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 pointer-events-none text-center leading-relaxed">
-                                                    {{ $feature['tooltip'] }}
-                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
-                                                </div>
-                                            </div>
-                                        @endif
+                                <tr class="border-b border-slate-200 hover:bg-white transition-colors">
+                                    <td class="py-4 pr-4 font-semibold text-slate-800 sticky left-0 bg-[#fbfbfa]">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <span class="{{ isset($feature['tooltip']) ? 'border-b border-dashed border-slate-400 cursor-help' : '' }}" @if(isset($feature['tooltip'])) title="{{ $feature['tooltip'] }}" @endif>{{ $feature['name'] }}</span>
+                                        </span>
                                     </td>
-
-                                    {{-- Data Cells --}}
-                                    <td class="p-6 border-b border-slate-100 text-center bg-slate-50/20 group-hover:bg-transparent transition-colors z-10 relative">
-                                        @if($feature['core'] === true) <i class="fa-solid fa-check text-emerald-500"></i>
-                                        @elseif($feature['core'] === false) <i class="fa-solid fa-minus text-slate-300"></i>
-                                        @else <span class="font-bold text-slate-500 text-xs">{{ $feature['core'] }}</span> @endif
-                                    </td>
-
-                                    <td class="p-6 border-b border-slate-100 text-center bg-[#fcf9f2]/60 group-hover:bg-[#fcf9f2] transition-colors border-x border-[#bacdf3]/30 z-10 relative">
-                                        @if($feature['pro'] === true) <i class="fa-solid fa-check text-[#7284b5] text-lg"></i>
-                                        @elseif($feature['pro'] === false) <i class="fa-solid fa-minus text-[#bacdf3]"></i>
-                                        @else <span class="font-bold text-[#7284b5] text-xs">{{ $feature['pro'] }}</span> @endif
-                                    </td>
-
-                                    <td class="p-6 border-b border-slate-100 text-center bg-slate-50/20 group-hover:bg-transparent transition-colors z-10 relative">
-                                        @if($feature['ent'] === true) <i class="fa-solid fa-check text-slate-900"></i>
-                                        @elseif($feature['ent'] === false) <i class="fa-solid fa-minus text-slate-300"></i>
-                                        @else <span class="font-bold text-slate-900 text-xs">{{ $feature['ent'] }}</span> @endif
-                                    </td>
+                                    @foreach(['core' => 'text-slate-600', 'pro' => 'text-indigo-700', 'ent' => 'text-slate-900'] as $col => $tone)
+                                        <td class="py-4 px-4 text-center {{ $col === 'pro' ? 'bg-indigo-50/60' : '' }}">
+                                            @if($feature[$col] === true) <i class="fa-solid fa-check {{ $col === 'pro' ? 'text-indigo-600' : 'text-emerald-600' }}" aria-label="Included"></i>
+                                            @elseif($feature[$col] === false) <span class="text-slate-300" aria-label="Not included">—</span>
+                                            @else <span class="font-mono text-xs {{ $tone }}">{{ $feature[$col] }}</span> @endif
+                                        </td>
+                                    @endforeach
                                 </tr>
                             @endforeach
                         @endforeach
                     </tbody>
                 </table>
             </div>
-            
-            {{-- Mobile scroll indicator --}}
-            <div class="mt-6 text-center md:hidden">
-                <span class="text-[10px] font-black uppercase tracking-widest text-[#7284b5] bg-[#fcf9f2] px-4 py-2 rounded-full border border-[#bacdf3] shadow-sm animate-pulse inline-flex items-center gap-2">
-                    <i class="fa-solid fa-arrows-left-right"></i> Swipe matrix horizontally
-                </span>
-            </div>
-
+            <p class="mt-4 font-mono text-[11px] uppercase tracking-wider text-slate-400 md:hidden"><i class="fa-solid fa-arrows-left-right mr-1" aria-hidden="true"></i>Swipe matrix horizontally</p>
         </div>
     </section>
 
-    {{-- ================= 6. SEARCHABLE ACCORDION FAQ ================= --}}
-    <section class="py-32 bg-[#fcf9f2] relative z-10">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="text-center mb-10 reveal-up">
-                <h2 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-6">System Inquiries</h2>
+    {{-- FAQ --}}
+    <section class="py-20 sm:py-28 bg-white border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12">
+            <div class="lg:col-span-4">
+                <x-site.section-head label="FAQ" title="System" accent="Inquiries" />
             </div>
 
-            <div x-data="faqEngine()" class="reveal-up" style="transition-delay: 100ms;">
-                {{-- FAQ Search --}}
-                <div class="relative mb-10">
-                    <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-[#9fb2df]"></i>
-                    <input type="text" x-model="searchQuery" @input="playKeySound()" placeholder="Search deployment questions..." 
-                           class="w-full pl-12 pr-4 py-4 bg-white border border-[#bacdf3] rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-4 focus:ring-[#bacdf3]/20 shadow-sm">
-                </div>
+            <div x-data="faqEngine()" class="lg:col-span-8" data-reveal style="--d: 100ms">
+                <label class="relative block">
+                    <span class="sr-only">Search questions</span>
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" aria-hidden="true"></i>
+                    <input type="text" x-model="searchQuery" @input="playKeySound()" placeholder="Search deployment questions..."
+                           class="w-full h-11 pl-9 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100">
+                </label>
 
-                <div class="space-y-4">
+                <div class="mt-6 border-t border-slate-900">
                     <template x-for="(faq, index) in filteredFaqs" :key="index">
-                        <div class="bg-white border border-[#bacdf3]/50 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-md hover:border-[#bacdf3] transition-all duration-300">
-                            <button @click="selected !== index ? selected = index : selected = null; playClick()" @mouseenter="playHover()" class="w-full flex items-center justify-between p-6 text-left focus:outline-none hover:bg-slate-50 transition-colors magnetic-target cursor-none">
-                                <span class="font-black text-lg text-slate-900 group-hover:text-[#7284b5] transition-colors pr-4" x-text="faq.q"></span>
-                                <span class="w-10 h-10 rounded-full bg-[#fcf9f2] flex items-center justify-center transform transition-all duration-500 text-[#7284b5] border border-[#bacdf3] shrink-0"
-                                      :class="selected === index ? 'rotate-180 bg-[#7284b5] text-white border-[#7284b5]' : ''">
-                                    <i class="fa-solid fa-chevron-down text-sm"></i>
-                                </span>
+                        <div class="border-b border-slate-200">
+                            <button type="button" @click="selected !== index ? selected = index : selected = null; playClick()" @mouseenter="playHover()" :aria-expanded="(selected === index).toString()"
+                                    class="w-full flex items-center justify-between gap-4 py-5 text-left focus:outline-none focus-visible:bg-slate-50">
+                                <span class="text-lg font-bold text-slate-900" x-text="faq.q"></span>
+                                <i class="fa-solid fa-plus text-sm text-slate-400 transition-transform duration-300" :class="selected === index ? 'rotate-45 text-slate-900' : ''" aria-hidden="true"></i>
                             </button>
-                            <div class="relative overflow-hidden transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)" 
-                                 :style="selected === index ? 'max-height: 500px;' : 'max-height: 0px;'">
-                                <div class="px-6 pb-8 text-sm text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-4 mt-2" x-text="faq.a"></div>
+                            <div class="overflow-hidden transition-all duration-500" :style="selected === index ? 'max-height: 500px;' : 'max-height: 0px;'">
+                                <p class="pb-6 pr-10 text-[15px] text-slate-600 leading-relaxed" x-text="faq.a"></p>
                             </div>
                         </div>
                     </template>
-                    <div x-show="filteredFaqs.length === 0" class="text-center py-10" style="display: none;">
-                        <p class="text-sm font-bold text-slate-500">No matching inquiries found.</p>
-                    </div>
+                    <p x-show="filteredFaqs.length === 0" x-cloak class="py-10 text-center text-slate-500">No matching inquiries found.</p>
                 </div>
             </div>
-
         </div>
     </section>
-
 </div>
 
 @endsection
 
 @push('styles')
 <style>
-    /* PURE CSS PATTERNS */
-    .pattern-grid-lg { background-image: linear-gradient(#bacdf3 1px, transparent 1px), linear-gradient(90deg, #bacdf3 1px, transparent 1px); background-size: 40px 40px; }
-    
-    /* Elegant Scrollbar for Matrix */
-    .scrollbar-custom::-webkit-scrollbar { height: 6px; width: 6px; }
-    .scrollbar-custom::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
-    .scrollbar-custom::-webkit-scrollbar-thumb { background: #bacdf3; border-radius: 10px; }
-    .scrollbar-custom::-webkit-scrollbar-thumb:hover { background: #7284b5; }
-
-    /* Reveal Animations */
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .reveal-up { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-    .reveal-up.is-visible { opacity: 1; transform: translateY(0); }
-    
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-    .animate-float { animation: float 8s ease-in-out infinite; }
-
-    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-    .animate-marquee { animation: marquee 30s linear infinite; }
+    .scrollbar-custom::-webkit-scrollbar { height: 6px; }
+    .scrollbar-custom::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .roi-range { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 9999px; outline: none;
+        background: linear-gradient(to right, #a5b4fc var(--p, 2%), rgba(255,255,255,.15) var(--p, 2%)); }
+    .roi-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 9999px; background: #fff; border: 2px solid #a5b4fc; cursor: pointer; }
+    .roi-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 9999px; background: #fff; border: 2px solid #a5b4fc; cursor: pointer; }
+    .roi-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(165,180,252,.3); }
 </style>
 @endpush
 
