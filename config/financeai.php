@@ -10,12 +10,13 @@ return [
     'gemini' => [
         'api_key'     => env('GEMINI_API_KEY', ''),
         // Tried in order. The "-latest" aliases always point at Google's current model, so they
-        // don't break when a version is retired (gemini-2.0-flash was). Override with FINANCEAI_MODELS="a,b".
-        'models'      => array_values(array_filter(array_map('trim', explode(',', (string) env('FINANCEAI_MODELS', 'gemini-flash-latest,gemini-flash-lite-latest'))))),
+        // don't break when a version is retired (gemini-2.0-flash was). Flash-Lite goes first: it is
+        // faster and far less often "busy" than full Flash. Override with FINANCEAI_MODELS="a,b".
+        'models'      => array_values(array_filter(array_map('trim', explode(',', (string) env('FINANCEAI_MODELS', 'gemini-flash-lite-latest,gemini-flash-latest'))))),
         'endpoint'    => 'https://generativelanguage.googleapis.com/v1beta/models/',
         'max_tokens'  => 2048,
         'temperature' => 0.7,
-        'timeout'     => 25,
+        'timeout'     => 15,
     ],
 
     /*

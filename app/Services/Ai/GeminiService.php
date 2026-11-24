@@ -73,16 +73,21 @@ final class GeminiService
 
         $last = ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => 'fallback', 'error' => 'no_model_tried'];
 
-        // Two rounds through the model list: "high demand" (503) errors return in ~2s and usually clear quickly.
+        // Up to two rounds through the model list ("high demand" 503s usually clear within seconds),
+        // but never keep the user waiting more than ~20s in total — after that the built-in rules answer.
+        $started = microtime(true);
         for ($round = 1; $round <= 2; $round++) {
             foreach ($this->models as $model) {
+                if (microtime(true) - $started > 20) {
+                    break 2;
+                }
                 $last = $this->callModel($model, $payload);
                 if ($last['success'] || empty($last['retryable'])) {
                     break 2;
                 }
             }
             if ($round === 1) {
-                usleep(1_500_000);
+                usleep(1_000_000);
             }
         }
 
