@@ -49,17 +49,31 @@ final class GeminiService
      */
     public function generate(string $systemPrompt, string $context, string $userMessage): array
     {
+        return $this->run($this->buildPrompt($systemPrompt, $context, $userMessage), $this->maxTokens, $this->temperature, 20);
+    }
+
+    /**
+     * Short, single-purpose request (dashboard summary, category suggestion, report explanation).
+     * The caller writes the whole prompt; output is plain text. $budget caps the total wait in seconds.
+     */
+    public function complete(string $prompt, int $maxTokens = 400, float $temperature = 0.3, int $budget = 12): array
+    {
+        return $this->run($prompt, $maxTokens, $temperature, $budget);
+    }
+
+    private function run(string $prompt, int $maxTokens, float $temperature, int $budget): array
+    {
         if (!$this->isAvailable()) {
             return ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => 'fallback', 'error' => 'no_api_key'];
         }
 
         $payload = [
             'contents' => [
-                ['role' => 'user', 'parts' => [['text' => $this->buildPrompt($systemPrompt, $context, $userMessage)]]],
+                ['role' => 'user', 'parts' => [['text' => $prompt]]],
             ],
             'generationConfig' => [
-                'temperature'     => $this->temperature,
-                'maxOutputTokens' => $this->maxTokens,
+                'temperature'     => $temperature,
+                'maxOutputTokens' => $maxTokens,
                 'topP'            => 0.95,
                 'topK'            => 40,
             ],
@@ -74,11 +88,11 @@ final class GeminiService
         $last = ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => 'fallback', 'error' => 'no_model_tried'];
 
         // Up to two rounds through the model list ("high demand" 503s usually clear within seconds),
-        // but never keep the user waiting more than ~20s in total — after that the built-in rules answer.
+        // but never keep the user waiting longer than $budget seconds — after that the built-in rules answer.
         $started = microtime(true);
         for ($round = 1; $round <= 2; $round++) {
             foreach ($this->models as $model) {
-                if (microtime(true) - $started > 20) {
+                if (microtime(true) - $started > $budget) {
                     break 2;
                 }
                 $last = $this->callModel($model, $payload);
@@ -106,6 +120,9 @@ final class GeminiService
             if ($response->successful()) {
                 $data = $response->json();
                 $content = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                if (($data['candidates'][0]['finishReason'] ?? '') === 'MAX_TOKENS') {
+                    Log::info("Gemini {$model} stopped at the token limit (" . ($data['usageMetadata']['thoughtsTokenCount'] ?? 0) . ' thinking tokens)');
+                }
 
                 if ($content === '') {
                     Log::warning('Gemini returned empty response', ['model' => $model, 'finish' => $data['candidates'][0]['finishReason'] ?? null]);

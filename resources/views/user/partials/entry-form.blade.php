@@ -44,7 +44,30 @@
 
     <div class="grid gap-6 lg:grid-cols-3">
         <form method="POST" action="{{ $cfg['action'] }}" class="lg:col-span-2"
-              x-data="{ amount: '{{ old('amount', $r ? (float) $r->amount : '') }}', account: '{{ old('income_type', old('family_id') ? 'family' : 'personal') }}', submitting: false }"
+              x-data="{
+                  amount: '{{ old('amount', $r ? (float) $r->amount : '') }}',
+                  account: '{{ old('income_type', old('family_id') ? 'family' : 'personal') }}',
+                  submitting: false,
+                  {{-- AI category suggestion --}}
+                  cat: {{ json_encode((string) $currentCategory) }},
+                  picked: {{ $currentCategory ? 'true' : 'false' }},
+                  aiCat: null, aiSource: null, aiBusy: false, aiSeq: 0,
+                  async suggest(title) {
+                      title = (title || '').trim();
+                      if (title.length < 3) { this.aiCat = null; return; }
+                      const seq = ++this.aiSeq; this.aiBusy = true;
+                      try {
+                          const r = await fetch('{{ route('user.ai.categorize') }}', { method: 'POST',
+                              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                              body: JSON.stringify({ title, type: '{{ $noun }}' }) });
+                          const j = r.ok ? await r.json() : {};
+                          if (seq !== this.aiSeq) return;
+                          this.aiCat = j.category || null; this.aiSource = j.source || null;
+                          if (this.aiCat && !this.picked) this.applyCat(this.aiCat, false);
+                      } catch (e) { this.aiCat = null; } finally { if (seq === this.aiSeq) this.aiBusy = false; }
+                  },
+                  applyCat(cat, byUser) { this.cat = cat; if (byUser) this.picked = true; }
+              }"
               @submit="submitting = true">
             @csrf
             @if($isEdit) @method('PUT') @endif
@@ -68,7 +91,9 @@
                             <label for="{{ $titleField }}" class="text-sm font-medium text-zinc-800">{{ $isIncome ? 'Source' : 'Title' }}</label>
                             <input id="{{ $titleField }}" name="{{ $titleField }}" type="text" maxlength="150" required
                                    value="{{ old($titleField, $r->{$titleField} ?? '') }}"
-                                   placeholder="{{ $isIncome ? 'e.g. Monthly salary' : 'e.g. Groceries' }}"
+                                   @input.debounce.600ms="suggest($event.target.value)"
+                                   autocomplete="off"
+                                   placeholder="{{ $isIncome ? 'e.g. Monthly salary' : 'e.g. Swiggy order' }}"
                                    class="mt-2 h-11 w-full rounded-lg border px-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 {{ $errors->has($titleField) ? 'border-rose-300 focus:ring-rose-100' : 'border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100' }}">
                             @error($titleField)<p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>@enderror
                         </div>
@@ -82,11 +107,24 @@
 
                     {{-- Category --}}
                     <fieldset>
-                        <legend class="text-sm font-medium text-zinc-800">Category</legend>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <legend class="text-sm font-medium text-zinc-800">Category</legend>
+                            {{-- AI suggestion status --}}
+                            <p class="text-xs" aria-live="polite">
+                                <span x-show="aiBusy" x-cloak class="text-zinc-400"><i class="fa-solid fa-wand-magic-sparkles mr-1 animate-pulse text-indigo-400" aria-hidden="true"></i>AI is choosing a category…</span>
+                                <template x-if="!aiBusy && aiCat && cat === aiCat">
+                                    <span class="text-indigo-600"><i class="fa-solid fa-wand-magic-sparkles mr-1" aria-hidden="true"></i>AI picked <strong x-text="aiCat"></strong> from the {{ $isIncome ? 'source' : 'title' }} — change it if it's wrong</span>
+                                </template>
+                                <template x-if="!aiBusy && aiCat && cat !== aiCat">
+                                    <span class="text-zinc-500"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-indigo-500" aria-hidden="true"></i>AI suggests <strong x-text="aiCat" class="text-zinc-800"></strong>
+                                        <button type="button" @click="applyCat(aiCat, true)" class="ml-1 font-medium text-indigo-600 underline underline-offset-2 hover:text-indigo-700">Use it</button></span>
+                                </template>
+                            </p>
+                        </div>
                         <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                             @foreach($categories as $cat => $icon)
                                 <label class="cursor-pointer">
-                                    <input type="radio" name="category" value="{{ $cat }}" class="peer sr-only" required {{ $currentCategory === $cat ? 'checked' : '' }}>
+                                    <input type="radio" name="category" value="{{ $cat }}" class="peer sr-only" required x-model="cat" @change="picked = true; aiSeq++">
                                     <span class="flex h-11 items-center gap-2.5 rounded-lg border border-zinc-200 px-3 text-sm text-zinc-700 transition hover:border-zinc-300 peer-checked:border-zinc-900 peer-checked:bg-zinc-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-300">
                                         <i class="fa-solid {{ $icon }} w-4 text-center text-xs opacity-70" aria-hidden="true"></i>{{ $cat }}
                                     </span>

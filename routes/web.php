@@ -19,6 +19,7 @@ use App\Http\Controllers\User\FamilyController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\ReportController;
 use App\Http\Controllers\User\AiChatController;
+use App\Http\Controllers\User\AiInsightController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\SubscriptionController;
 
@@ -152,6 +153,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/market', [AiChatController::class, 'marketSnapshot'])->name('market');
             Route::post('/goals', [AiChatController::class, 'storeGoal'])->name('goals.store');
             Route::post('/profile', [AiChatController::class, 'saveProfile'])->name('profile.save');
+
+            // Small AI features (each falls back to built-in rules when Gemini is busy)
+            Route::get('/summary', [AiInsightController::class, 'summary'])->middleware('throttle:20,1,ai-summary')->name('summary');
+            Route::post('/categorize', [AiInsightController::class, 'categorize'])->middleware('throttle:60,1,ai-categorize')->name('categorize');
         });
 
         // --- NOTIFICATIONS ---
@@ -160,6 +165,7 @@ Route::middleware('auth')->group(function () {
 
         // --- REPORTS ---
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/explain', [ReportController::class, 'explain'])->middleware('throttle:10,1,ai-explain')->name('reports.explain');
 
         // --- SUBSCRIPTION SYSTEM ---
         Route::prefix('subscription')->name('subscription.')->group(function () {

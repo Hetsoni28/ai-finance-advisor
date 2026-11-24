@@ -1,8 +1,8 @@
 @extends('layouts.landing')
 @include('partials.vault-intro')
 
-@section('title', 'FinanceAI — Track money, share budgets, ask an AI advisor')
-@section('meta_description', 'Track income and expenses in rupees, run a shared family budget, see a financial health score, and get answers from an AI advisor that knows your numbers. Free to start.')
+@section('title', 'FinanceAI — Your AI finance advisor that reads your real numbers')
+@section('meta_description', 'An AI finance advisor powered by Google Gemini. Track income and expenses in rupees, get an AI summary of your month, AI-explained reports and answers based on your own numbers. Free to start.')
 
 @push('styles')
 <style>
@@ -22,6 +22,8 @@
     @keyframes rise { to { transform: none; } }
     .fade-in { opacity: 0; animation: fadeIn .8s ease forwards; animation-delay: var(--d, 0ms); }
     @keyframes fadeIn { to { opacity: 1; } }
+    .typing-line { animation: fadeIn .3s ease forwards, typingOut .3s ease 2.5s forwards; animation-delay: var(--d, 0ms), 2500ms; }
+    @keyframes typingOut { to { opacity: 0; height: 0; padding-top: 0; padding-bottom: 0; margin-top: -.75rem; } }
 
     /* Hero photo: slow settle-in zoom, and a gently floating example chip */
     .hero-img { transform: scale(1.08); animation: heroZoom 1.8s cubic-bezier(.2,.7,.2,1) .2s forwards; }
@@ -72,6 +74,7 @@
     @media (prefers-reduced-motion: reduce) {
         [data-reveal], .rise > span > span, .fade-in { opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important; }
         .marquee-track, .caret, .typing span, .float-chip { animation: none !important; }
+        .typing-line { display: none !important; }
         .hero-img { animation: none !important; transform: none !important; }
         .grow-bar, .fill, .ring-draw, .screen { transition: none !important; }
     }
@@ -109,52 +112,53 @@
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[38rem] sm:min-h-[42rem] lg:min-h-[46rem] flex items-end lg:items-center pt-40 sm:pt-48 lg:pt-20 pb-14 lg:pb-24">
         <div class="max-w-2xl lg:max-w-xl xl:max-w-2xl">
             <p class="fade-in font-mono text-[11px] sm:text-xs uppercase tracking-[0.2em] text-indigo-200/90" style="--d: 0ms">
-                Personal &amp; family finance <span class="text-indigo-400">·</span> ₹ INR
+                <i class="fa-solid fa-wand-magic-sparkles mr-1 text-indigo-300" aria-hidden="true"></i> AI finance advisor <span class="text-indigo-400">·</span> ₹ INR
             </p>
 
             <h1 class="mt-6 text-[2.6rem] leading-[1.02] sm:text-6xl xl:text-7xl font-black tracking-[-0.035em] text-white">
-                <span class="rise block"><span><span style="--d: 80ms">Your</span></span> <span><span style="--d: 140ms">money,</span></span></span>
-                <span class="rise block"><span><span class="font-serif-i text-indigo-300 pr-1" style="--d: 220ms">finally</span></span> <span><span style="--d: 300ms">making</span></span></span>
-                <span class="rise block"><span><span style="--d: 380ms">sense.</span></span></span>
+                <span class="rise block"><span><span style="--d: 80ms">An</span></span> <span><span style="--d: 130ms">AI</span></span> <span><span style="--d: 180ms">advisor</span></span></span>
+                <span class="rise block"><span><span style="--d: 240ms">that</span></span> <span><span style="--d: 290ms">reads</span></span> <span><span style="--d: 340ms">your</span></span></span>
+                <span class="rise block"><span><span class="font-serif-i text-indigo-300 pr-1" style="--d: 400ms">real</span></span> <span><span style="--d: 460ms">numbers.</span></span></span>
             </h1>
 
-            <p class="fade-in mt-7 text-base sm:text-lg text-slate-200/90 leading-relaxed max-w-xl" style="--d: 500ms">
-                FinanceAI keeps your income, spending and savings in one place, shares a budget with your family,
-                and lets you ask an AI advisor that has actually seen your numbers.
+            <p class="fade-in mt-7 text-base sm:text-lg text-slate-200/90 leading-relaxed max-w-xl" style="--d: 560ms">
+                Record your income and spending in rupees. FinanceAI's advisor — powered by Google Gemini — reads them,
+                summarises your month, explains your reports and answers your money questions with your own figures.
             </p>
 
-            <div class="fade-in mt-9 flex flex-col sm:flex-row gap-3" style="--d: 620ms">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.7)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/60">
-                        Open your dashboard <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
-                    </a>
-                @else
-                    <a href="{{ route('register') }}" class="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.7)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/60">
-                        Create a free account <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
-                    </a>
-                    <a href="#how" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-bold text-white border border-white/25 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30">
-                        See how it works
-                    </a>
-                @endauth
+            <div class="fade-in mt-9 flex flex-col sm:flex-row gap-3" style="--d: 660ms">
+                <a href="{{ auth()->check() ? route('user.ai.chat') : route('register') }}" class="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.7)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/60">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sm" aria-hidden="true"></i>
+                    {{ auth()->check() ? 'Ask your AI advisor' : 'Try the AI advisor free' }}
+                    <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-0.5" aria-hidden="true"></i>
+                </a>
+                <a href="{{ route('features') }}#how-ai" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-bold text-white border border-white/25 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30">
+                    How the AI works
+                </a>
             </div>
 
-            <dl class="fade-in mt-12 grid grid-cols-3 max-w-lg border-t border-white/15 pt-6" style="--d: 760ms">
+            <dl class="fade-in mt-12 grid grid-cols-3 max-w-lg border-t border-white/15 pt-6" style="--d: 780ms">
+                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">AI engine</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">Gemini</dd></div>
                 <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Starts at</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">₹0</dd></div>
-                <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Exports</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">PDF</dd></div>
                 <div><dt class="font-mono text-[11px] uppercase tracking-wider text-slate-400">Bank login</dt><dd class="mt-1 text-xl sm:text-2xl font-black text-white">Never</dd></div>
             </dl>
         </div>
 
-        {{-- Example chip over the photo (desktop only) --}}
-        <div class="float-chip hidden lg:block absolute right-8 xl:right-16 bottom-16 w-[15.5rem] rounded-2xl bg-white/95 backdrop-blur border border-white/60 shadow-[0_24px_48px_-16px_rgba(0,0,0,.5)] p-4 text-slate-900" aria-hidden="true">
-            <div class="flex items-center justify-between">
-                <span class="font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500">This month</span>
-                <span class="font-mono text-[11px] text-slate-400">Example</span>
+        {{-- Sample AI conversation over the photo (desktop only). Clearly labelled as an example. --}}
+        <figure class="hidden lg:block absolute right-8 xl:right-16 bottom-14 w-[23rem] rounded-2xl bg-white/95 backdrop-blur border border-white/60 shadow-[0_24px_48px_-16px_rgba(0,0,0,.55)] p-4 text-slate-900" aria-label="Example conversation with the AI advisor">
+            <figcaption class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <span class="flex items-center gap-2 text-sm font-bold"><span class="h-7 w-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles text-[11px]" aria-hidden="true"></i></span>AI advisor</span>
+                <span class="font-mono text-[10px] uppercase tracking-wider text-slate-400">Example</span>
+            </figcaption>
+            <div class="mt-3 space-y-3 text-[13px] leading-relaxed">
+                <p class="fade-in ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-slate-900 px-3.5 py-2 text-white" style="--d: 1000ms">Can I afford a ₹15,000 phone this month?</p>
+                <p class="fade-in typing-line flex gap-1 w-fit rounded-2xl rounded-tl-md bg-slate-100 px-3.5 py-3" style="--d: 1500ms" aria-hidden="true"><span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce"></span><span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:.15s]"></span><span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:.3s]"></span></p>
+                <div class="fade-in max-w-[92%] rounded-2xl rounded-tl-md bg-slate-100 px-3.5 py-2.5 text-slate-700" style="--d: 2600ms">
+                    You've earned <b class="text-slate-900">₹62,000</b> and spent <b class="text-slate-900">₹41,500</b> so far, so <b class="text-slate-900">₹20,500</b> is left. The phone would leave ₹5,500 — below your usual 20% savings. Waiting until next month keeps you on target.
+                </div>
             </div>
-            <p class="mt-1 text-2xl font-black tabular-nums">₹18,000 <span class="text-sm font-bold text-emerald-600">saved</span></p>
-            <div class="mt-2.5 h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full w-[30%] rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"></div></div>
-            <p class="mt-1.5 text-xs text-slate-500">30% of income kept</p>
-        </div>
+            <p class="fade-in mt-3 font-mono text-[10px] uppercase tracking-wider text-slate-400" style="--d: 2800ms"><i class="fa-solid fa-microchip mr-1" aria-hidden="true"></i>Answers use your own records</p>
+        </figure>
     </div>
 </section>
 

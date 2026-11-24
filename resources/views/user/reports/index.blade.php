@@ -50,6 +50,44 @@
         </form>
     </div>
 
+    {{-- AI: explain this period --}}
+    <section class="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-white to-white p-5 sm:p-6" aria-labelledby="ai-explain-title"
+             x-data="{ state: 'idle', html: '', source: '',
+                 run() {
+                     this.state = 'loading';
+                     fetch('{{ route('user.reports.explain', request()->only(['range', 'from', 'to'])) }}', { headers: { 'Accept': 'application/json' } })
+                         .then(r => r.json()).then(j => { this.html = j.html; this.source = j.source; this.state = 'done'; })
+                         .catch(() => { this.html = '<p>The explanation isn\'t available right now. Please try again.</p>'; this.source = 'error'; this.state = 'done'; });
+                 } }">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-start gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
+                <div>
+                    <h2 id="ai-explain-title" class="text-sm font-semibold text-zinc-900">Explain this period with AI</h2>
+                    <p class="mt-0.5 text-sm text-zinc-500">What changed in {{ $rangeText }}, why it happened, and what to do next — written from the figures on this page.</p>
+                </div>
+            </div>
+            <button type="button" @click="run()" :disabled="state === 'loading'"
+                    class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-200">
+                <i class="fa-solid" :class="state === 'loading' ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'" aria-hidden="true"></i>
+                <span x-text="state === 'loading' ? 'Analysing…' : (state === 'done' ? 'Explain again' : 'Explain this period')">Explain this period</span>
+            </button>
+        </div>
+
+        <div x-show="state === 'loading'" x-cloak class="mt-5 space-y-2 border-t border-indigo-100 pt-5" aria-label="Analysing">
+            <div class="h-3 w-10/12 animate-pulse rounded bg-indigo-100"></div>
+            <div class="h-3 w-8/12 animate-pulse rounded bg-indigo-100"></div>
+            <div class="h-3 w-9/12 animate-pulse rounded bg-indigo-100"></div>
+        </div>
+        <div x-show="state === 'done'" x-cloak class="mt-5 border-t border-indigo-100 pt-5" aria-live="polite">
+            <div class="ai-prose text-[15px] leading-relaxed text-zinc-700" x-html="html"></div>
+            <p class="mt-4 text-xs text-zinc-400">
+                <span x-show="source === 'gemini'"><i class="fa-solid fa-microchip mr-1" aria-hidden="true"></i>Written by Google Gemini from your own records. AI can make mistakes — check before acting on it.</span>
+                <span x-show="source === 'rules'">Gemini was busy, so this was worked out by the app's built-in rules.</span>
+            </p>
+        </div>
+    </section>
+
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <x-admin.stat label="Income" :value="$inr($totalIncome)" icon="fa-arrow-trend-up" tone="emerald"
             :delta="$pct($totalIncome, $prevIncome)" deltaLabel="vs previous period" :spark="array_column($monthly, 'income')"
@@ -160,6 +198,14 @@
     @endunless
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .ai-prose p { margin: 0 0 .75rem; } .ai-prose p:last-child { margin-bottom: 0; }
+    .ai-prose ul, .ai-prose ol { margin: .25rem 0 .75rem 1.1rem; } .ai-prose ul { list-style: disc; } .ai-prose ol { list-style: decimal; }
+    .ai-prose li { margin: .2rem 0; } .ai-prose strong { color: #18181b; font-weight: 600; }
+</style>
+@endpush
 
 @if($hasData)
 @push('scripts')

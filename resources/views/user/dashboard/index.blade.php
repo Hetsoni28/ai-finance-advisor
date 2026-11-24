@@ -61,6 +61,40 @@
         </section>
     @endunless
 
+    {{-- AI summary of the month (loaded after the page, so the dashboard never waits on Gemini) --}}
+    <section class="relative overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-white to-white p-5 sm:p-6"
+             aria-labelledby="ai-summary-title" aria-live="polite"
+             x-data="{ state: 'loading', text: '', source: '' }"
+             x-init="fetch('{{ route('user.ai.summary') }}', { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json()).then(j => { text = j.text; source = j.source; state = 'done'; })
+                .catch(() => { text = 'The summary isn\'t available right now. Please refresh in a moment.'; source = 'error'; state = 'done'; })">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" aria-hidden="true">
+                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+            </span>
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <h2 id="ai-summary-title" class="text-sm font-semibold text-zinc-900">Your AI advisor on {{ now()->format('F') }}</h2>
+                    <span x-show="state === 'done' && source === 'gemini'" x-cloak class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-700"><i class="fa-solid fa-microchip text-[9px]" aria-hidden="true"></i> Google Gemini</span>
+                    <span x-show="state === 'done' && source === 'rules'" x-cloak class="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">Built-in rules</span>
+                </div>
+
+                <div x-show="state === 'loading'" class="mt-3 space-y-2" aria-label="Writing your summary">
+                    <div class="h-3 w-11/12 animate-pulse rounded bg-indigo-100"></div>
+                    <div class="h-3 w-9/12 animate-pulse rounded bg-indigo-100"></div>
+                    <p class="pt-1 text-xs text-zinc-400">Reading your income and expenses…</p>
+                </div>
+                <p x-show="state === 'done'" x-cloak class="mt-2 text-[15px] leading-relaxed text-zinc-700" x-text="text"></p>
+
+                <div x-show="state === 'done'" x-cloak class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                    <a href="{{ route('user.ai.chat') }}" class="font-medium text-indigo-600 hover:text-indigo-700">Ask a follow-up question →</a>
+                    <span class="text-zinc-400" x-show="source === 'gemini'">Written by AI from your own records. Updates when you add entries.</span>
+                    <span class="text-zinc-400" x-show="source === 'rules'">Gemini was busy, so this was worked out by the app's built-in rules.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- This month band --}}
     <section class="rounded-2xl bg-zinc-950 text-white ring-1 ring-zinc-900" aria-label="This month">
         <div class="grid gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:items-center">
@@ -93,9 +127,11 @@
                 <div class="relative h-20 w-20 shrink-0">
                     <svg viewBox="0 0 36 36" class="h-full w-full -rotate-90" aria-hidden="true">
                         <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
-                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="{{ $scoreTone[0] }}" stroke-width="3" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="{{ 97.4 - 97.4 * $score / 100 }}"/>
+                        @if($hasAnyData)
+                            <circle cx="18" cy="18" r="15.5" fill="none" stroke="{{ $scoreTone[0] }}" stroke-width="3" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="{{ 97.4 - 97.4 * $score / 100 }}"/>
+                        @endif
                     </svg>
-                    <span class="absolute inset-0 flex items-center justify-center text-xl font-semibold tabular-nums">{{ round($score) }}</span>
+                    <span class="absolute inset-0 flex items-center justify-center text-xl font-semibold tabular-nums">{{ $hasAnyData ? round($score) : '—' }}</span>
                 </div>
                 <div>
                     <p class="text-sm font-medium">Health score</p>

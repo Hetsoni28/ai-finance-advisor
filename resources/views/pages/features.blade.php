@@ -15,7 +15,7 @@
 @endphp
 <div class="paper" x-data="{ activeTab: 'track' }">
 
-    <x-site.hero eyebrow="Features" lead="Everything you need for" accent="financial clarity."
+    <x-site.hero eyebrow="Features · AI advisor" lead="Everything you need for" accent="financial clarity."
         lede="FinanceAI keeps your income, spending and savings in one place, turns them into clear reports and a health score, and lets you ask an AI advisor that has actually seen your numbers.">
         <x-slot name="actions">
             <a href="{{ $ctaUrl }}" class="group inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-white font-bold bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[0_10px_30px_-8px_rgba(99,102,241,.7)] hover:-translate-y-0.5 transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/40">
@@ -44,6 +44,75 @@
             </div>
         </x-slot>
     </x-site.hero>
+
+    {{-- How the AI works --}}
+    <section id="how-ai" class="scroll-mt-20 py-20 sm:py-28 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-site.section-head label="How the AI works" title="From your question to an" accent="answer"
+                lede="Every AI answer in FinanceAI follows the same four steps. Your own records go in, Google Gemini writes the answer, and if Gemini is ever unavailable the app's built-in rules take over." />
+
+            {{-- Pipeline diagram --}}
+            <ol class="mt-14 grid gap-4 lg:grid-cols-4 lg:gap-0" aria-label="AI pipeline">
+                @foreach([
+                    ['01', 'fa-comment-dots', 'You ask', 'Type a question in the AI advisor — or open your dashboard or a report. The app works out what kind of question it is (9 types, such as savings, spending, risk or investing).', 'IntentClassifier'],
+                    ['02', 'fa-database', 'Your figures are gathered', 'Only your own data: income and spending for the last 30 days, top categories, saving rate, goals, risk profile and recent chat. Live crypto and gold prices are added on Pro.', 'ContextBuilderService'],
+                    ['03', 'fa-microchip', 'Google Gemini writes it', 'The question and your figures are sent to Gemini with strict rules: use only these numbers, write amounts in ₹, never invent data. A lighter model is tried if the main one is busy.', 'GeminiService'],
+                    ['04', 'fa-circle-check', 'Checked and shown', 'The reply is cleaned up, given a confidence level and its sources, saved to your chat history and shown to you — usually within a few seconds.', 'ResponseProcessor'],
+                ] as $i => [$n, $icon, $title, $desc, $code])
+                    <li class="relative lg:pr-8" data-reveal style="--d: {{ $i * 90 }}ms">
+                        <div class="h-full rounded-2xl border {{ $n === '03' ? 'border-indigo-200 bg-indigo-50/60' : 'border-slate-200 bg-[#fbfbfa]' }} p-6">
+                            <div class="flex items-center justify-between">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $n === '03' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white' }}"><i class="fa-solid {{ $icon }} text-sm" aria-hidden="true"></i></span>
+                                <span class="font-mono text-sm text-slate-400">{{ $n }}</span>
+                            </div>
+                            <h3 class="mt-6 text-lg font-black tracking-tight text-slate-900">{{ $title }}</h3>
+                            <p class="mt-2 text-[15px] leading-relaxed text-slate-600">{{ $desc }}</p>
+                            <p class="mt-4 font-mono text-[11px] text-slate-400">{{ $code }}</p>
+                        </div>
+                        @if($i < 3)
+                            <span class="absolute right-0 top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center text-slate-300 lg:flex" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                            <span class="flex justify-center py-1 text-slate-300 lg:hidden" aria-hidden="true"><i class="fa-solid fa-arrow-down"></i></span>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+
+            {{-- Fallback branch --}}
+            <div class="mt-4 grid lg:grid-cols-4" data-reveal>
+                <div class="lg:col-start-3 lg:col-span-2 lg:pr-8">
+                    <div class="flex gap-4 rounded-2xl border border-dashed border-amber-300 bg-amber-50/70 p-5">
+                        <i class="fa-solid fa-shield-halved mt-1 text-amber-600" aria-hidden="true"></i>
+                        <div>
+                            <p class="font-bold text-slate-900">If Gemini is busy or down</p>
+                            <p class="mt-1 text-[15px] leading-relaxed text-slate-600">The app doesn't fail. After about 20 seconds at most, its built-in rules answer from the same figures, and the reply is labelled so you always know which one answered.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Where the AI appears --}}
+            <div class="mt-16 grid gap-10 lg:grid-cols-12">
+                <div class="lg:col-span-4" data-reveal>
+                    <p class="eyebrow text-indigo-600">Where you'll see it</p>
+                    <h3 class="mt-4 text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Four AI features, <span class="font-serif-i text-indigo-600">one engine</span></h3>
+                    <p class="mt-4 text-slate-600 leading-relaxed">All four use the same pipeline above, so they all work from your real records and all fall back to rules if needed.</p>
+                </div>
+                <dl class="lg:col-span-8 grid sm:grid-cols-2 border-t border-l border-slate-200" data-reveal style="--d: 100ms">
+                    @foreach([
+                        ['fa-comments', 'AI advisor chat', 'Ask anything about your money and get an answer with your own figures.'],
+                        ['fa-wand-magic-sparkles', 'Monthly AI summary', 'Your dashboard opens with 2–3 sentences about your month: spending vs last month, top category, savings rate.'],
+                        ['fa-chart-pie', 'Explain this period', 'On Reports, one click explains what changed, why, and what to do next.'],
+                        ['fa-tags', 'Smart categories', 'Type "Swiggy order" or "Jio recharge" and the right category is picked for you.'],
+                    ] as [$icon, $t, $d])
+                        <div class="p-6 border-b border-r border-slate-200">
+                            <dt class="flex items-center gap-2 font-black text-slate-900"><i class="fa-solid {{ $icon }} text-sm text-indigo-500" aria-hidden="true"></i>{{ $t }}</dt>
+                            <dd class="mt-2 text-[15px] leading-relaxed text-slate-600">{{ $d }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </div>
+        </div>
+    </section>
 
     {{-- Before / after --}}
     <section class="py-20 sm:py-28">
