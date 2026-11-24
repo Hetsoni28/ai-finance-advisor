@@ -1,4 +1,5 @@
 @extends('layouts.landing')
+@include('partials.vault-intro')
 
 @section('title', 'FinanceAI — Track money, share budgets, ask an AI advisor')
 @section('meta_description', 'Track income and expenses in rupees, run a shared family budget, see a financial health score, and get answers from an AI advisor that knows your numbers. Free to start.')

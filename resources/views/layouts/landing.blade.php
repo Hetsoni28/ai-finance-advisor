@@ -80,6 +80,8 @@
       :class="(mobileMenuOpen || cmdKOpen) ? 'overflow-hidden' : ''"
       @notify.window="showToast($event.detail.message, $event.detail.type)">
 
+    @stack('before-content')
+
     @php
         $current = Route::currentRouteName();
         $productLinks = [
