@@ -131,7 +131,7 @@ class ProfileController extends Controller
 
             return redirect()
                 ->route('user.profile.index')
-                ->with('success', 'Identity profile synchronized successfully.');
+                ->with('success', 'Profile updated.');
 
         } catch (Throwable $e) {
             Log::error('Profile Sync Failed: ' . $e->getMessage(), ['user_id' => $user->id]);
@@ -198,11 +198,11 @@ class ProfileController extends Controller
 
             return redirect()
                 ->route('user.profile.index')
-                ->with('success', 'Credentials rotated and rogue sessions terminated.');
+                ->with('success', 'Password changed. You’ve been signed out on other devices.');
 
         } catch (Throwable $e) {
             Log::error('Credential Rotation Failed: ' . $e->getMessage(), ['user_id' => $user->id]);
-            return back()->with('error', 'System failure during credential rotation. Ensure AuthenticateSession middleware is active.');
+            return back()->with('error', 'We couldn’t change your password. Please try again.');
         }
     }
 

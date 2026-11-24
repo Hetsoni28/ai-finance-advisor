@@ -54,7 +54,7 @@
         if (str_starts_with($currentRoute, $prefix)) {
             $breadcrumbs[$label] = route($routeName);
             $action = \Illuminate\Support\Str::afterLast($currentRoute, '.');
-            $actionLabels = ['create' => 'New', 'edit' => 'Edit', 'show' => 'Details', 'password' => 'Password', 'form' => 'Password', 'success' => 'Done', 'invites' => 'Invites', 'chat' => null, 'index' => null];
+            $actionLabels = ['create' => 'New', 'edit' => 'Edit', 'show' => 'Details', 'password' => 'Password', 'form' => 'Password', 'success' => 'Done', 'invites' => 'Invites', 'access' => 'Invites', 'chat' => null, 'index' => null];
             if (!empty($actionLabels[$action] ?? null)) { $breadcrumbs[$actionLabels[$action]] = '#'; }
             break;
         }

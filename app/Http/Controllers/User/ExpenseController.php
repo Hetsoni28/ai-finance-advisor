@@ -164,11 +164,11 @@ class ExpenseController extends Controller
             }
 
             return redirect()->route('user.expenses.index')
-                             ->with('success', 'Transaction securely recorded.');
+                             ->with('success', 'Expense added.');
 
         } catch (Throwable $e) {
             Log::error('Expense Creation Failed: ' . $e->getMessage(), ['user_id' => $user->id, 'payload' => $validated]);
-            return back()->withInput()->with('error', 'Database synchronization failed. Please review your payload and try again.');
+            return back()->withInput()->with('error', 'We couldn’t save that. Please check the details and try again.');
         }
     }
 
@@ -215,7 +215,7 @@ class ExpenseController extends Controller
                 ]);
             });
 
-            return redirect()->route('user.expenses.index')->with('success', 'Transaction ledger updated successfully.');
+            return redirect()->route('user.expenses.index')->with('success', 'Changes saved.');
 
         } catch (Throwable $e) {
             Log::error("Expense Update Error: " . $e->getMessage(), ['expense_id' => $expense->id]);
@@ -242,11 +242,11 @@ class ExpenseController extends Controller
                 $expense->delete();
             });
 
-            return redirect()->back()->with('success', 'Transaction successfully purged from ledger.');
+            return redirect()->back()->with('success', 'Expense deleted.');
 
         } catch (Throwable $e) {
             Log::error("Expense Deletion Error: " . $e->getMessage(), ['expense_id' => $expense->id]);
-            return back()->with('error', 'Failed to purge transaction due to a system lock.');
+            return back()->with('error', 'We couldn’t delete that. Please try again.');
         }
     }
 
@@ -301,7 +301,7 @@ class ExpenseController extends Controller
 
         } catch (Throwable $e) {
             Log::error('Expense PDF Export Error: ' . $e->getMessage(), ['user_id' => $user->id]);
-            return back()->with('error', 'Failed to generate PDF document. The rendering engine may be busy.');
+            return back()->with('error', 'We couldn’t create the PDF. Please try again in a moment.');
         }
     }
 

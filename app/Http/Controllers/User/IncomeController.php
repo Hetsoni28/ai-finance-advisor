@@ -161,11 +161,11 @@ class IncomeController extends Controller
 
             return redirect()
                 ->route('user.incomes.index')
-                ->with('success', 'Inbound capital successfully recorded to the ledger.');
+                ->with('success', 'Income added.');
 
         } catch (Throwable $e) {
             Log::error('Income Creation Failed: ' . $e->getMessage(), ['user_id' => $user->id, 'payload' => $data]);
-            return back()->withInput()->with('error', 'Database synchronization failed. Please review your payload and try again.');
+            return back()->withInput()->with('error', 'We couldn’t save that. Please check the details and try again.');
         }
     }
 
@@ -221,11 +221,11 @@ class IncomeController extends Controller
 
             return redirect()
                 ->route('user.incomes.index')
-                ->with('success', 'Cryptographic record updated successfully.');
+                ->with('success', 'Changes saved.');
 
         } catch (Throwable $e) {
             Log::error('Income Update Failed: ' . $e->getMessage(), ['income_id' => $income->id, 'user_id' => $user->id]);
-            return back()->withInput()->with('error', 'Update protocol failed. Please try again.');
+            return back()->withInput()->with('error', 'We couldn’t save your changes. Please try again.');
         }
     }
 
@@ -254,11 +254,11 @@ class IncomeController extends Controller
 
             return redirect()
                 ->route('user.incomes.index')
-                ->with('success', 'Income record permanently removed from the ledger.');
+                ->with('success', 'Income deleted.');
 
         } catch (Throwable $e) {
             Log::error('Income Deletion Failed: ' . $e->getMessage(), ['income_id' => $income->id]);
-            return back()->with('error', 'Failed to void the record due to a system lock.');
+            return back()->with('error', 'We couldn’t delete that. Please try again.');
         }
     }
 
@@ -309,7 +309,7 @@ class IncomeController extends Controller
 
         } catch (Throwable $e) {
             Log::error('Income PDF Export Error: ' . $e->getMessage());
-            return back()->with('error', 'Failed to generate PDF document. The rendering engine may be busy.');
+            return back()->with('error', 'We couldn’t create the PDF. Please try again in a moment.');
         }
     }
 

@@ -100,7 +100,7 @@ class SubscriptionController extends Controller
                 'plan_id' => $plan->id,
             ]);
 
-            return back()->with('error', 'Payment processing failed. Please try again.');
+            return back()->with('error', 'We couldn’t switch your plan. Please try again.');
         }
     }
 

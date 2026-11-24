@@ -194,7 +194,7 @@ class AuthController extends Controller
             $family = Family::find($familyId);
             if (!$family) {
                 return redirect()->route('user.dashboard')
-                    ->with('error', 'The workspace no longer exists.');
+                    ->with('error', 'That family no longer exists.');
             }
 
             if ($family->users()->where('user_id', $user->id)->exists()) {
@@ -222,7 +222,7 @@ class AuthController extends Controller
             });
 
             return redirect()->route('user.families.show', $family->id)
-                ->with('success', 'Welcome! You have successfully joined the workspace.');
+                ->with('success', 'Welcome! You’ve joined the family.');
 
         } catch (\Throwable $e) {
             Log::error('Invite Auto-Join Failed: ' . $e->getMessage(), [
@@ -232,7 +232,7 @@ class AuthController extends Controller
             ]);
 
             return redirect()->route('user.dashboard')
-                ->with('error', 'Failed to join workspace. Please contact the workspace owner.');
+                ->with('error', 'We couldn’t add you to this family. Please ask the owner to invite you again.');
         }
     }
 

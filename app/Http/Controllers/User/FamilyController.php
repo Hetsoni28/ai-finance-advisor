@@ -98,11 +98,11 @@ class FamilyController extends Controller
 
             return redirect()
                 ->route('user.families.index')
-                ->with('success', 'Workspace initialized successfully.');
+                ->with('success', 'Family created. Invite people to get started.');
 
         } catch (Throwable $e) {
             Log::error('Workspace Creation Failed: ' . $e->getMessage());
-            return back()->with('error', 'Critical failure during initialization. Please try again.');
+            return back()->with('error', 'We couldn’t create the family. Please try again.');
         }
     }
 
@@ -183,11 +183,11 @@ class FamilyController extends Controller
                 ->withProperties(['email' => $email])
                 ->log('Transmitted access token to target email.');
 
-            return back()->with('success', 'Cryptographic invitation transmitted successfully.');
+            return back()->with('success', 'Invite sent.');
 
         } catch (Throwable $e) {
             Log::error('Invite Transmission Failed: ' . $e->getMessage());
-            return back()->with('error', 'Transmission failed. Ensure mail configurations are valid.');
+            return back()->with('error', 'We couldn’t send the invite email. Please try again later.');
         }
     }
 
@@ -250,7 +250,7 @@ class FamilyController extends Controller
 
             // 🚨 FIXED: user.families.show
             return redirect()->route('user.families.show', $family->id)
-                ->with('success', 'Secure connection established. Welcome to the Hub.');
+                ->with('success', 'Welcome back!');
 
         } catch (Throwable $e) {
             Log::error('Invite Acceptance Failed: ' . $e->getMessage());
@@ -277,7 +277,7 @@ class FamilyController extends Controller
             $familyMember = FamilyMember::where('family_id', $family->id)->where('user_id', $member->id)->first();
             
             if ($familyMember && $familyMember->role === 'owner') {
-                return back()->with('error', 'Protocol Violation: Cannot revoke access for the workspace owner.');
+                return back()->with('error', 'The family owner can’t be removed.');
             }
 
             $family->users()->detach($member->id);
@@ -287,11 +287,11 @@ class FamilyController extends Controller
                 ->performedOn($family)
                 ->log("Revoked workspace access for node: {$member->name}.");
 
-            return back()->with('success', 'Node access successfully revoked.');
+            return back()->with('success', 'Member removed.');
 
         } catch (Throwable $e) {
             Log::error('Member Revocation Failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to revoke node access. Please try again.');
+            return back()->with('error', 'We couldn’t remove that member. Please try again.');
         }
     }
 
@@ -317,11 +317,11 @@ class FamilyController extends Controller
                 ->performedOn($family)
                 ->log("Purged pending cryptographic invite for {$email}.");
 
-            return back()->with('success', 'Transmission voided. Token permanently destroyed.');
+            return back()->with('success', 'Invite cancelled.');
 
         } catch (Throwable $e) {
             Log::error('Invite Destruction Failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to void transmission.');
+            return back()->with('error', 'We couldn’t cancel that invite. Please try again.');
         }
     }
 
@@ -338,7 +338,7 @@ class FamilyController extends Controller
             $inviteIds = $request->input('invite_ids', []);
             
             if (empty($inviteIds)) {
-                return back()->with('error', 'No transmissions selected for purge.');
+                return back()->with('error', 'Select at least one invite to delete.');
             }
 
             DB::transaction(function () use ($family, $inviteIds) {
@@ -353,11 +353,11 @@ class FamilyController extends Controller
                     ->log("Executed bulk purge. Destroyed {$count} expired transmission tokens.");
             });
 
-            return back()->with('success', 'Selected transmissions have been permanently voided.');
+            return back()->with('success', 'Selected invites deleted.');
 
         } catch (Throwable $e) {
             Log::error('Bulk Invite Destruction Failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to execute bulk purge protocol.');
+            return back()->with('error', 'We couldn’t delete those invites. Please try again.');
         }
     }
 }

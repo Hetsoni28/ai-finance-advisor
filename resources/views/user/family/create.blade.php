@@ -1,298 +1,49 @@
 @extends('layouts.app')
 
+@section('title', 'New family · FinanceAI')
+
 @section('content')
+<div class="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 
-@php
-abort_unless(Route::has('user.families.store'), 404);
-abort_unless(Route::has('user.families.index'), 404);
+    <x-admin.page-header title="New family" eyebrow="Family" icon="fa-people-roof" :stamp="false" description="You’ll be the owner. You can invite people by email straight after.">
+        <x-slot name="actions">
+            <a href="{{ route('user.families.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50">
+                <i class="fa-solid fa-arrow-left text-xs text-zinc-400" aria-hidden="true"></i> Back
+            </a>
+        </x-slot>
+    </x-admin.page-header>
 
-$routeStore = route('user.families.store');
-$routeIndex = route('user.families.index');
-@endphp
+    <x-admin.flash />
 
-<div class="min-h-screen bg-gradient-to-br from-slate-100 via-white to-indigo-100 flex items-center justify-center px-4 py-20">
-
-<div class="w-full max-w-2xl space-y-8">
-
-{{-- 🔥 STEP INDICATOR --}}
-<div class="flex justify-center gap-4 text-xs">
-<span class="step active">Create</span>
-<span class="step">Invite</span>
-<span class="step">Track</span>
-<span class="step">Analyze</span>
+    <form method="POST" action="{{ route('user.families.store') }}" x-data="{ submitting: false, desc: {{ json_encode(old('description', '')) }} }" @submit="submitting = true">
+        @csrf
+        <x-admin.card flush>
+            <div class="space-y-5 p-5 sm:p-6">
+                <div>
+                    <label for="name" class="text-sm font-medium text-zinc-800">Family name</label>
+                    <input id="name" name="name" type="text" required maxlength="255" autofocus value="{{ old('name') }}" placeholder="e.g. The Sharma household"
+                           class="mt-2 h-11 w-full rounded-lg border px-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 {{ $errors->has('name') ? 'border-rose-300 focus:ring-rose-100' : 'border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100' }}">
+                    @error('name')<p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <div class="flex justify-between"><label for="description" class="text-sm font-medium text-zinc-800">Description <span class="font-normal text-zinc-400">(optional)</span></label><span class="text-xs tabular-nums text-zinc-400" x-text="desc.length + '/500'"></span></div>
+                    <textarea id="description" name="description" rows="3" maxlength="500" x-model="desc" placeholder="What this family budget is for"
+                              class="mt-2 w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"></textarea>
+                    @error('description')<p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                <ul class="space-y-2 rounded-lg bg-zinc-50 p-4 text-sm text-zinc-600">
+                    <li class="flex gap-2"><i class="fa-solid fa-crown mt-0.5 text-xs text-indigo-500" aria-hidden="true"></i>You’ll be the <strong class="font-medium text-zinc-800">owner</strong> — you manage members and invites.</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-envelope mt-0.5 text-xs text-indigo-500" aria-hidden="true"></i>People join with a one-click link sent to their email.</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-scale-balanced mt-0.5 text-xs text-indigo-500" aria-hidden="true"></i>Shared income and expenses stay separate from everyone’s personal records.</li>
+                </ul>
+            </div>
+            <div class="flex justify-end gap-2 border-t border-zinc-100 bg-zinc-50/60 px-5 py-3 sm:px-6">
+                <a href="{{ route('user.families.index') }}" class="h-10 rounded-lg px-4 text-sm font-medium leading-10 text-zinc-600 hover:text-zinc-900">Cancel</a>
+                <button :disabled="submitting" class="inline-flex h-10 items-center gap-2 rounded-lg bg-zinc-900 px-5 text-sm font-medium text-white shadow-sm hover:bg-zinc-800 disabled:opacity-60">
+                    <i class="fa-solid fa-circle-notch fa-spin text-xs" x-show="submitting" x-cloak aria-hidden="true"></i> Create family
+                </button>
+            </div>
+        </x-admin.card>
+    </form>
 </div>
-
-
-{{-- SUCCESS --}}
-@if(session('success'))
-<div class="alert-success">
-✔ {{ session('success') }}
-</div>
-@endif
-
-
-<div class="card">
-
-{{-- HEADER --}}
-<div class="text-center mb-10">
-
-<div class="icon">🏠</div>
-
-<h1>Create Family Workspace</h1>
-
-<p>Secure • Intelligent • Collaborative</p>
-
-</div>
-
-
-{{-- ERROR --}}
-@if ($errors->any())
-<div class="alert-error">
-@foreach ($errors->all() as $error)
-<div>• {{ $error }}</div>
-@endforeach
-</div>
-@endif
-
-
-<form method="POST" action="{{ $routeStore }}" id="familyForm" class="space-y-8">
-@csrf
-
-{{-- NAME --}}
-<div>
-
-<label>Workspace Name</label>
-
-<input type="text"
-id="name"
-name="name"
-maxlength="100"
-required
-value="{{ old('name') }}"
-placeholder="e.g. My Family Budget"
-class="input">
-
-<div class="meta">
-<span id="nameStatus">Enter name</span>
-<span><span id="charCount">0</span>/100</span>
-</div>
-
-</div>
-
-
-{{-- PREVIEW --}}
-<div id="previewCard" class="preview hidden">
-
-<h3>Preview</h3>
-
-<div id="previewName">—</div>
-
-<p>AI-powered financial system</p>
-
-</div>
-
-
-{{-- SMART SUGGESTIONS --}}
-<div class="chips">
-
-@foreach(['Family','Wealth Hub','Budget System','Finance AI','Smart Wallet'] as $s)
-<button type="button" class="chip" data-suggest="{{ $s }}">{{ $s }}</button>
-@endforeach
-
-</div>
-
-
-{{-- AI TIP --}}
-<div class="ai-box">
-🤖 Tip: Short names improve dashboard clarity & analytics grouping.
-</div>
-
-
-{{-- ACTION --}}
-<div class="actions">
-
-<a href="{{ $routeIndex }}" class="back">← Back</a>
-
-<button id="submitBtn" type="submit" class="submit">
-
-<span class="submit-label">Create Workspace</span>
-<span class="loading-label hidden">Creating...</span>
-
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-
-{{-- FOOTER --}}
-<div class="text-center text-xs text-slate-400">
-Next → Invite → Add Transactions → AI Insights
-</div>
-
-</div>
-</div>
-
-
-<style>
-
-.card{
-background:white;
-padding:40px;
-border-radius:20px;
-box-shadow:0 20px 60px rgba(0,0,0,.08);
-}
-
-.icon{
-width:70px;
-height:70px;
-margin:auto;
-background:linear-gradient(135deg,#6366f1,#06b6d4);
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:20px;
-font-size:30px;
-color:white;
-}
-
-h1{
-font-size:26px;
-font-weight:800;
-}
-
-label{
-font-size:12px;
-font-weight:600;
-}
-
-.input{
-width:100%;
-padding:14px;
-border-radius:12px;
-border:1px solid #ddd;
-}
-
-.meta{
-display:flex;
-justify-content:space-between;
-font-size:11px;
-color:#64748b;
-margin-top:4px;
-}
-
-.preview{
-background:#f1f5f9;
-padding:16px;
-border-radius:12px;
-}
-
-.chips{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-}
-
-.chip{
-padding:6px 12px;
-background:#f8fafc;
-border-radius:999px;
-cursor:pointer;
-}
-
-.ai-box{
-background:#eef2ff;
-padding:12px;
-border-radius:10px;
-font-size:12px;
-}
-
-.actions{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.submit{
-background:linear-gradient(135deg,#6366f1,#06b6d4);
-color:white;
-padding:12px 24px;
-border-radius:12px;
-}
-
-.step{
-padding:4px 10px;
-border-radius:999px;
-background:#e2e8f0;
-}
-.step.active{
-background:#6366f1;
-color:white;
-}
-
-.alert-success{
-background:#dcfce7;
-padding:10px;
-border-radius:10px;
-}
-
-.alert-error{
-background:#fee2e2;
-padding:10px;
-border-radius:10px;
-}
-
-</style>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-
-const input = document.getElementById('name');
-const preview = document.getElementById('previewCard');
-const previewName = document.getElementById('previewName');
-const count = document.getElementById('charCount');
-const status = document.getElementById('nameStatus');
-
-input.addEventListener('input', function(){
-
-let val = this.value.trim();
-count.innerText = val.length;
-
-if(val.length > 2){
-preview.classList.remove('hidden');
-previewName.innerText = val;
-status.innerText = "Good ✔";
-status.style.color = "green";
-}else{
-preview.classList.add('hidden');
-status.innerText = "Min 3 chars";
-status.style.color = "gray";
-}
-
-});
-
-
-document.querySelectorAll('[data-suggest]').forEach(btn=>{
-btn.onclick = ()=>{
-input.value = input.value ? input.value + ' ' + btn.dataset.suggest : btn.dataset.suggest;
-input.dispatchEvent(new Event('input'));
-};
-});
-
-
-const form = document.getElementById('familyForm');
-const submitBtn = document.getElementById('submitBtn');
-
-form.addEventListener('submit',()=>{
-submitBtn.disabled = true;
-submitBtn.querySelector('.submit-label').classList.add('hidden');
-submitBtn.querySelector('.loading-label').classList.remove('hidden');
-});
-
-});
-</script>
-
 @endsection
