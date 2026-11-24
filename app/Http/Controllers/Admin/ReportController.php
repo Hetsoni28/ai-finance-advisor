@@ -38,7 +38,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $page = (int) $request->get('page', 1);
-        $cacheKey = "admin_report_dashboard_v5_page_{$page}";
+        $cacheKey = "admin_report_dashboard_v6_page_{$page}";
 
         $data = Cache::remember($cacheKey, 60, function () {
 
@@ -77,17 +77,6 @@ class ReportController extends Controller
                 'categoryLabels', 'categorySeries', 'topSpenders'
             );
         });
-
-        // 🔥 PRESENTATION GUARD: Simulated Data for Empty Databases
-        if ($data['totalIncome'] == 0 && $data['totalExpenses'] == 0) {
-            $data['totalIncome'] = 1425000.00;
-            $data['totalExpenses'] = 521000.00;
-            $data['totalUsers'] = 142;
-            $data['activeUsers'] = 89;
-            $data['labels'] = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-            $data['monthlyIncome'] = [200000, 210000, 230000, 245000, 260000, 280000];
-            $data['monthlyExpenses'] = [80000, 75000, 95000, 85000, 90000, 96000];
-        }
 
         return view('admin.reports.index', $data);
     }
@@ -290,7 +279,7 @@ class ReportController extends Controller
             $hasCategoryColumn = \Illuminate\Support\Facades\Schema::hasColumn('expenses', 'category');
             
             if (!$hasCategoryColumn) {
-                return [['Operations', 'Payroll', 'Marketing'], [45, 30, 25]];
+                return [[], []];
             }
 
             $catRaw = Expense::selectRaw("category, SUM(amount) as total")
@@ -301,7 +290,7 @@ class ReportController extends Controller
                 ->get();
 
             if ($catRaw->isEmpty()) {
-                return [['Uncategorized'], [100]];
+                return [[], []];
             }
 
             $labels = $catRaw->pluck('category')->toArray();
@@ -311,7 +300,7 @@ class ReportController extends Controller
 
         } catch (Throwable $e) {
             Log::warning("Category Extraction Failed: " . $e->getMessage());
-            return [['Data Unavailable'], [100]];
+            return [[], []];
         }
     }
 }

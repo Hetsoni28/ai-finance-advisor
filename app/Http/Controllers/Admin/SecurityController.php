@@ -93,7 +93,7 @@ class SecurityController extends Controller
         $stats = $query->toBase()->selectRaw('
             COUNT(*) as total_logs,
             COALESCE(SUM(CASE WHEN description LIKE "%delete%" OR description LIKE "%destroy%" THEN 1 ELSE 0 END), 0) as delete_count,
-            COALESCE(SUM(CASE WHEN description LIKE "%update%" OR description LIKE "%edit%" OR description LIKE "%modify%" THEN 1 ELSE 0 END), 0) as update_count,
+            COALESCE(SUM(CASE WHEN description LIKE "%update%" OR description LIKE "%edit%" OR description LIKE "%modif%" THEN 1 ELSE 0 END), 0) as update_count,
             COALESCE(SUM(CASE WHEN description LIKE "%fail%" OR description LIKE "%block%" OR description LIKE "%lockdown%" THEN 1 ELSE 0 END), 0) as critical_count,
             COALESCE(SUM(CASE WHEN description LIKE "%login%" OR description LIKE "%auth%" THEN 1 ELSE 0 END), 0) as login_count
         ')->first();
@@ -144,9 +144,9 @@ class SecurityController extends Controller
 
             if (Str::contains($desc, ['delete', 'destroy', 'fail', 'block', 'suspend', 'lockdown'])) {
                 $map[$activity->id] = ['label' => 'Critical', 'class' => 'bg-rose-50 text-rose-600 border-rose-200', 'icon' => 'fa-triangle-exclamation'];
-            } elseif (Str::contains($desc, ['update', 'edit', 'change', 'modify', 'upgrade', 'switch'])) {
+            } elseif (Str::contains($desc, ['update', 'edit', 'change', 'modif', 'upgrade', 'switch'])) {
                 $map[$activity->id] = ['label' => 'Warning', 'class' => 'bg-amber-50 text-amber-600 border-amber-200', 'icon' => 'fa-shield-halved'];
-            } elseif (Str::contains($desc, ['login', 'auth', 'register', 'create', 'session'])) {
+            } elseif (Str::contains($desc, ['login', 'auth', 'register', 'create', 'session', 'added', 'recorded', 'joined'])) {
                 $map[$activity->id] = ['label' => 'Secure', 'class' => 'bg-emerald-50 text-emerald-600 border-emerald-200', 'icon' => 'fa-lock'];
             } else {
                 $map[$activity->id] = ['label' => 'Info', 'class' => 'bg-slate-50 text-slate-600 border-slate-200', 'icon' => 'fa-circle-info'];

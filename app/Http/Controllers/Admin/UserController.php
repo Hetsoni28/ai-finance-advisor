@@ -59,7 +59,8 @@ class UserController extends Controller
         }
 
         // ⚡ Execute Query with Pagination
-        $users = $query->latest('id')
+        $users = $query->withCount(['incomes', 'expenses'])
+            ->latest('id')
             ->paginate(15)
             ->withQueryString();
 

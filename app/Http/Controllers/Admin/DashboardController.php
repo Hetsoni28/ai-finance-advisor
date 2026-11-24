@@ -40,12 +40,11 @@ class DashboardController extends Controller
         /* ================= 1. CACHED CORE METRICS ================= */
         // Caching heavy table counts prevents CPU spikes on the admin dashboard
         $metrics = Cache::remember('admin_dashboard_metrics', 60, function () use ($now) {
-            $lastMonth = $now->copy()->subMonth();
 
             return [
                 'totalUsers'      => User::count(),
                 'blockedUsers'    => User::where('is_blocked', true)->count(),
-                'newUsersThisMonth'=> User::where('created_at', '>=', $lastMonth)->count(),
+                'newUsersThisMonth'=> User::where('created_at', '>=', $now->copy()->subDays(30))->count(),
                 'totalIncome'     => Income::sum('amount'),
                 'totalExpenses'   => Expense::sum('amount'),
             ];
@@ -55,14 +54,14 @@ class DashboardController extends Controller
         // 🚨 FIX: Replaced the 12-query loop with 2 highly optimized aggregate queries.
         $startDate = $now->copy()->subMonths(5)->startOfMonth();
 
-        // Query raw monthly sums in a single DB hit
-        $incomeData = Income::where('created_at', '>=', $startDate)
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, SUM(amount) as total")
+        // Monthly sums by the record's own date (income_date / expense_date), not when it was typed in
+        $incomeData = Income::where('income_date', '>=', $startDate)
+            ->selectRaw("DATE_FORMAT(income_date, '%Y-%m') as month_key, SUM(amount) as total")
             ->groupBy('month_key')
             ->pluck('total', 'month_key');
 
-        $expenseData = Expense::where('created_at', '>=', $startDate)
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, SUM(amount) as total")
+        $expenseData = Expense::where('expense_date', '>=', $startDate)
+            ->selectRaw("DATE_FORMAT(expense_date, '%Y-%m') as month_key, SUM(amount) as total")
             ->groupBy('month_key')
             ->pluck('total', 'month_key');
 
@@ -80,14 +79,43 @@ class DashboardController extends Controller
             $monthlyExpenses[] = (float) ($expenseData[$monthKey] ?? 0);
         }
 
-        /* ================= 3. RECENT SYSTEM AUDIT ================= */
-        // Fetch global telemetry logs
-        $activities = Activity::with('causer')
-            ->latest()
-            ->limit(10)
-            ->get();
+        /* ================= 3. RECENT ACTIVITY, SIGN-UPS, PLANS, CATEGORIES ================= */
+        $activities = \App\Models\Activity::with('user')->latest()->limit(8)->get();
+        $recentUsers = User::latest('id')->limit(6)->get();
+
+        $activeSubs = \App\Models\UserSubscription::where('status', 'active')
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>', $now))
+            ->selectRaw('plan_id, COUNT(DISTINCT user_id) as total')
+            ->groupBy('plan_id')
+            ->pluck('total', 'plan_id');
+        $plans = \App\Models\Plan::orderBy('sort_order')->get();
+        $planBreakdown = $plans->map(fn ($p) => [
+            'name'  => $p->name,
+            'price' => (float) $p->price,
+            'count' => (int) ($activeSubs[$p->id] ?? 0),
+        ])->values();
+        $paidSubscribers = $plans->filter(fn ($p) => (float) $p->price > 0)->sum(fn ($p) => (int) ($activeSubs[$p->id] ?? 0));
+        // Users without a paid subscription are on the free plan
+        $freePlan = $planBreakdown->firstWhere('price', 0.0);
+        if ($freePlan !== null) {
+            $planBreakdown = $planBreakdown->map(fn ($row) => $row['price'] == 0
+                ? array_merge($row, ['count' => max(0, $metrics['totalUsers'] - $paidSubscribers)])
+                : $row);
+        }
+
+        $topCategories = Expense::selectRaw("COALESCE(NULLIF(category, ''), 'Uncategorized') as category, SUM(amount) as total")
+            ->groupBy('category')->orderByDesc('total')->limit(5)->get();
 
         return view('admin.dashboard.index', [
+            'recentUsers'     => $recentUsers,
+            'planBreakdown'   => $planBreakdown,
+            'paidSubscribers' => $paidSubscribers,
+            'topCategories'   => $topCategories,
+            'unreadMessages'  => \App\Models\Contact::where('is_read', false)->count(),
+            'familyCount'     => \App\Models\Family::count(),
+            'thisMonthIncome'   => (float) Income::where('income_date', '>=', $now->copy()->startOfMonth())->sum('amount'),
+            'thisMonthExpenses' => (float) Expense::where('expense_date', '>=', $now->copy()->startOfMonth())->sum('amount'),
+
             // Core Metrics
             'totalUsers'      => $metrics['totalUsers'],
             'blockedUsers'    => $metrics['blockedUsers'],
