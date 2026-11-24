@@ -19,8 +19,8 @@
     html[data-intro-open], html[data-intro-open] body { overflow: hidden !important; }
 
     #vault-intro {
-        --ink: #0b0c14; --ink-2: #141624; --ink-3: #1d2033; --cream: #f1ece1; --brass: #c8a866; --brass-2: #8c7240;
-        --glow: #ffd79a; --D: min(52vh, 74vw, 380px); --hole: 0px; --hx: 50%; --hy: 55%;
+        --ink: #10100f; --ink-2: #1b1b19; --ink-3: #262624; --cream: #ebe7de; --accent: #ff5a1f; --steel: #b9b8b2; --steel-2: #5f5e5a;
+        --glow: #f6f3ec; --D: min(52vh, 74vw, 380px); --hole: 0px; --hx: 50%; --hy: 55%;
         position: fixed; inset: 0; z-index: 3000; background: var(--ink); color: var(--cream);
         font-family: Inter, system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none;
         -webkit-mask-image: radial-gradient(circle at var(--hx) var(--hy), transparent var(--hole), #000 calc(var(--hole) + 1px));
@@ -31,7 +31,7 @@
     #vault-intro .vi-grain { position: absolute; inset: -50%; opacity: .07; pointer-events: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
     #vault-intro .vi-vignette { position: absolute; inset: 0; pointer-events: none;
-        background: radial-gradient(60% 55% at 50% 58%, rgba(200,168,102,.07), transparent 70%), radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,.55)); }
+        background: radial-gradient(60% 55% at 50% 58%, rgba(235,231,222,.035), transparent 70%), radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,.55)); }
 
     /* Corners */
     #vault-intro .vi-corner { position: absolute; display: flex; gap: .75rem; font-size: 13px; line-height: 1.35; opacity: 0; transition: opacity .6s ease; }
@@ -43,7 +43,7 @@
     #vault-intro .vi-br { bottom: 24px; right: 32px; transition-delay: .45s; }
     #vault-intro .vi-logo { height: 32px; width: 32px; border-radius: 10px; background: var(--cream); color: var(--ink); display: grid; place-items: center; font-size: 13px; }
     #vault-intro .vi-skip { display: inline-flex; align-items: center; gap: .5rem; border-radius: 999px; border: 1px solid rgba(241,236,225,.2);
-        background: rgba(11,12,20,.6); padding: .5rem 1rem; font-size: 12px; font-weight: 500; color: rgba(241,236,225,.75); cursor: pointer; transition: border-color .2s, color .2s; }
+        background: rgba(16,16,15,.6); padding: .5rem 1rem; font-size: 12px; font-weight: 500; color: rgba(241,236,225,.75); cursor: pointer; transition: border-color .2s, color .2s; }
     #vault-intro .vi-skip:hover, #vault-intro .vi-skip:focus-visible { border-color: var(--cream); color: var(--cream); outline: none; }
     #vault-intro .vi-skip i { font-size: 11px; transition: transform .3s; }
     #vault-intro .vi-skip:hover i { transform: translateX(2px); }
@@ -55,12 +55,12 @@
     #vault-intro .vi-title .w > span { display: inline-block; transform: translateY(110%); transition: transform 1s cubic-bezier(.16,1,.3,1); }
     #vault-intro .vi-title .w:nth-child(2) > span { transition-delay: .08s; } #vault-intro .vi-title .w:nth-child(3) > span { transition-delay: .16s; }
     #vault-intro.is-in .vi-title .w > span { transform: none; }
-    #vault-intro .vi-title em { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; text-transform: none; letter-spacing: -.02em; color: var(--brass); }
+    #vault-intro .vi-title em { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; text-transform: none; letter-spacing: -.02em; color: var(--accent); }
     #vault-intro .vi-status { margin-top: 1rem; font: 500 11.5px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: rgba(241,236,225,.6);
         font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .6s ease .55s; }
     #vault-intro.is-in .vi-status { opacity: 1; }
     #vault-intro .vi-status b { font-weight: 500; color: var(--cream); }
-    #vault-intro .vi-status .is-open { color: var(--glow); }
+    #vault-intro .vi-status .is-open { color: var(--accent); }
 
     /* Vault */
     #vault-intro .vi-stage { position: relative; margin-top: clamp(1.75rem, 5vh, 3rem); width: var(--D); height: var(--D); perspective: 1600px;
@@ -70,25 +70,25 @@
     @keyframes vi-clunk { 30% { transform: translateX(-3px) } 60% { transform: translateX(2px) } }
 
     #vault-intro .vi-frame { position: absolute; inset: -9%; border-radius: 50%;
-        background: radial-gradient(circle, #05060b 62%, #191b2b 63%, #10121d 72%, #1c1f30 100%);
+        background: radial-gradient(circle, #060606 62%, #1e1e1c 63%, #141413 72%, #232321 100%);
         box-shadow: 0 0 0 1px rgba(241,236,225,.08), 0 40px 90px -20px rgba(0,0,0,.8), inset 0 2px 0 rgba(255,255,255,.04); }
     #vault-intro .vi-frame::after { content: ''; position: absolute; inset: 9.8%; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(241,236,225,.06), inset 0 18px 40px rgba(0,0,0,.9); }
     #vault-intro .vi-floor { position: absolute; left: 50%; bottom: -13%; width: 170%; height: 1px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, rgba(241,236,225,.22), transparent); }
 
     #vault-intro .vi-light { position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
-        background: radial-gradient(circle at 50% 50%, #fff6e2 0%, var(--glow) 28%, #c98a3a 62%, #3a2614 100%);
+        background: radial-gradient(circle at 50% 50%, #fffdf8 0%, var(--glow) 40%, #d9d4c8 75%, #8f8a80 100%);
         opacity: .0; transition: opacity 1.1s ease; }
     #vault-intro .vi-light::before { content: '₹'; position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Instrument Serif', Georgia, serif;
-        font-size: calc(var(--D) * .42); color: rgba(255,255,255,.55); mix-blend-mode: overlay; }
+        font-size: calc(var(--D) * .42); color: rgba(16,16,15,.09); }
     #vault-intro.is-opening .vi-light { opacity: 1; }
     #vault-intro .vi-rays { position: absolute; inset: -40%; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 1.2s ease .25s;
-        background: radial-gradient(circle, rgba(255,215,154,.35), transparent 60%); filter: blur(10px); }
+        background: radial-gradient(circle, rgba(246,243,236,.18), transparent 60%); filter: blur(10px); }
     #vault-intro.is-opening .vi-rays { opacity: 1; }
 
     #vault-intro .vi-bolts { position: absolute; inset: 0; transition: opacity .3s ease; }
     #vault-intro.is-opening .vi-bolts { opacity: 0; }
     #vault-intro .vi-bolt { position: absolute; left: 50%; top: 50%; width: calc(var(--D) * .075); height: calc(var(--D) * .03); margin: calc(var(--D) * -.015) 0 0 calc(var(--D) * -.0375);
-        border-radius: 3px; background: linear-gradient(180deg, #e9d39c, var(--brass) 45%, var(--brass-2));
+        border-radius: 3px; background: linear-gradient(180deg, #f1f0ec, var(--steel) 45%, var(--steel-2));
         box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 2px 6px rgba(0,0,0,.6);
         transform: rotate(var(--a)) translateX(calc(var(--D) * (.5 + .035 - var(--retract, 0) * .075))); }
 
@@ -96,17 +96,17 @@
         transition: transform 1.25s cubic-bezier(.65,0,.2,1); }
     #vault-intro.is-opening .vi-door { transform: rotateY(-108deg); }
     #vault-intro .vi-face { position: absolute; inset: 0; border-radius: 50%;
-        background: radial-gradient(circle at 38% 30%, #2a2e45, var(--ink-3) 38%, var(--ink-2) 70%, #0d0f1a);
+        background: repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.022) 0 1px, transparent 1px 3px), radial-gradient(circle at 36% 28%, #3b3b38, var(--ink-3) 40%, var(--ink-2) 72%, #121211);
         box-shadow: inset 0 0 0 1px rgba(241,236,225,.12), inset 0 0 0 calc(var(--D) * .03) rgba(11,12,20,.55), inset 0 -20px 40px rgba(0,0,0,.45), 0 25px 60px -15px rgba(0,0,0,.85); }
     #vault-intro .vi-face svg { position: absolute; inset: 0; width: 100%; height: 100%; }
     #vault-intro .vi-dial { transform-origin: 50% 50%; }
     #vault-intro .vi-hinge { position: absolute; left: -3.5%; width: 7%; height: 13%; border-radius: 4px;
-        background: linear-gradient(90deg, #2a2d42, #3a3e58 50%, #23263a); box-shadow: inset 0 0 0 1px rgba(241,236,225,.1); }
+        background: linear-gradient(90deg, #2b2b29, #4a4a46 50%, #262624); box-shadow: inset 0 0 0 1px rgba(241,236,225,.1); }
 
     #vault-intro .vi-wheel { position: absolute; left: 50%; top: 50%; width: 46%; height: 46%; transform: translate(-50%, -50%); border-radius: 50%;
         cursor: grab; touch-action: none; outline: none; }
     #vault-intro .vi-wheel:active { cursor: grabbing; }
-    #vault-intro .vi-wheel:focus-visible { box-shadow: 0 0 0 3px rgba(200,168,102,.55); }
+    #vault-intro .vi-wheel:focus-visible { box-shadow: 0 0 0 3px rgba(255,90,31,.55); }
     #vault-intro .vi-wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     #vault-intro .vi-spokes { transform-origin: 50% 50%; filter: drop-shadow(0 8px 12px rgba(0,0,0,.55)); }
 
@@ -182,7 +182,7 @@
                                 <text x="100" y="33" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2" fill="rgba(241,236,225,.4)" transform="rotate({{ $i * 30 }} 100 100)">{{ str_pad((string) ($i * 5), 2, '0', STR_PAD_LEFT) }}</text>
                             @endfor
                         </g>
-                        <path d="M100 8 l3 6 h-6z" fill="var(--brass)" />
+                        <path d="M100 8 l3 6 h-6z" fill="var(--accent)" />
                     </svg>
                 </div>
 
@@ -190,7 +190,7 @@
                      aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Unlocked 0 percent">
                     <svg viewBox="0 0 100 100" aria-hidden="true">
                         <circle cx="50" cy="50" r="49" fill="none" stroke="rgba(241,236,225,.1)" stroke-width="1.2" />
-                        <circle cx="50" cy="50" r="49" fill="none" stroke="var(--brass)" stroke-width="1.6" stroke-linecap="round" pathLength="100"
+                        <circle cx="50" cy="50" r="49" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" pathLength="100"
                                 stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 50 50)" data-vi-ring />
                         <g class="vi-spokes" data-vi-spokes>
                             <circle cx="50" cy="50" r="31" fill="none" stroke="url(#vi-brass)" stroke-width="4.5" />
@@ -201,12 +201,12 @@
                                     <circle cx="50" cy="94" r="4.6" fill="url(#vi-brass)" />
                                 </g>
                             @endforeach
-                            <circle cx="50" cy="50" r="11" fill="#1a1c2c" stroke="url(#vi-brass)" stroke-width="3" />
-                            <circle cx="50" cy="50" r="3.2" fill="var(--brass)" />
+                            <circle cx="50" cy="50" r="11" fill="#1b1b19" stroke="url(#vi-brass)" stroke-width="3" />
+                            <circle cx="50" cy="50" r="3.2" fill="var(--accent)" />
                         </g>
                         <defs>
                             <linearGradient id="vi-brass" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0" stop-color="#f0dcaa" /><stop offset=".45" stop-color="#c8a866" /><stop offset="1" stop-color="#7d6434" />
+                                <stop offset="0" stop-color="#f4f3ef" /><stop offset=".45" stop-color="#a9a8a2" /><stop offset="1" stop-color="#4f4e4a" />
                             </linearGradient>
                         </defs>
                     </svg>
