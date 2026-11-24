@@ -157,6 +157,7 @@ Route::middleware('auth')->group(function () {
             // Small AI features (each falls back to built-in rules when Gemini is busy)
             Route::get('/summary', [AiInsightController::class, 'summary'])->middleware('throttle:20,1,ai-summary')->name('summary');
             Route::post('/categorize', [AiInsightController::class, 'categorize'])->middleware('throttle:60,1,ai-categorize')->name('categorize');
+            Route::post('/scan-receipt', [AiInsightController::class, 'scanReceipt'])->middleware('throttle:10,1,ai-receipt')->name('scan-receipt');
         });
 
         // --- NOTIFICATIONS ---

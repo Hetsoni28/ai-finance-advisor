@@ -94,8 +94,8 @@
             <div class="mt-16 grid gap-10 lg:grid-cols-12">
                 <div class="lg:col-span-4" data-reveal>
                     <p class="eyebrow text-indigo-600">Where you'll see it</p>
-                    <h3 class="mt-4 text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Four AI features, <span class="font-serif-i text-indigo-600">one engine</span></h3>
-                    <p class="mt-4 text-slate-600 leading-relaxed">All four use the same pipeline above, so they all work from your real records and all fall back to rules if needed.</p>
+                    <h3 class="mt-4 text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Five AI features, <span class="font-serif-i text-indigo-600">one engine</span></h3>
+                    <p class="mt-4 text-slate-600 leading-relaxed">All of them use Google Gemini with your real records. Receipt scanning uses Gemini's vision — it reads the photo itself.</p>
                 </div>
                 <dl class="lg:col-span-8 grid sm:grid-cols-2 border-t border-l border-slate-200" data-reveal style="--d: 100ms">
                     @foreach([
@@ -103,6 +103,7 @@
                         ['fa-wand-magic-sparkles', 'Monthly AI summary', 'Your dashboard opens with 2–3 sentences about your month: spending vs last month, top category, savings rate.'],
                         ['fa-chart-pie', 'Explain this period', 'On Reports, one click explains what changed, why, and what to do next.'],
                         ['fa-tags', 'Smart categories', 'Type "Swiggy order" or "Jio recharge" and the right category is picked for you.'],
+                        ['fa-receipt', 'Receipt scanning', 'Upload a photo of a bill and the AI reads the total, shop, date and category for you. The photo is never stored.'],
                     ] as [$icon, $t, $d])
                         <div class="p-6 border-b border-r border-slate-200">
                             <dt class="flex items-center gap-2 font-black text-slate-900"><i class="fa-solid {{ $icon }} text-sm text-indigo-500" aria-hidden="true"></i>{{ $t }}</dt>

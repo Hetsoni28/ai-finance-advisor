@@ -49,7 +49,7 @@ final class GeminiService
      */
     public function generate(string $systemPrompt, string $context, string $userMessage): array
     {
-        return $this->run($this->buildPrompt($systemPrompt, $context, $userMessage), $this->maxTokens, $this->temperature, 20);
+        return $this->run([['text' => $this->buildPrompt($systemPrompt, $context, $userMessage)]], $this->maxTokens, $this->temperature, 20);
     }
 
     /**
@@ -58,10 +58,23 @@ final class GeminiService
      */
     public function complete(string $prompt, int $maxTokens = 400, float $temperature = 0.3, int $budget = 12): array
     {
-        return $this->run($prompt, $maxTokens, $temperature, $budget);
+        return $this->run([['text' => $prompt]], $maxTokens, $temperature, $budget);
     }
 
-    private function run(string $prompt, int $maxTokens, float $temperature, int $budget): array
+    /**
+     * Ask Gemini about an image (e.g. read a receipt). The answer is forced to be JSON.
+     * $imageData is the raw image bytes; $mime e.g. image/jpeg.
+     */
+    public function vision(string $prompt, string $imageData, string $mime, int $maxTokens = 1024, int $budget = 25): array
+    {
+        $parts = [
+            ['inline_data' => ['mime_type' => $mime, 'data' => base64_encode($imageData)]],
+            ['text' => $prompt],
+        ];
+        return $this->run($parts, $maxTokens, 0.1, $budget, 'application/json');
+    }
+
+    private function run(array $parts, int $maxTokens, float $temperature, int $budget, ?string $responseMime = null): array
     {
         if (!$this->isAvailable()) {
             return ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => 'fallback', 'error' => 'no_api_key'];
@@ -69,14 +82,15 @@ final class GeminiService
 
         $payload = [
             'contents' => [
-                ['role' => 'user', 'parts' => [['text' => $prompt]]],
+                ['role' => 'user', 'parts' => $parts],
             ],
-            'generationConfig' => [
-                'temperature'     => $temperature,
-                'maxOutputTokens' => $maxTokens,
-                'topP'            => 0.95,
-                'topK'            => 40,
-            ],
+            'generationConfig' => array_filter([
+                'temperature'      => $temperature,
+                'maxOutputTokens'  => $maxTokens,
+                'topP'             => 0.95,
+                'topK'             => 40,
+                'responseMimeType' => $responseMime,
+            ], fn ($v) => $v !== null),
             'safetySettings' => [
                 ['category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
                 ['category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_ONLY_HIGH'],

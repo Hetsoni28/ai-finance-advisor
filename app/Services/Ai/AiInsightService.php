@@ -325,6 +325,95 @@ final class AiInsightService
     }
 
     /* ------------------------------------------------------------------ */
+    /*  Receipt scanning: read a bill photo with Gemini vision              */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Reads a receipt/bill image and returns fields for the expense form. Nothing is saved — the
+     * image is only held in memory for this request. Every value Gemini returns is re-checked here.
+     *
+     * @return array{ok: bool, message: string, fields?: array{amount: ?float, title: ?string, date: ?string, category: ?string}, notes?: string[]}
+     */
+    public function scanReceipt(string $imageData, string $mime): array
+    {
+        if (!$this->gemini->isAvailable()) {
+            return ['ok' => false, 'message' => 'Receipt scanning needs the AI service, which isn\'t set up right now. Please fill in the details yourself.'];
+        }
+
+        $today = now()->format('Y-m-d');
+        $prompt = "You are reading a photo of a shop bill, receipt or invoice, most likely from India.\n"
+            . "Return ONLY a JSON object with exactly these keys:\n"
+            . "{\"is_receipt\": true|false, \"amount\": number|null, \"merchant\": string|null, \"title\": string|null, \"date\": \"YYYY-MM-DD\"|null, \"category\": string|null, \"currency\": string|null}\n"
+            . "Rules:\n"
+            . "- amount: the final total actually paid (grand total / net payable, after tax and discounts). A plain number, no currency symbol or commas.\n"
+            . "- merchant: the shop or company name as printed.\n"
+            . "- title: a short description for an expense list, at most 40 characters, e.g. \"Swiggy order\", \"BigBasket groceries\", \"Apollo Pharmacy medicines\".\n"
+            . "- date: the bill date in YYYY-MM-DD. Indian bills usually write dates as DD/MM/YYYY. Use null if no date is visible. Today is {$today}.\n"
+            . '- category: exactly one of ' . implode(', ', self::EXPENSE_CATEGORIES) . ".\n"
+            . "- currency: the currency code shown, e.g. INR.\n"
+            . "- If the image is not a bill or receipt, set is_receipt to false and everything else to null.\n"
+            . "- Never guess a number you cannot read; use null instead.";
+
+        $ai = $this->gemini->vision($prompt, $imageData, $mime, 1024, 18);
+        if (!$ai['success']) {
+            return ['ok' => false, 'message' => 'The AI couldn\'t read the bill right now (it may be busy). Please try again in a moment, or fill in the details yourself.'];
+        }
+
+        $data = json_decode(trim(preg_replace('/^```(?:json)?|```$/m', '', $ai['content'])), true);
+        if (!is_array($data)) {
+            return ['ok' => false, 'message' => 'The AI\'s answer couldn\'t be understood. Please try a clearer photo or fill in the details yourself.'];
+        }
+        if (empty($data['is_receipt'])) {
+            return ['ok' => false, 'message' => 'This doesn\'t look like a bill or receipt. Try a photo of the whole bill, flat and in good light.'];
+        }
+
+        $notes = [];
+
+        // Amount: positive, sane, at most 2 decimals.
+        $amount = is_numeric($data['amount'] ?? null) ? round((float) $data['amount'], 2) : null;
+        if ($amount !== null && ($amount <= 0 || $amount > 99999999)) { $amount = null; }
+        if ($amount === null) { $notes[] = 'The total wasn\'t clear — please enter the amount.'; }
+        $currency = strtoupper(trim((string) ($data['currency'] ?? 'INR')));
+        if ($amount !== null && $currency !== '' && !in_array($currency, ['INR', 'RS', 'RS.', '₹'], true)) {
+            $notes[] = "The bill looks like it's in {$currency}, not rupees — check the amount.";
+        }
+
+        // Date: valid, not in the future, not absurdly old.
+        $date = null;
+        if (!empty($data['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $data['date'])) {
+            try {
+                $d = \Carbon\Carbon::createFromFormat('Y-m-d', $data['date'])->startOfDay();
+                if ($d->lte(now()) && $d->gte(now()->subYears(5))) { $date = $d->format('Y-m-d'); }
+            } catch (\Throwable $e) {
+                $date = null;
+            }
+        }
+        if ($date === null) { $notes[] = 'No valid date found — today\'s date is kept.'; }
+
+        // Title: short and clean, fall back to the merchant name.
+        $title = trim((string) ($data['title'] ?? '')) ?: trim((string) ($data['merchant'] ?? ''));
+        $title = $title !== '' ? Str::limit(preg_replace('/\s+/', ' ', strip_tags($title)), 60, '') : null;
+
+        // Category: must be one of ours; otherwise reuse the keyword/AI suggester on the title.
+        $category = null;
+        foreach (self::EXPENSE_CATEGORIES as $c) {
+            if (strcasecmp(trim((string) ($data['category'] ?? '')), $c) === 0) { $category = $c; }
+        }
+        if ($category === null && $title) {
+            $category = $this->suggestCategory($title, 'expense')['category'];
+        }
+
+        $found = count(array_filter([$amount, $title, $date, $category], fn ($v) => $v !== null));
+
+        return [
+            'ok'      => $found > 0,
+            'message' => $found > 0 ? 'Filled in from your bill — check the details before saving.' : 'The AI couldn\'t read any details from this photo. Try a sharper photo of the whole bill.',
+            'fields'  => ['amount' => $amount, 'title' => $title, 'date' => $date, 'category' => $category],
+            'notes'   => $notes,
+        ];
+    }
+
+    /* ------------------------------------------------------------------ */
     /*  Helpers                                                             */
     /* ------------------------------------------------------------------ */
 
