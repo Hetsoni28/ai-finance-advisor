@@ -41,25 +41,26 @@
 
     // 3. Dynamic Breadcrumb Engine
     $currentRoute = Route::currentRouteName() ?? '';
-    $breadcrumbs = ['Network' => '#'];
-    
-    if (str_contains($currentRoute, 'dashboard')) {
-        $breadcrumbs['Command Center'] = Route::has('user.dashboard') ? route('user.dashboard') : '#';
-    } elseif (str_contains($currentRoute, 'income')) {
-        $breadcrumbs['Ledgers'] = '#';
-        $breadcrumbs['Inflows'] = Route::has('user.incomes.index') ? route('user.incomes.index') : '#';
-    } elseif (str_contains($currentRoute, 'expense')) {
-        $breadcrumbs['Ledgers'] = '#';
-        $breadcrumbs['Outflows'] = Route::has('user.expenses.index') ? route('user.expenses.index') : '#';
-    } elseif (str_contains($currentRoute, 'profile')) {
-        $breadcrumbs['Identity'] = '#';
-        $breadcrumbs['Security Settings'] = Route::has('user.profile.index') ? route('user.profile.index') : '#';
-    } else {
-        $breadcrumbs['Active Session'] = '#';
+    // Plain-language breadcrumbs for user pages: My money › <section> [› <action>]
+    $sections = [
+        'user.dashboard' => ['Dashboard', 'user.dashboard'], 'user.incomes' => ['Income', 'user.incomes.index'],
+        'user.expenses' => ['Expenses', 'user.expenses.index'], 'user.reports' => ['Reports', 'user.reports.index'],
+        'user.ai' => ['AI Advisor', 'user.ai.chat'], 'user.families' => ['Family', 'user.families.index'],
+        'user.notifications' => ['Notifications', 'user.notifications.index'], 'user.profile' => ['Profile', 'user.profile.index'],
+        'user.subscription' => ['Plan & Billing', 'user.subscription.index'],
+    ];
+    $breadcrumbs = ['My money' => route('dashboard')];
+    foreach ($sections as $prefix => [$label, $routeName]) {
+        if (str_starts_with($currentRoute, $prefix)) {
+            $breadcrumbs[$label] = route($routeName);
+            $action = \Illuminate\Support\Str::afterLast($currentRoute, '.');
+            $actionLabels = ['create' => 'New', 'edit' => 'Edit', 'show' => 'Details', 'password' => 'Password', 'form' => 'Password', 'success' => 'Done', 'invites' => 'Invites', 'chat' => null, 'index' => null];
+            if (!empty($actionLabels[$action] ?? null)) { $breadcrumbs[$actionLabels[$action]] = '#'; }
+            break;
+        }
     }
-
     // Contextual Workspace Name (Safe Resolution)
-    $activeContext = isset($family) && $family ? $family->name : 'Personal Workspace';
+    $activeContext = isset($family) && $family ? $family->name : 'Personal';
 
     // Admin pages: say so clearly, with the right page name
     if (str_starts_with($currentRoute, 'admin.')) {
