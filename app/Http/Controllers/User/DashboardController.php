@@ -89,7 +89,12 @@ class DashboardController extends Controller
             ->select('source', DB::raw('SUM(amount) as total'))
             ->groupBy('source')->orderByDesc('total')->first();
 
+        // Budgets with a limit, most-used first (same figures as the Budgets page)
+        $budgets = app(\App\Services\BudgetService::class)->overview(auth()->user())
+            ->whereNotNull('limit')->sortByDesc('pct')->values();
+
         return view('user.dashboard.index', compact(
+            'budgets',
             'months', 'monthlyIncome', 'monthlyExpense',
             'thisMonthIncome', 'thisMonthExpense', 'lastMonthIncome', 'lastMonthExpense',
             'totalIncome', 'totalExpense', 'categories', 'recent',

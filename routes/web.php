@@ -20,6 +20,7 @@ use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\ReportController;
 use App\Http\Controllers\User\AiChatController;
 use App\Http\Controllers\User\AiInsightController;
+use App\Http\Controllers\User\BudgetController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\SubscriptionController;
 
@@ -165,6 +166,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
         // --- REPORTS ---
+        Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets.index');
+        Route::post('/budgets', [BudgetController::class, 'store'])->middleware('throttle:30,1,budgets')->name('budgets.store');
+        Route::delete('/budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/explain', [ReportController::class, 'explain'])->middleware('throttle:10,1,ai-explain')->name('reports.explain');
 

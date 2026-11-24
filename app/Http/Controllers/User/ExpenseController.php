@@ -158,6 +158,9 @@ class ExpenseController extends Controller
                 ]);
             });
 
+            // Budget alert (80% / 100% of this category's monthly limit). Never blocks the save.
+            app(\App\Services\BudgetService::class)->checkAndAlert($user, $validated['category']);
+
             if (!empty($validated['family_id'])) {
                 return redirect()->route('user.families.show', $validated['family_id'])
                                  ->with('success', 'Family expense added successfully.');
@@ -214,6 +217,8 @@ class ExpenseController extends Controller
                     'description' => 'Modified transaction details: ' . $expense->title,
                 ]);
             });
+
+            app(\App\Services\BudgetService::class)->checkAndAlert(auth()->user(), $validated['category']);
 
             return redirect()->route('user.expenses.index')->with('success', 'Changes saved.');
 

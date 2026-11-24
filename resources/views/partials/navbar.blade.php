@@ -18,7 +18,7 @@
     $currentRoute = Route::currentRouteName() ?? '';
     $sections = [
         'user.dashboard' => ['Dashboard', 'user.dashboard'], 'user.incomes' => ['Income', 'user.incomes.index'],
-        'user.expenses' => ['Expenses', 'user.expenses.index'], 'user.reports' => ['Reports', 'user.reports.index'],
+        'user.expenses' => ['Expenses', 'user.expenses.index'], 'user.budgets' => ['Budgets', 'user.budgets.index'], 'user.reports' => ['Reports', 'user.reports.index'],
         'user.ai' => ['AI Advisor', 'user.ai.chat'], 'user.families' => ['Family', 'user.families.index'],
         'user.notifications' => ['Notifications', 'user.notifications.index'], 'user.profile' => ['Profile', 'user.profile.index'],
         'user.subscription' => ['Plan & billing', 'user.subscription.index'],

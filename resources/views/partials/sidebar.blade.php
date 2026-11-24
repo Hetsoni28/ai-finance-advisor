@@ -27,6 +27,7 @@
             ['user.dashboard',        ['user.dashboard', 'dashboard'], 'fa-house',            'Dashboard'],
             ['user.incomes.index',    'user.incomes.*',                'fa-arrow-trend-up',   'Income'],
             ['user.expenses.index',   'user.expenses.*',               'fa-arrow-trend-down', 'Expenses'],
+            ['user.budgets.index',    'user.budgets.*',                'fa-gauge-high',       'Budgets'],
             ['user.reports.index',    'user.reports.*',                'fa-chart-pie',        'Reports'],
             ['user.ai.chat',          'user.ai.*',                     'fa-robot',            'AI Advisor'],
         ],

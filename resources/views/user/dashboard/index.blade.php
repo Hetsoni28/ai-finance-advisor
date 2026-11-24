@@ -153,6 +153,39 @@
             hint="Months your savings would cover your usual spending" />
     </div>
 
+    {{-- Budgets this month --}}
+    <x-admin.card title="Budgets this month" :description="$budgets->isEmpty() ? 'Set monthly limits and get AI alerts at 80% and 100%' : (now()->daysInMonth - now()->day + 1) . ' days left in ' . now()->format('F')">
+        <x-slot name="action">
+            <a href="{{ route('user.budgets.index') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">{{ $budgets->isEmpty() ? 'Set a budget' : 'Manage' }} →</a>
+        </x-slot>
+        @if($budgets->isEmpty())
+            <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600" aria-hidden="true"><i class="fa-solid fa-gauge-high"></i></span>
+                <p class="flex-1 text-sm text-zinc-600">Give each category a monthly limit — for example Food ₹6,000. You'll see progress here, and your AI advisor will warn you before you overspend.</p>
+                <a href="{{ route('user.budgets.index') }}" class="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-zinc-900 px-3 text-sm font-medium text-white hover:bg-zinc-800"><i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Set a budget</a>
+            </div>
+        @else
+            <ul class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+                @foreach($budgets->take(4) as $b)
+                    @php $tone = ['over' => 'bg-rose-500', 'warn' => 'bg-amber-500', 'pace' => 'bg-amber-400'][$b['status']] ?? 'bg-emerald-500'; @endphp
+                    <li>
+                        <div class="flex items-center justify-between gap-3 text-sm">
+                            <span class="flex items-center gap-2 font-medium text-zinc-900"><i class="fa-solid {{ $b['icon'] }} w-4 text-center text-xs text-zinc-400" aria-hidden="true"></i>{{ $b['category'] }}</span>
+                            <span class="tabular-nums text-zinc-500"><span class="font-semibold {{ $b['status'] === 'over' ? 'text-rose-600' : 'text-zinc-900' }}">{{ $inr($b['spent']) }}</span> / {{ $inr($b['limit']) }}</span>
+                        </div>
+                        <div class="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ min(100, $b['pct']) }}" aria-label="{{ $b['category'] }} budget used">
+                            <div class="h-full rounded-full {{ $tone }}" style="width: {{ min(100, $b['pct']) }}%"></div>
+                        </div>
+                        <p class="mt-1 text-xs {{ $b['status'] === 'over' ? 'text-rose-600' : ($b['status'] === 'warn' ? 'text-amber-700' : 'text-zinc-500') }}">
+                            {{ $b['pct'] }}% used · {{ $b['remaining'] >= 0 ? $inr($b['remaining']) . ' left' : $inr(-$b['remaining']) . ' over' }}
+                        </p>
+                    </li>
+                @endforeach
+            </ul>
+            @if($budgets->count() > 4)<p class="mt-4 text-xs text-zinc-500">+ {{ $budgets->count() - 4 }} more on the <a href="{{ route('user.budgets.index') }}" class="text-indigo-600 underline underline-offset-2">Budgets page</a></p>@endif
+        @endif
+    </x-admin.card>
+
     <div class="grid gap-6 lg:grid-cols-3">
         {{-- Trend --}}
         <x-admin.card class="lg:col-span-2" title="Last 6 months" description="Income and expenses by month">

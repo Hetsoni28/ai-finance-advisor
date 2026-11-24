@@ -146,6 +146,8 @@ class NotificationController extends Controller
 
         /* ================= 6. STORED ALERTS (from the alerts table) ================= */
         $storedAlerts = \App\Models\Alert::where('user_id', $user->id)->latest()->limit(50)->get();
+        // Seeing them here counts as reading them: clear the bell count (the list above keeps its "new" dots this once).
+        \App\Models\Alert::where('user_id', $user->id)->where('is_read', false)->update(['is_read' => true]);
 
         return view('user.notifications.index', [
             'insights'         => $insights,
