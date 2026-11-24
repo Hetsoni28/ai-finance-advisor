@@ -40,7 +40,6 @@
 
     {{-- Summary band --}}
     <section class="relative overflow-hidden rounded-2xl bg-zinc-950 text-white ring-1 ring-zinc-900" aria-label="Platform summary">
-        <div class="pointer-events-none absolute inset-0 opacity-[0.07]" style="background-image: linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px); background-size: 32px 32px;" aria-hidden="true"></div>
         <div class="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:items-end">
             <div class="lg:col-span-4">
                 <p class="text-xs font-medium uppercase tracking-wider text-zinc-400">Net position · all users</p>
