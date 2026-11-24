@@ -183,7 +183,7 @@
                 </x-admin.card>
                 <x-admin.card title="Delete">
                     <p class="text-sm text-zinc-500">Remove this {{ $noun }} permanently. Your totals update straight away.</p>
-                    <form method="POST" action="{{ route($cfg['routes']['destroy'], $r) }}" class="mt-4" onsubmit="return confirm('Delete this {{ $noun }}? This cannot be undone.')">
+                    <form method="POST" action="{{ route($cfg['routes']['destroy'], $r) }}" class="mt-4" data-confirm-title="Delete this {{ $noun }}?" data-confirm="It will be removed from your records and totals. This can't be undone." data-confirm-ok="Delete {{ $noun }}">
                         @csrf @method('DELETE')
                         <button class="inline-flex h-9 items-center gap-2 rounded-lg border border-rose-200 px-3 text-sm font-medium text-rose-600 hover:bg-rose-50">
                             <i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i> Delete {{ $noun }}

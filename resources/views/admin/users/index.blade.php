@@ -128,14 +128,14 @@
                                     @else
                                         <div class="flex items-center justify-end gap-1">
                                             <form method="POST" action="{{ route('admin.users.block', $u) }}"
-                                                  onsubmit="return confirm('{{ $u->is_blocked ? 'Restore access for' : 'Suspend' }} {{ addslashes($u->email) }}?')">
+                                                  data-confirm-title="{{ $u->is_blocked ? 'Restore access?' : 'Suspend this user?' }}" data-confirm="{{ $u->is_blocked ? $u->email . ' will be able to sign in again.' : $u->email . ' will not be able to sign in until you restore access.' }}" data-confirm-ok="{{ $u->is_blocked ? 'Restore access' : 'Suspend user' }}" data-confirm-tone="{{ $u->is_blocked ? 'primary' : 'danger' }}">
                                                 @csrf @method('PATCH')
                                                 <button class="h-8 rounded-md px-2.5 text-xs font-medium {{ $u->is_blocked ? 'text-emerald-700 hover:bg-emerald-50' : 'text-zinc-600 hover:bg-zinc-100' }}">
                                                     {{ $u->is_blocked ? 'Restore' : 'Suspend' }}
                                                 </button>
                                             </form>
                                             <form method="POST" action="{{ route('admin.users.destroy', $u) }}"
-                                                  onsubmit="return confirm('Permanently delete {{ addslashes($u->email) }} and their data? This cannot be undone.')">
+                                                  data-confirm-title="Delete this user permanently?" data-confirm="{{ $u->email }} and all their records will be deleted. This can't be undone." data-confirm-ok="Delete user">
                                                 @csrf @method('DELETE')
                                                 <button class="h-8 w-8 rounded-md text-zinc-400 hover:bg-rose-50 hover:text-rose-600" title="Delete user" aria-label="Delete {{ $u->email }}">
                                                     <i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i>

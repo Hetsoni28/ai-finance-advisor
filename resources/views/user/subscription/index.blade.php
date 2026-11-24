@@ -78,12 +78,12 @@
                         @if($isCurrent)
                             <span class="flex h-10 items-center justify-center rounded-lg bg-zinc-100 text-sm font-medium text-zinc-500">Current plan</span>
                         @elseif($paid)
-                            <form method="POST" action="{{ route('user.subscription.subscribe', $plan) }}" onsubmit="return confirm('Switch to {{ $plan->name }} ({{ $inr($plan->price) }} / {{ $plan->duration_days ?: 30 }} days)?')">
+                            <form method="POST" action="{{ route('user.subscription.subscribe', $plan) }}" data-confirm-title="Switch to {{ $plan->name }}?" data-confirm="{{ $inr($plan->price) }} for {{ $plan->duration_days ?: 30 }} days. The change takes effect straight away — no card is charged in this version of FinanceAI." data-confirm-ok="Switch to {{ $plan->name }}" data-confirm-tone="primary">
                                 @csrf
                                 <button class="h-10 w-full rounded-lg text-sm font-medium {{ $isUpgrade ? 'bg-zinc-900 text-white hover:bg-zinc-800' : 'border border-zinc-200 text-zinc-700 hover:bg-zinc-50' }}">{{ $isUpgrade ? 'Upgrade to ' . $plan->name : 'Switch to ' . $plan->name }}</button>
                             </form>
                         @else
-                            <form method="POST" action="{{ route('user.subscription.cancel') }}" onsubmit="return confirm('Cancel your {{ $current->name ?? '' }} plan and go back to Starter?')">
+                            <form method="POST" action="{{ route('user.subscription.cancel') }}" data-confirm-title="Go back to Starter?" data-confirm="Your {{ $current->name ?? '' }} plan ends now and you'll move to the free Starter plan. You can upgrade again any time." data-confirm-ok="Switch to Starter" data-confirm-cancel="Keep my plan">
                                 @csrf @method('DELETE')
                                 <button class="h-10 w-full rounded-lg border border-zinc-200 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Switch to Starter</button>
                             </form>

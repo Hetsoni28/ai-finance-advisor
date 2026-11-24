@@ -40,7 +40,7 @@
                 </button>
                 <span class="text-xs text-zinc-500" x-text="note" role="status"></span>
                 <form method="POST" action="{{ route('admin.contacts.destroy', $contact) }}" class="ml-auto"
-                      onsubmit="return confirm('Delete this message? This cannot be undone.')">
+                      data-confirm-title="Delete this message?" data-confirm="This message will be permanently deleted. This can't be undone." data-confirm-ok="Delete message">
                     @csrf @method('DELETE')
                     <button class="inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-rose-600 hover:bg-rose-50">
                         <i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i> Delete

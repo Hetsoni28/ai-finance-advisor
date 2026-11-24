@@ -61,7 +61,7 @@
                             <p class="mt-0.5 truncate text-sm text-zinc-500">{{ \Illuminate\Support\Str::limit($c->message, 140) }}</p>
                         </a>
                         <form method="POST" action="{{ route('admin.contacts.destroy', $c) }}" class="relative z-10 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
-                              onsubmit="return confirm('Delete this message from {{ addslashes($c->email) }}?')">
+                              data-confirm-title="Delete this message?" data-confirm="The message from {{ $c->email }} will be permanently deleted." data-confirm-ok="Delete message">
                             @csrf @method('DELETE')
                             <button class="h-8 w-8 rounded-md text-zinc-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete message from {{ $c->email }}"><i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i></button>
                         </form>

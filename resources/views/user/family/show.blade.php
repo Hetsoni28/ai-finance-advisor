@@ -109,7 +109,7 @@
                             </div>
                             <x-admin.badge :tone="$roleTone[$r] ?? 'zinc'">{{ ucfirst($r) }}</x-admin.badge>
                             @if($canManage && $member->id !== $me->id && $r !== 'owner')
-                                <form method="POST" action="{{ route('user.families.removeMember', [$family, $member]) }}" onsubmit="return confirm('Remove {{ addslashes($member->name) }} from {{ addslashes($family->name) }}?')">
+                                <form method="POST" action="{{ route('user.families.removeMember', [$family, $member]) }}" data-confirm-title="Remove this member?" data-confirm="{{ $member->name }} will lose access to {{ $family->name }} and its shared budget." data-confirm-ok="Remove member">
                                     @csrf @method('DELETE')
                                     <button class="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Remove {{ $member->name }}"><i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i></button>
                                 </form>

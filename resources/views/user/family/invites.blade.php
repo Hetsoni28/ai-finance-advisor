@@ -42,7 +42,7 @@
                                     <p class="truncate text-sm font-medium text-zinc-900">{{ $inv->email }}</p>
                                     <p class="text-xs text-zinc-500">Sent {{ $inv->created_at?->diffForHumans() }}@if($inv->expires_at) · expires {{ \Carbon\Carbon::parse($inv->expires_at)->diffForHumans() }}@endif</p>
                                 </div>
-                                <form method="POST" action="{{ route('user.families.invites.destroy', [$family, $inv]) }}" onsubmit="return confirm('Cancel the invite to {{ addslashes($inv->email) }}?')">
+                                <form method="POST" action="{{ route('user.families.invites.destroy', [$family, $inv]) }}" data-confirm-title="Cancel this invite?" data-confirm="The invite link sent to {{ $inv->email }} will stop working." data-confirm-ok="Cancel invite" data-confirm-cancel="Keep it">
                                     @csrf @method('DELETE')
                                     <button class="h-8 rounded-md px-2.5 text-xs font-medium text-zinc-600 hover:bg-rose-50 hover:text-rose-600">Cancel invite</button>
                                 </form>
@@ -56,7 +56,7 @@
                 @if($expired->isEmpty())
                     <p class="px-5 py-6 text-sm text-zinc-500">No expired invites.</p>
                 @else
-                    <form method="POST" action="{{ route('user.families.invites.bulkDestroy', $family) }}" onsubmit="return confirm('Delete the selected expired invites?')">
+                    <form method="POST" action="{{ route('user.families.invites.bulkDestroy', $family) }}" data-confirm-title="Delete the selected invites?" data-confirm="The selected expired invites will be removed from this list." data-confirm-ok="Delete invites">
                         @csrf @method('DELETE')
                         <ul class="divide-y divide-zinc-100">
                             @foreach($expired as $inv)

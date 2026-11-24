@@ -153,7 +153,7 @@
                                 <td class="px-4 py-3 sm:px-5">
                                     <div class="flex justify-end gap-1">
                                         <a href="{{ route($cfg['routes']['edit'], $row) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700" title="Edit" aria-label="Edit {{ $row->{$titleCol} }}"><i class="fa-solid fa-pen text-xs" aria-hidden="true"></i></a>
-                                        <form method="POST" action="{{ route($cfg['routes']['destroy'], $row) }}" onsubmit="return confirm('Delete this {{ $isIncome ? 'income' : 'expense' }} ({{ $inr($row->amount) }})? This cannot be undone.')">
+                                        <form method="POST" action="{{ route($cfg['routes']['destroy'], $row) }}" data-confirm-title="Delete this {{ $isIncome ? 'income' : 'expense' }}?" data-confirm="{{ $inr($row->amount) }} will be removed from your records and totals. This can't be undone." data-confirm-ok="Delete">
                                             @csrf @method('DELETE')
                                             <button class="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-rose-50 hover:text-rose-600" title="Delete" aria-label="Delete {{ $row->{$titleCol} }}"><i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i></button>
                                         </form>
