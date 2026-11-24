@@ -8,6 +8,7 @@ use App\Models\FamilyInvite;
 use App\Models\FamilyMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,12 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /** How long "Remember me" keeps someone signed in on a device. */
+    public const REMEMBER_DAYS = 30;
+
+    /** Cookie that remembers the email and the toggle choice for the next visit. */
+    private const REMEMBERED_EMAIL_COOKIE = 'remembered_email';
+
     /* =====================================
        SHOW LOGIN PAGE
     ====================================== */
@@ -25,7 +32,13 @@ class AuthController extends Controller
             return $this->redirectAfterLogin(Auth::user());
         }
 
-        return view('auth.login');
+        $rememberedEmail = request()->cookie(self::REMEMBERED_EMAIL_COOKIE);
+
+        return view('auth.login', [
+            'rememberedEmail' => is_string($rememberedEmail) && filter_var($rememberedEmail, FILTER_VALIDATE_EMAIL) ? $rememberedEmail : null,
+            'rememberDays'    => self::REMEMBER_DAYS,
+            'sessionMinutes'  => (int) config('session.lifetime', 120),
+        ]);
     }
 
     /* =====================================
@@ -121,8 +134,15 @@ class AuthController extends Controller
         }
 
         // ✅ Login manually
-        Auth::login($user, $request->boolean('remember'));
+        $remember = $request->boolean('remember');
+        Auth::guard('web')->setRememberDuration(self::REMEMBER_DAYS * 24 * 60);
+        Auth::login($user, $remember);
         $request->session()->regenerate();
+
+        // Remember the choice (and email) for the next visit to the login page.
+        Cookie::queue($remember
+            ? Cookie::make(self::REMEMBERED_EMAIL_COOKIE, $user->email, self::REMEMBER_DAYS * 24 * 60)
+            : Cookie::forget(self::REMEMBERED_EMAIL_COOKIE));
 
         $redirect = $this->handleInviteFlow($user);
 

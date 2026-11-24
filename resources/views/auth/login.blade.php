@@ -174,6 +174,12 @@
                                 aria-describedby="email-error">
                         </div>
                         <p id="email-error" class="auth-field__error" x-show="errors.email" x-text="errors.email" x-cloak></p>
+                        @if(!empty($rememberedEmail))
+                            <p class="auth-toggle__hint" x-show="form.email === {{ json_encode($rememberedEmail) }}">
+                                Welcome back. Not you?
+                                <button type="button" class="auth-link" style="font-size:inherit" @click="form.email = ''; form.remember = false; $nextTick(() => document.getElementById('login-email').focus())">Use another account</button>
+                            </p>
+                        @endif
                     </div>
 
                     {{-- PASSWORD FIELD --}}
@@ -216,7 +222,11 @@
                             <div class="auth-toggle__track">
                                 <div class="auth-toggle__thumb"></div>
                             </div>
-                            <span class="auth-toggle__label">Remember me</span>
+                            <span class="auth-toggle__text">
+                                <span class="auth-toggle__label">Remember me</span>
+                                <span class="auth-toggle__hint"
+                                      x-text="form.remember ? 'Stay signed in for {{ $rememberDays }} days on this device' : 'Signed out after {{ $sessionMinutes >= 60 && $sessionMinutes % 60 === 0 ? ($sessionMinutes / 60) . ' ' . \Illuminate\Support\Str::plural('hour', $sessionMinutes / 60) : $sessionMinutes . ' minutes' }} of inactivity'"></span>
+                            </span>
                         </label>
 
                         @if(Route::has('password.request'))
@@ -797,6 +807,23 @@
     transform: translateX(16px);
 }
 
+.auth-toggle__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.auth-toggle__hint {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.auth-toggle__input:focus-visible + .auth-toggle__track {
+    outline: 2px solid #a5b4fc;
+    outline-offset: 2px;
+}
+
 .auth-toggle__label {
     font-size: 0.82rem;
     color: #64748b;
@@ -1023,9 +1050,9 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('loginEngine', () => ({
         form: {
-            email: '{{ old("email") }}',
+            email: {!! json_encode((string) old('email', $rememberedEmail ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!},
             password: '',
-            remember: false,
+            remember: {{ !empty($rememberedEmail) ? 'true' : 'false' }},
         },
         errors: {
             email: null,
