@@ -1,14 +1,14 @@
 @extends('layouts.landing')
 
-@section('title', 'Contact FinanceAI | Enterprise Support')
+@section('title', 'Contact | FinanceAI')
 @section('meta_description', 'Get in touch with FinanceAI for enterprise support, partnership inquiries, or technical assistance. We typically respond within 24 hours.')
 
 @section('content')
 @include('partials.site-type')
 <div class="paper">
 
-    <x-site.hero eyebrow="Support Online" lead="Contact" accent="FinanceAI"
-        lede="Enterprise support. Partnership inquiries. Technical assistance. We typically respond within 24 hours." />
+    <x-site.hero eyebrow="Contact" lead="Talk to" accent="FinanceAI"
+        lede="Questions, feedback, a bug or a privacy request — send us a message and we'll reply to the email address you give." />
 
     <section class="py-16 sm:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
@@ -75,9 +75,9 @@
             <aside class="lg:col-span-5 lg:order-1 space-y-8" data-reveal style="--d: 120ms">
                 <dl class="border-t border-slate-900">
                     @foreach([
-                        ['icon' => 'fa-envelope', 'title' => 'Email Support', 'text' => 'support@financeai.com'],
-                        ['icon' => 'fa-globe', 'title' => 'Global Coverage', 'text' => 'Remote Team Worldwide'],
-                        ['icon' => 'fa-bolt', 'title' => 'Enterprise SLA', 'text' => 'Fast Priority Response'],
+                        ['icon' => 'fa-inbox', 'title' => 'Where it goes', 'text' => 'Straight to our team'],
+                        ['icon' => 'fa-reply', 'title' => 'How we reply', 'text' => 'By email'],
+                        ['icon' => 'fa-location-dot', 'title' => 'Based in', 'text' => 'India'],
                     ] as $info)
                         <div class="flex items-center justify-between gap-4 py-4 border-b border-slate-200">
                             <dt class="eyebrow text-slate-400 flex items-center gap-2"><i class="fa-solid {{ $info['icon'] }}" aria-hidden="true"></i>{{ $info['title'] }}</dt>
@@ -95,8 +95,8 @@
                 </figure>
 
                 <p class="border-l-2 border-indigo-600 pl-4 text-sm text-slate-600">
-                    <span class="font-semibold text-slate-900">Average Response: 4 hours</span><br>
-                    Enterprise plans receive priority routing
+                    <span class="font-semibold text-slate-900">Location is optional</span><br>
+                    The map uses your browser location only if you allow it. You can still send a message if you don't.
                 </p>
             </aside>
         </div>

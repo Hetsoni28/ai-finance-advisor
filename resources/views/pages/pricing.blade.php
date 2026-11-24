@@ -21,7 +21,7 @@
 <div class="paper">
 
     <x-site.hero eyebrow="Pricing" lead="Simple plans," accent="billed monthly."
-        lede="Start free. Upgrade when you want the AI advisor and family sharing. Change or cancel any time from Plan & Billing.">
+        lede="Start free with every core feature. Upgrade for more AI advisor messages and live market prices. Change or cancel any time from Plan & Billing.">
         <x-slot name="meta">
             <dl class="flex flex-wrap gap-x-10 gap-y-3 font-mono text-xs uppercase tracking-wider">
                 <div class="flex gap-2"><dt class="text-slate-400">Plans:</dt><dd class="text-slate-200">{{ $plans->count() }}</dd></div>
