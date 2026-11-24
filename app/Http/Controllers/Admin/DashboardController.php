@@ -106,7 +106,21 @@ class DashboardController extends Controller
         $topCategories = Expense::selectRaw("COALESCE(NULLIF(category, ''), 'Uncategorized') as category, SUM(amount) as total")
             ->groupBy('category')->orderByDesc('total')->limit(5)->get();
 
+        // Real sign-ups per month (same 6-month window as the chart) and the previous 30 days
+        $signupData = User::where('created_at', '>=', $startDate)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as total")
+            ->groupBy('month_key')->pluck('total', 'month_key');
+        $monthlySignups = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $monthlySignups[] = (int) ($signupData[$now->copy()->subMonths($i)->format('Y-m')] ?? 0);
+        }
+        $usersPrev30 = User::whereBetween('created_at', [$now->copy()->subDays(60), $now->copy()->subDays(30)])->count();
+
         return view('admin.dashboard.index', [
+            'monthlySignups'    => $monthlySignups,
+            'usersPrev30'       => $usersPrev30,
+            'lastMonthIncome'   => (float) Income::whereBetween('income_date', [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()])->sum('amount'),
+            'lastMonthExpenses' => (float) Expense::whereBetween('expense_date', [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()])->sum('amount'),
             'recentUsers'     => $recentUsers,
             'planBreakdown'   => $planBreakdown,
             'paidSubscribers' => $paidSubscribers,

@@ -48,8 +48,23 @@
     </div>
 
     <x-admin.card flush>
-        {{-- Filters --}}
-        <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-col gap-2 border-b border-zinc-100 p-3 sm:flex-row sm:items-center">
+        {{-- Status tabs (real counts) --}}
+        @php
+            $tabDefs = ['' => ['All', $stats['total']], 'active' => ['Active', $stats['active']], 'blocked' => ['Suspended', $stats['blocked']]];
+            $curStatus = request('status', '');
+        @endphp
+        <nav class="flex gap-1 overflow-x-auto border-b border-zinc-100 px-3 pt-2" aria-label="Filter by status">
+            @foreach($tabDefs as $key => [$label, $count])
+                <a href="{{ route('admin.users.index', array_filter(['status' => $key ?: null, 'role' => request('role'), 'search' => request('search')])) }}"
+                   @if($curStatus === $key) aria-current="page" @endif
+                   class="-mb-px inline-flex items-center gap-2 border-b-2 px-3 pb-2.5 pt-1.5 text-sm font-medium {{ $curStatus === $key ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-800' }}">
+                    {{ $label }}
+                    <span class="rounded-full px-1.5 text-[11px] tabular-nums {{ $curStatus === $key ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600' }}">{{ number_format($count) }}</span>
+                </a>
+            @endforeach
+        </nav>
+
+        {{-- Filters --}}        <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-col gap-2 border-b border-zinc-100 p-3 sm:flex-row sm:items-center">
             <label class="relative flex-1">
                 <span class="sr-only">Search users</span>
                 <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400" aria-hidden="true"></i>
@@ -61,11 +76,7 @@
                 <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admins</option>
                 <option value="user" {{ request('role') === 'user' ? 'selected' : '' }}>Users</option>
             </select>
-            <select name="status" aria-label="Status" class="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-700 focus:border-indigo-400 focus:outline-none">
-                <option value="">All statuses</option>
-                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                <option value="blocked" {{ request('status') === 'blocked' ? 'selected' : '' }}>Suspended</option>
-            </select>
+            @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
             <button class="h-9 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800">Apply</button>
             @if($filtered)
                 <a href="{{ route('admin.users.index') }}" class="h-9 rounded-lg px-3 text-sm font-medium leading-9 text-zinc-500 hover:text-zinc-900">Clear</a>
@@ -96,7 +107,7 @@
                                 data-csv="{{ json_encode([$u->id, $u->name, $u->email, $u->isAdmin() ? "Admin" : "User", $u->is_blocked ? "Suspended" : "Active", $u->current_plan_name, $u->incomes_count + $u->expenses_count, optional($u->created_at)->format("Y-m-d")]) }}">
                                 <td class="px-4 py-3 sm:px-5">
                                     <div class="flex items-center gap-3">
-                                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $u->is_blocked ? 'bg-rose-50 text-rose-600' : 'bg-zinc-100 text-zinc-600' }} text-xs font-semibold">{{ strtoupper(mb_substr($u->name, 0, 1)) }}</span>
+                                        <x-admin.avatar :name="$u->name" :muted="(bool) $u->is_blocked" />
                                         <div class="min-w-0">
                                             <p class="truncate font-medium text-zinc-900">{{ $u->name }} @if($isMe)<span class="ml-1 text-xs font-normal text-zinc-400">(you)</span>@endif</p>
                                             <p class="truncate text-xs text-zinc-500">{{ $u->email }}</p>

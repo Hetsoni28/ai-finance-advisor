@@ -16,7 +16,7 @@
             <div class="border-b border-zinc-100 px-5 py-4">
                 <h1 class="text-lg font-semibold text-zinc-900">{{ $contact->subject ?: 'No subject' }}</h1>
                 <div class="mt-3 flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-xs font-semibold text-zinc-600">{{ strtoupper(mb_substr($contact->name, 0, 1)) }}</span>
+                    <x-admin.avatar :name="$contact->name" />
                     <div class="min-w-0 text-sm">
                         <p class="font-medium text-zinc-900">{{ $contact->name }}</p>
                         <p class="truncate text-zinc-500">{{ $contact->email }}</p>

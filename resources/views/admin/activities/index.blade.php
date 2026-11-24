@@ -73,8 +73,11 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     @if($act->user)
-                                        <p class="font-medium text-zinc-900">{{ $act->user->name }}</p>
-                                        <p class="text-xs text-zinc-500">{{ $act->user->email }}</p>
+                                        <div class="flex items-center gap-2.5">
+                                            <x-admin.avatar :name="$act->user->name" size="sm" />
+                                            <div class="min-w-0"><p class="truncate font-medium text-zinc-900">{{ $act->user->name }}</p>
+                                        <p class="truncate text-xs text-zinc-500">{{ $act->user->email }}</p></div>
+                                        </div>
                                     @else
                                         <p class="text-zinc-500">System or deleted user</p>
                                     @endif

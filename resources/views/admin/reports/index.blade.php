@@ -26,8 +26,8 @@
     <x-admin.flash />
 
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <x-admin.stat label="Total income" :value="$inr($totalIncome)" icon="fa-arrow-trend-up" tone="emerald" hint="All users, all time" />
-        <x-admin.stat label="Total expenses" :value="$inr($totalExpenses)" icon="fa-arrow-trend-down" tone="rose" hint="All users, all time" />
+        <x-admin.stat label="Total income" :value="$inr($totalIncome)" icon="fa-arrow-trend-up" tone="emerald" hint="All users, all time" :spark="$monthlyIncome" />
+        <x-admin.stat label="Total expenses" :value="$inr($totalExpenses)" icon="fa-arrow-trend-down" tone="rose" hint="All users, all time" :spark="$monthlyExpenses" />
         <x-admin.stat label="Net" :value="($net < 0 ? '−' : '') . $inr(abs($net))" icon="fa-scale-balanced" tone="indigo"
             :hint="$rate !== null ? $rate . '% of income kept' : 'No income recorded yet'" />
         <x-admin.stat label="Users" :value="number_format($totalUsers)" icon="fa-users" tone="sky"
@@ -100,7 +100,7 @@
                         @php $share = $spenderTotal > 0 ? round($s->total / $spenderTotal * 100) : 0; @endphp
                         <li class="flex items-center gap-3 px-4 py-3 sm:px-5">
                             <span class="w-5 text-xs tabular-nums text-zinc-400">{{ $i + 1 }}</span>
-                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-semibold text-zinc-600">{{ strtoupper(mb_substr($s->user->name ?? '?', 0, 1)) }}</span>
+                            <x-admin.avatar :name="$s->user->name ?? '?'" />
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-medium text-zinc-900">{{ $s->user->name ?? 'Deleted user' }}</p>
                                 <p class="truncate text-xs text-zinc-500">{{ $s->user->email ?? '—' }}</p>

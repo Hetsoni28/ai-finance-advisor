@@ -50,7 +50,7 @@
                 @foreach($contacts as $c)
                     <li class="group relative flex items-start gap-3 px-4 py-3.5 hover:bg-zinc-50/60 sm:px-5 {{ $c->is_read ? '' : 'bg-indigo-50/30' }}">
                         <span class="mt-2 h-2 w-2 shrink-0 rounded-full {{ $c->is_read ? 'bg-transparent' : 'bg-indigo-500' }}" aria-hidden="true"></span>
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-semibold text-zinc-600">{{ strtoupper(mb_substr($c->name, 0, 1)) }}</span>
+                        <x-admin.avatar :name="$c->name" />
                         <a href="{{ route('admin.contacts.show', $c) }}" class="min-w-0 flex-1 focus:outline-none">
                             <span class="absolute inset-0" aria-hidden="true"></span>
                             <div class="flex items-baseline justify-between gap-3">
