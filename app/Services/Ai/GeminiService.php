@@ -15,7 +15,8 @@ use Throwable;
 final class GeminiService
 {
     private string $apiKey;
-    private string $model;
+    /** @var string[] Models to try in order; later ones are used when earlier ones are busy or retired. */
+    private array $models;
     private string $endpoint;
     private int $maxTokens;
     private float $temperature;
@@ -25,11 +26,11 @@ final class GeminiService
     {
         $config = config('financeai.gemini');
         $this->apiKey      = (string) ($config['api_key'] ?? '');
-        $this->model       = (string) ($config['model'] ?? 'gemini-2.0-flash');
+        $this->models      = array_values(array_filter((array) ($config['models'] ?? ['gemini-flash-latest'])));
         $this->endpoint    = (string) ($config['endpoint'] ?? 'https://generativelanguage.googleapis.com/v1beta/models/');
         $this->maxTokens   = (int) ($config['max_tokens'] ?? 2048);
         $this->temperature = (float) ($config['temperature'] ?? 0.7);
-        $this->timeout     = (int) ($config['timeout'] ?? 30);
+        $this->timeout     = (int) ($config['timeout'] ?? 25);
     }
 
     /**
@@ -37,108 +38,98 @@ final class GeminiService
      */
     public function isAvailable(): bool
     {
-        return !empty($this->apiKey);
+        return !empty($this->apiKey) && !empty($this->models);
     }
 
     /**
-     * Send a prompt to Gemini and get a response.
+     * Send a prompt to Gemini and get a response. Tries each configured model in turn when one is
+     * busy (429/503), retired (404) or erroring (5xx), so a single model outage doesn't break the advisor.
      *
-     * @param string $systemPrompt The system instructions
-     * @param string $context The RAG context data
-     * @param string $userMessage The actual user message
-     * @return array{success: bool, content: string, tokens_used: int, model: string}
+     * @return array{success: bool, content: string, tokens_used: int, model: string, error?: string}
      */
     public function generate(string $systemPrompt, string $context, string $userMessage): array
     {
         if (!$this->isAvailable()) {
-            return [
-                'success'     => false,
-                'content'     => '',
-                'tokens_used' => 0,
-                'model'       => 'fallback',
-                'error'       => 'no_api_key',
-            ];
+            return ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => 'fallback', 'error' => 'no_api_key'];
         }
 
+        $payload = [
+            'contents' => [
+                ['role' => 'user', 'parts' => [['text' => $this->buildPrompt($systemPrompt, $context, $userMessage)]]],
+            ],
+            'generationConfig' => [
+                'temperature'     => $this->temperature,
+                'maxOutputTokens' => $this->maxTokens,
+                'topP'            => 0.95,
+                'topK'            => 40,
+            ],
+            'safetySettings' => [
+                ['category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
+                ['category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_ONLY_HIGH'],
+                ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
+                ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
+            ],
+        ];
+
+        $last = ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => 'fallback', 'error' => 'no_model_tried'];
+
+        // Two rounds through the model list: "high demand" (503) errors return in ~2s and usually clear quickly.
+        for ($round = 1; $round <= 2; $round++) {
+            foreach ($this->models as $model) {
+                $last = $this->callModel($model, $payload);
+                if ($last['success'] || empty($last['retryable'])) {
+                    break 2;
+                }
+            }
+            if ($round === 1) {
+                usleep(1_500_000);
+            }
+        }
+
+        unset($last['retryable']);
+        return $last;
+    }
+
+    /** One request to one model. Marks failures that another model might not have as retryable. */
+    private function callModel(string $model, array $payload): array
+    {
         try {
-            $url = $this->endpoint . $this->model . ':generateContent?key=' . $this->apiKey;
-
-            $payload = [
-                'contents' => [
-                    [
-                        'role'  => 'user',
-                        'parts' => [
-                            ['text' => $this->buildPrompt($systemPrompt, $context, $userMessage)],
-                        ],
-                    ],
-                ],
-                'generationConfig' => [
-                    'temperature'     => $this->temperature,
-                    'maxOutputTokens' => $this->maxTokens,
-                    'topP'            => 0.95,
-                    'topK'            => 40,
-                ],
-                'safetySettings' => [
-                    ['category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                    ['category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                    ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                    ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-                ],
-            ];
-
             $response = Http::timeout($this->timeout)
-                ->withHeaders(['Content-Type' => 'application/json'])
-                ->post($url, $payload);
+                ->withHeaders(['Content-Type' => 'application/json', 'x-goog-api-key' => $this->apiKey])
+                ->post($this->endpoint . $model . ':generateContent', $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
-
                 $content = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                $tokensUsed = $data['usageMetadata']['totalTokenCount'] ?? 0;
 
-                if (empty($content)) {
-                    Log::warning('Gemini returned empty response', ['data' => $data]);
-                    return [
-                        'success'     => false,
-                        'content'     => '',
-                        'tokens_used' => 0,
-                        'model'       => $this->model,
-                        'error'       => 'empty_response',
-                    ];
+                if ($content === '') {
+                    Log::warning('Gemini returned empty response', ['model' => $model, 'finish' => $data['candidates'][0]['finishReason'] ?? null]);
+                    return ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => $model, 'error' => 'empty_response', 'retryable' => true];
                 }
 
                 return [
                     'success'     => true,
                     'content'     => $content,
-                    'tokens_used' => (int) $tokensUsed,
-                    'model'       => $this->model,
+                    'tokens_used' => (int) ($data['usageMetadata']['totalTokenCount'] ?? 0),
+                    'model'       => $data['modelVersion'] ?? $model,
                 ];
             }
 
-            $errorBody = $response->json();
-            $errorMsg = $errorBody['error']['message'] ?? 'Unknown API error';
-            Log::error('Gemini API error: ' . $errorMsg, [
-                'status' => $response->status(),
-                'body'   => $errorBody,
-            ]);
+            $status = $response->status();
+            $errorMsg = $response->json('error.message') ?? 'Unknown API error';
+            Log::warning("Gemini {$model} failed ({$status}): {$errorMsg}");
 
             return [
                 'success'     => false,
                 'content'     => '',
                 'tokens_used' => 0,
-                'model'       => $this->model,
+                'model'       => $model,
                 'error'       => $errorMsg,
+                'retryable'   => in_array($status, [404, 408, 429], true) || $status >= 500,
             ];
-
         } catch (Throwable $e) {
-            Log::error('Gemini API exception: ' . $e->getMessage());
-            return [
-                'success'     => false,
-                'content'     => '',
-                'tokens_used' => 0,
-                'model'       => $this->model,
-                'error'       => $e->getMessage(),
-            ];
+            Log::warning("Gemini {$model} exception: " . $e->getMessage());
+            return ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => $model, 'error' => $e->getMessage(), 'retryable' => true];
         }
     }
 

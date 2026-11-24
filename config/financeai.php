@@ -9,11 +9,13 @@ return [
     */
     'gemini' => [
         'api_key'     => env('GEMINI_API_KEY', ''),
-        'model'       => env('FINANCEAI_MODEL', 'gemini-2.0-flash'),
+        // Tried in order. The "-latest" aliases always point at Google's current model, so they
+        // don't break when a version is retired (gemini-2.0-flash was). Override with FINANCEAI_MODELS="a,b".
+        'models'      => array_values(array_filter(array_map('trim', explode(',', (string) env('FINANCEAI_MODELS', 'gemini-flash-latest,gemini-flash-lite-latest'))))),
         'endpoint'    => 'https://generativelanguage.googleapis.com/v1beta/models/',
         'max_tokens'  => 2048,
         'temperature' => 0.7,
-        'timeout'     => 30,
+        'timeout'     => 25,
     ],
 
     /*

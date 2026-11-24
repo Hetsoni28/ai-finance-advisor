@@ -194,6 +194,7 @@ class AiChatController extends Controller
             // 6. Generate response (LLM or fallback)
             $reply = '';
             $tokensUsed = 0;
+            $answeredBy = 'heuristic'; // becomes 'gemini' only when Gemini actually produced the reply
 
             if ($this->gemini->isAvailable()) {
                 // === GEMINI LLM PATH ===
@@ -204,6 +205,7 @@ class AiChatController extends Controller
                     $processed = $this->processor->process($result['content'], $intentData, $sources);
                     $reply = $processed['content'];
                     $tokensUsed = $result['tokens_used'];
+                    $answeredBy = 'gemini';
                 } else {
                     // LLM failed — use fallback
                     Log::warning('Gemini failed, using fallback: ' . ($result['error'] ?? 'unknown'));
@@ -240,7 +242,7 @@ class AiChatController extends Controller
                 'confidence'       => $processed['confidence'] ?? 'medium',
                 'confidence_label' => $processed['confidence_label'] ?? '🟡 Medium Confidence',
                 'sources'          => $processed['sources'] ?? [],
-                'ai_mode'          => $this->gemini->isAvailable() ? 'gemini' : 'heuristic',
+                'ai_mode'          => $answeredBy,
             ]);
 
         } catch (\Throwable $e) {
@@ -355,6 +357,17 @@ class AiChatController extends Controller
         $user = Auth::user();
         $snapshot = $user->financial_snapshot;
         $thirtyDaysAgo = Carbon::now()->subDays(30);
+
+        // Questions about your own money need numbers to work from. With no records, say so plainly
+        // instead of producing ₹0 figures (e.g. "you're beating your savings target by ₹0").
+        $needsRecords = in_array($intentData['intent'], ['expense_analysis', 'savings_strategy', 'risk_assessment'], true);
+        if ($needsRecords && (float) $snapshot['monthly_income'] <= 0 && (float) $snapshot['monthly_expense'] <= 0) {
+            return "I don't see any income or expenses from the last 30 days yet, so I can't work this out for you.\n\n"
+                . "Add a few entries first:\n"
+                . "- [Add income](" . route('user.incomes.create') . ") — salary, freelance work or any money that comes in\n"
+                . "- [Add an expense](" . route('user.expenses.create') . ") — food, bills, travel, anything you spend\n\n"
+                . "Then ask me again and I'll give you numbers based on your own records.";
+        }
 
         switch ($intentData['intent']) {
 
