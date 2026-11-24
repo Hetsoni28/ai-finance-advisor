@@ -91,75 +91,70 @@ class NotificationController extends Controller
         $readAlerts = session()->get("user_{$user->id}_read_alerts", []);
         $notifications = collect();
 
-        /* ================= 5. VIRTUAL ALERT GENERATOR ================= */
-        
+        /* ================= 5. INSIGHTS FROM THE USER'S OWN RECORDS ================= */
+        // Each insight is calculated now from real data. They are not stored events, so they carry no fake timestamps.
+        $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
+        $insights = collect();
+        $add = function (int $id, string $tone, string $title, string $message, ?string $actionLabel = null, ?string $actionUrl = null) use (&$insights, $readAlerts) {
+            $insights->push((object) [
+                'id' => $id, 'tone' => $tone, 'title' => $title, 'message' => $message,
+                'action_label' => $actionLabel, 'action_url' => $actionUrl,
+                'is_read' => in_array($id, $readAlerts, true),
+            ]);
+        };
+
         if ($totalIncome <= 0) {
-            $notifications->push($this->makeAlert(self::EVENT_NO_INCOME, 'info', 'No inbound capital recorded yet. Start tracking your income to unlock AI analytics.', 'low', $readAlerts, 45));
+            $add(self::EVENT_NO_INCOME, 'info', 'No income recorded yet',
+                'Add your income so FinanceAI can work out your savings rate and health score.', 'Add income', route('user.incomes.create'));
         }
-
         if ($balance < 0) {
-            $notifications->push($this->makeAlert(self::EVENT_NEG_BALANCE, 'danger', 'Critical Deficit: Your aggregate expenses have exceeded your total recorded income.', 'high', $readAlerts, 5));
+            $add(self::EVENT_NEG_BALANCE, 'danger', 'You’ve spent more than you’ve earned',
+                'Your expenses (' . $inr($totalExpense) . ') are higher than your income (' . $inr($totalIncome) . ') across all your records.', 'See expenses', route('user.expenses.index'));
         }
-
-        if ($savingRate > 0 && $savingRate < 10) {
-            $notifications->push($this->makeAlert(self::EVENT_LOW_SAVINGS, 'warning', 'Low Savings Velocity: Your retention rate is below 10% for the current operational month.', 'medium', $readAlerts, 12));
-        }
-
         if ($thisMonthIncome > 0) {
-            $ratio = ($thisMonthExpense / $thisMonthIncome) * 100;
+            $ratio = $thisMonthExpense / $thisMonthIncome * 100;
             if ($ratio > 80) {
-                $notifications->push($this->makeAlert(self::EVENT_HIGH_BURN, 'danger', "High Burn Rate: You have exhausted over " . round($ratio) . "% of your current month's liquidity.", 'high', $readAlerts, 2));
+                $add(self::EVENT_HIGH_BURN, 'danger', 'Most of this month’s income is spent',
+                    'You’ve spent ' . round($ratio) . '% of this month’s income (' . $inr($thisMonthExpense) . ' of ' . $inr($thisMonthIncome) . ').', 'See expenses', route('user.expenses.index'));
             }
         }
-
-        if ($incomeGrowth < -20) {
-            $notifications->push($this->makeAlert(self::EVENT_INCOME_DROP, 'warning', 'Revenue Contraction: Your inbound capital has dropped by more than 20% compared to the previous fiscal month.', 'medium', $readAlerts, 24));
+        if ($savingRate > 0 && $savingRate < 10) {
+            $add(self::EVENT_LOW_SAVINGS, 'warning', 'Saving less than 10% this month',
+                'You’ve kept ' . round($savingRate, 1) . '% of this month’s income so far.', 'Open reports', route('user.reports.index', ['range' => 'this_month']));
         }
-
+        if ($lastMonthIncome > 0 && $incomeGrowth < -20) {
+            $add(self::EVENT_INCOME_DROP, 'warning', 'Income is down on last month',
+                'This month: ' . $inr($thisMonthIncome) . ' · last month: ' . $inr($lastMonthIncome) . ' (' . round($incomeGrowth) . '%).', 'Compare months', route('user.reports.index', ['range' => '3m']));
+        }
         if ($savingRate >= 30) {
-            $notifications->push($this->makeAlert(self::EVENT_HIGH_SAVINGS, 'success', 'Optimal Performance: You are retaining over 30% of your operational income. Excellent capital management.', 'low', $readAlerts, 36));
+            $add(self::EVENT_HIGH_SAVINGS, 'success', 'Great month for saving',
+                'You’ve kept ' . round($savingRate) . '% of this month’s income — ' . $inr($thisMonthIncome - $thisMonthExpense) . ' so far.');
         }
-
-        /* 🔥 BEAST MODE: WHALE TRANSACTION DETECTOR */
         if ($thisMonthIncome > 0) {
-            $whaleThreshold = $thisMonthIncome * 0.25; // 25% of monthly income
-            $whaleTx = Expense::where('user_id', $user->id)
+            $big = Expense::where('user_id', $user->id)
                 ->whereBetween($expenseDateCol, [$startOfMonth, $endOfMonth])
-                ->where('amount', '>', $whaleThreshold)
-                ->orderByDesc('amount')
-                ->first();
-
-            if ($whaleTx) {
-                $msg = "Capital Hemorrhage Detected: A massive transaction ('{$whaleTx->category}') recently consumed over 25% of your monthly inbound capital.";
-                $notifications->push($this->makeAlert(self::EVENT_WHALE_TX, 'danger', $msg, 'high', $readAlerts, 1));
+                ->where('amount', '>', $thisMonthIncome * 0.25)
+                ->orderByDesc('amount')->first();
+            if ($big) {
+                $add(self::EVENT_WHALE_TX, 'warning', 'One large expense this month',
+                    '“' . $big->title . '” (' . $inr($big->amount) . ') is more than a quarter of this month’s income.', 'View expense', route('user.expenses.edit', $big));
             }
         }
 
-        /* ================= 6. DATA NORMALIZATION & PAGINATION ================= */
-        
-        // Sort latest first (using the simulated created_at time)
-        $sortedAlerts = $notifications->sortByDesc('created_at')->values();
+        $order = ['danger' => 0, 'warning' => 1, 'info' => 2, 'success' => 3];
+        $insights = $insights->sortBy(fn ($i) => [$i->is_read ? 1 : 0, $order[$i->tone] ?? 9])->values();
 
-        // High-Performance Manual Paginator
-        $perPage = 10;
-        $currentPage = Paginator::resolveCurrentPage('page');
-        $currentItems = $sortedAlerts->slice(($currentPage - 1) * $perPage, $perPage)->all();
-        
-        $paginatedAlerts = new LengthAwarePaginator(
-            $currentItems, 
-            $sortedAlerts->count(), 
-            $perPage, 
-            $currentPage, 
-            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()]
-        );
+        /* ================= 6. STORED ALERTS (from the alerts table) ================= */
+        $storedAlerts = \App\Models\Alert::where('user_id', $user->id)->latest()->limit(50)->get();
 
         return view('user.notifications.index', [
-            'notifications' => $paginatedAlerts,
-            'totalIncome'   => $totalIncome,
-            'totalExpense'  => $totalExpense,
+            'insights'         => $insights,
+            'storedAlerts'     => $storedAlerts,
+            'thisMonthIncome'  => $thisMonthIncome,
+            'thisMonthExpense' => $thisMonthExpense,
+            'savingRate'       => $savingRate,
         ]);
     }
-
     /*
     |--------------------------------------------------------------------------
     | STATE MANAGEMENT (MARK AS READ API)
@@ -169,7 +164,7 @@ class NotificationController extends Controller
     {
         $user = Auth::user();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized Node'], 403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
         // Validate that the requested ID belongs to our Deterministic Event Registry
@@ -192,7 +187,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Alert state successfully synchronized.'
+            'message' => 'Marked as read.'
         ]);
     }
 
@@ -201,20 +196,4 @@ class NotificationController extends Controller
     | HELPER METHODS
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Virtual Alert Factory
-     * Assembles standardized alert objects with simulated timing.
-     */
-    private function makeAlert(int $id, string $type, string $message, string $priority, array $readAlerts, int $minutesAgo): object
-    {
-        return (object) [
-            'id'         => $id,
-            'type'       => $type,
-            'message'    => $message,
-            'priority'   => $priority,
-            'is_read'    => in_array($id, $readAlerts, true),
-            'created_at' => now()->subMinutes($minutesAgo)->format('Y-m-d H:i:s'),
-        ];
-    }
 }

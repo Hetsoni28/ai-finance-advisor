@@ -1,553 +1,100 @@
 @extends('layouts.app')
 
-@section('title', 'Command Center - FinanceAI')
+@section('title', 'Notifications · FinanceAI')
 
 @section('content')
-
 @php
-    // ================= 1. SAFE DATA PREPARATION =================
-    $notifications = $notifications ?? collect();
-    $totalIncome   = (float) ($totalIncome ?? 450000);
-    $totalExpense  = (float) ($totalExpense ?? 125000);
-
-    $canMarkRead = Route::has('user.notifications.read');
-
-    // Safe extraction for current page metrics
-    $currentPageItems = method_exists($notifications, 'items') ? collect($notifications->items()) : collect($notifications);
-    $unreadCount = $currentPageItems->filter(fn($n) => !($n->is_read ?? false))->count();
-    $totalCount  = $currentPageItems->count();
-    $unreadPercent = $totalCount > 0 ? round(($unreadCount / $totalCount) * 100) : 0;
-
-    // Multi-Color Theme Mapping for Notification Types
-    $themeMap = [
-        'danger'  => ['cat' => 'security', 'color' => 'text-rose-600', 'bg' => 'bg-rose-50', 'border' => 'border-rose-200', 'icon' => 'fa-shield-virus'],
-        'warning' => ['cat' => 'system', 'color' => 'text-amber-600', 'bg' => 'bg-amber-50', 'border' => 'border-amber-200', 'icon' => 'fa-triangle-exclamation'],
-        'success' => ['cat' => 'finance', 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'icon' => 'fa-money-bill-trend-up'],
-        'info'    => ['cat' => 'system', 'color' => 'text-sky-600', 'bg' => 'bg-sky-50', 'border' => 'border-sky-200', 'icon' => 'fa-circle-info'],
-        'system'  => ['cat' => 'system', 'color' => 'text-indigo-600', 'bg' => 'bg-indigo-50', 'border' => 'border-indigo-200', 'icon' => 'fa-server'],
+    $tones = [
+        'danger'  => ['fa-circle-exclamation', 'bg-rose-50 text-rose-600', 'border-l-rose-500'],
+        'warning' => ['fa-triangle-exclamation', 'bg-amber-50 text-amber-600', 'border-l-amber-500'],
+        'info'    => ['fa-circle-info', 'bg-sky-50 text-sky-600', 'border-l-sky-500'],
+        'success' => ['fa-circle-check', 'bg-emerald-50 text-emerald-600', 'border-l-emerald-500'],
     ];
-
-    // Category Counters (Current Page)
-    $catCounts = [
-        'security' => $currentPageItems->filter(fn($n) => in_array(strtolower($n->type ?? ''), ['danger']))->count(),
-        'finance'  => $currentPageItems->filter(fn($n) => in_array(strtolower($n->type ?? ''), ['success']))->count(),
-        'system'   => $currentPageItems->filter(fn($n) => in_array(strtolower($n->type ?? ''), ['warning', 'info', 'system']))->count(),
-    ];
+    $unread = $insights->where('is_read', false)->count();
+    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
 @endphp
 
-<div class="min-h-screen bg-[#f8fafc] pb-32 font-sans selection:bg-indigo-100 selection:text-indigo-900 relative"
-     x-data="inboxController()"
-     @keydown.window.prevent.slash="$refs.searchInput.focus()">
+<div class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
+     x-data="{
+        read: {{ json_encode((object) $insights->pluck('is_read', 'id')->all()) }},
+        markRead(id) {
+            if (this.read[id]) return;
+            this.read[id] = true;
+            fetch('{{ url('user/notifications') }}/' + id + '/read', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } })
+                .catch(() => { this.read[id] = false; });
+        },
+        markAll() { Object.keys(this.read).forEach(id => this.markRead(id)); },
+        get unread() { return Object.values(this.read).filter(v => !v).length; }
+     }">
 
-    {{-- Pristine Light Ambient Background --}}
-    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-white/40">
-        <div class="absolute top-[-10%] left-[-5%] w-[1000px] h-[1000px] bg-indigo-50/80 rounded-full blur-[120px]"></div>
-        <div class="absolute bottom-[-10%] right-[-5%] w-[800px] h-[800px] bg-sky-50/50 rounded-full blur-[120px]"></div>
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwaDIwdjIwSDIwaC0yMHptMCAwaC0yMHYtMjBoMjB2MjB6IiBmaWxsPSIjZThlYWVkIiBmaWxsLW9wYWNpdHk9IjAuNSIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+')] opacity-40"></div>
-    </div>
-
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-10 space-y-8">
-
-        {{-- ================= 1. COMMAND HEADER & RADAR ================= --}}
-        <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 bg-white/95 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] border border-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden group">
-            
-            {{-- Accent Line --}}
-            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-indigo-500 to-sky-400"></div>
-            
-            {{-- Animated Radar Background --}}
-            <div class="absolute -right-20 top-1/2 -translate-y-1/2 w-96 h-96 border border-slate-100/50 rounded-full flex items-center justify-center opacity-50 pointer-events-none overflow-hidden">
-                <div class="w-64 h-64 border border-slate-100/50 rounded-full flex items-center justify-center">
-                    <div class="w-32 h-32 border border-slate-100/50 rounded-full"></div>
-                </div>
-                <div class="absolute inset-0 origin-center animate-[spin_3s_linear_infinite]" style="background: conic-gradient(from 0deg, transparent 70%, rgba(79,70,229,0.08) 100%);"></div>
-            </div>
-
-            <div class="relative z-10 flex-1">
-                <nav class="flex mb-4" aria-label="Breadcrumb">
-                    <ol class="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <li>FinanceAI Engine</li>
-                        <li><i class="fa-solid fa-chevron-right text-[8px] mx-1 opacity-50"></i></li>
-                        <li class="text-indigo-600 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> Command Center
-                        </li>
-                    </ol>
-                </nav>
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-3">
-                    <h1 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">System Inbox</h1>
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-lg shadow-sm w-max mt-2 sm:mt-0">
-                        <div class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></div>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600">Network Optimal</span>
-                    </div>
-                </div>
-                <p class="text-slate-500 text-sm font-medium flex items-center gap-2 max-w-xl leading-relaxed">
-                    Encrypted event logging and financial alert routing. Review your telemetry below.
-                </p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3 relative z-10 shrink-0">
-                <button @click="markAllReadBatch()" @mouseenter="playHover()" id="btnMarkAllRead" class="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-[0_10px_20px_-5px_rgba(15,23,42,0.4)] hover:bg-indigo-600 hover:shadow-[0_10px_20px_-5px_rgba(79,70,229,0.4)] transition-all flex items-center gap-2 hover:-translate-y-0.5 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fa-solid fa-check-double"></i> <span>Acknowledge All</span>
+    <x-admin.page-header title="Notifications" eyebrow="My money" icon="fa-wallet" :stamp="false"
+        description="Insights worked out from your records just now, plus any alerts we’ve sent you.">
+        <x-slot name="actions">
+            @if($insights->isNotEmpty())
+                <button type="button" @click="markAll()" :disabled="unread === 0"
+                        class="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 disabled:cursor-default disabled:opacity-50">
+                    <i class="fa-solid fa-check-double text-xs text-zinc-400" aria-hidden="true"></i> Mark all as read
                 </button>
-            </div>
-        </div>
+            @endif
+        </x-slot>
+    </x-admin.page-header>
 
-        {{-- ================= 2. KPI GRID ================= --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 perspective-[1500px]">
-            
-            {{-- Global Inflow --}}
-            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-[0_15px_30px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group transform-style-3d">
-                <div class="translate-z-20">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Global Inflow</p>
-                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tabular-nums tracking-tight"><span class="text-emerald-500">₹</span>{{ number_format($totalIncome, 0) }}</h2>
-                </div>
-                <div class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center border border-emerald-100 shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-transform translate-z-30"><i class="fa-solid fa-arrow-trend-up text-xl"></i></div>
-            </div>
-
-            {{-- Global Outflow --}}
-            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-[0_15px_30px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group transform-style-3d">
-                <div class="translate-z-20">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Global Outflow</p>
-                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tabular-nums tracking-tight"><span class="text-rose-500">₹</span>{{ number_format($totalExpense, 0) }}</h2>
-                </div>
-                <div class="w-14 h-14 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center border border-rose-100 shadow-sm group-hover:scale-110 group-hover:-rotate-6 transition-transform translate-z-30"><i class="fa-solid fa-arrow-trend-down text-xl"></i></div>
-            </div>
-
-            {{-- Unread Alerts (Hero Card) --}}
-            <div class="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group relative overflow-hidden text-white transform-style-3d">
-                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay pointer-events-none"></div>
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
-                
-                <div class="relative z-10 translate-z-20">
-                    <p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Unread Alerts</p>
-                    <h2 class="text-3xl md:text-4xl font-black text-white flex items-baseline gap-2 tabular-nums tracking-tight">
-                        <span id="unreadCountText" class="animate-number" x-text="totalUnread">{{ $unreadCount }}</span> 
-                        <span class="text-sm font-bold text-slate-500 mb-1">/ <span x-text="totalCount">{{ $totalCount }}</span></span>
-                    </h2>
-                </div>
-                <div class="relative z-10 w-14 h-14 bg-white/10 text-indigo-400 rounded-[1rem] flex items-center justify-center border border-white/20 shadow-inner group-hover:scale-110 transition-transform translate-z-30">
-                    <i class="fa-regular fa-bell text-2xl" :class="totalUnread > 0 ? 'animate-swing' : ''"></i>
-                </div>
-            </div>
-
-            {{-- Net balance (real: total income minus total expenses) --}}
-            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-[0_15px_30px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group">
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Balance</p>
-                    @php $netBalance = $totalIncome - $totalExpense; @endphp
-                    <h2 class="text-2xl md:text-3xl font-black tabular-nums tracking-tight {{ $netBalance >= 0 ? 'text-slate-900' : 'text-rose-600' }}"><span class="{{ $netBalance >= 0 ? 'text-indigo-500' : 'text-rose-500' }}">₹</span>{{ number_format($netBalance, 0) }}</h2>
-                </div>
-                <div class="w-14 h-14 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center border border-indigo-100 shadow-sm group-hover:scale-110 transition-transform"><i class="fa-solid fa-scale-balanced text-xl"></i></div>
-            </div>
-        </div>
-        {{-- ================= 3. SAAS INBOX LAYOUT ================= --}}
-        <div class="grid lg:grid-cols-12 gap-8 items-start">
-            
-            {{-- ================= LEFT: INBOX NAVIGATION & FILTERS ================= --}}
-            <div class="lg:col-span-3 space-y-6">
-                
-                {{-- Routing Card --}}
-                <div class="bg-white/95 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] p-7 sticky top-28">
-                    
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 pl-2 flex items-center gap-2">
-                        <i class="fa-solid fa-route text-slate-300"></i> Inbox Routing
-                    </h3>
-                    
-                    <ul class="space-y-2">
-                        <li>
-                            <button @click="filter = 'all'; playClick()" @mouseenter="playHover()" :class="filter === 'all' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm ring-1 ring-indigo-500/10' : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-50 border border-slate-100/0 hover:border-slate-200'" class="w-full flex items-center justify-between px-4 py-3.5 rounded-[1.25rem] font-bold text-sm transition-all focus:outline-none group">
-                                <span class="flex items-center gap-3"><i class="fa-solid fa-inbox w-4 text-center transition-transform group-hover:-translate-y-0.5"></i> All Events</span>
-                                <span class="bg-white px-2 py-0.5 rounded-lg shadow-sm border border-slate-200 text-xs font-black tabular-nums" x-text="totalCount">{{ $totalCount }}</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button @click="filter = 'unread'; playClick()" @mouseenter="playHover()" :class="filter === 'unread' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm ring-1 ring-indigo-500/10' : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-50 border border-slate-100/0 hover:border-slate-200'" class="w-full flex items-center justify-between px-4 py-3.5 rounded-[1.25rem] font-bold text-sm transition-all focus:outline-none group">
-                                <span class="flex items-center gap-3"><i class="fa-solid fa-circle-dot w-4 text-center text-indigo-500 transition-transform group-hover:scale-110"></i> Unread</span>
-                                <span class="bg-indigo-600 text-white px-2 py-0.5 rounded-lg shadow-sm text-xs font-black tabular-nums transition-transform" :class="totalUnread > 0 ? 'scale-100' : 'scale-90 opacity-50'" x-text="totalUnread">{{ $unreadCount }}</span>
-                            </button>
-                        </li>
-                    </ul>
-
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-4 pl-2 flex items-center gap-2">
-                        <i class="fa-solid fa-tags text-slate-300"></i> Smart Categories
-                    </h3>
-                    
-                    <ul class="space-y-2">
-                        <li>
-                            <button @click="filter = 'security'; playClick()" @mouseenter="playHover()" :class="filter === 'security' ? 'bg-rose-50 text-rose-700 border-rose-200 shadow-sm ring-1 ring-rose-500/10' : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-50 border border-slate-100/0 hover:border-slate-200'" class="w-full flex items-center justify-between px-4 py-3.5 rounded-[1.25rem] font-bold text-sm transition-all focus:outline-none group">
-                                <span class="flex items-center gap-3"><i class="fa-solid fa-shield-halved w-4 text-center text-rose-500 transition-transform group-hover:rotate-12"></i> Security</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button @click="filter = 'finance'; playClick()" @mouseenter="playHover()" :class="filter === 'finance' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm ring-1 ring-emerald-500/10' : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-50 border border-slate-100/0 hover:border-slate-200'" class="w-full flex items-center justify-between px-4 py-3.5 rounded-[1.25rem] font-bold text-sm transition-all focus:outline-none group">
-                                <span class="flex items-center gap-3"><i class="fa-solid fa-vault w-4 text-center text-emerald-500 transition-transform group-hover:rotate-12"></i> Financial</span>
-                            </button>
-                        </li>
-                        <li>
-                            <button @click="filter = 'system'; playClick()" @mouseenter="playHover()" :class="filter === 'system' ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-sm ring-1 ring-sky-500/10' : 'bg-transparent text-slate-600 border-transparent hover:bg-slate-50 border border-slate-100/0 hover:border-slate-200'" class="w-full flex items-center justify-between px-4 py-3.5 rounded-[1.25rem] font-bold text-sm transition-all focus:outline-none group">
-                                <span class="flex items-center gap-3"><i class="fa-solid fa-server w-4 text-center text-sky-500 transition-transform group-hover:rotate-12"></i> System</span>
-                            </button>
-                        </li>
-                    </ul>
-
-                </div>
-            </div>
-
-            {{-- ================= RIGHT: NOTIFICATION FEED & PAYLOAD INSPECTOR ================= --}}
-            <div class="lg:col-span-9 bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-white overflow-hidden flex flex-col min-h-[700px] relative">
-                
-                {{-- Feed Toolbar --}}
-                <div class="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 z-20">
-                    <div class="relative w-full sm:w-[400px] group">
-                        <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
-                        <input type="text" x-model="search" x-ref="searchInput" placeholder="Search event logs (Press '/' to focus)..." 
-                               class="w-full pl-12 pr-12 py-4 bg-white border border-slate-200 rounded-[1.25rem] text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 outline-none transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400">
-                        <kbd class="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono text-slate-400 font-bold hidden sm:block shadow-sm">/</kbd>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2">
-                            <i class="fa-solid fa-list-check"></i>
-                            Showing <span x-text="visibleCount" class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded"></span> Records
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Feed Container --}}
-                <div class="flex-1 overflow-y-auto bg-slate-50/30 p-4 sm:p-8 space-y-4 relative z-10 scrollbar-custom" id="notificationFeed">
-                    
-                    @forelse($currentPageItems as $note)
-                        @php
-                            $rawType = strtolower($note->type ?? 'info');
-                            $priority = strtolower($note->priority ?? 'low');
-                            $isRead = $note->is_read ?? false;
-                            $message = $note->message ?? 'System Notification';
-                            $time = isset($note->created_at) ? \Carbon\Carbon::parse($note->created_at)->diffForHumans() : 'Just now';
-                            $fullTime = isset($note->created_at) ? \Carbon\Carbon::parse($note->created_at)->format('Y-m-d H:i:s T') : now()->format('Y-m-d H:i:s T');
-                            
-                            $theme = $themeMap[$rawType] ?? $themeMap['info'];
-                            $category = $theme['cat']; 
-                            
-                        @endphp
-
-                        <div x-data="{ expanded: false, isVisible: true, isResolving: false }"
-                             x-show="isVisible && matchesSearch('{{ addslashes($message) }}') && matchesFilter({{ $isRead ? 'true' : 'false' }}, '{{ $category }}')" 
-                             x-init="$watch('search', () => updateVisibleCount()); $watch('filter', () => updateVisibleCount());"
-                             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 -translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 scale-100 h-[auto]" x-transition:leave-end="opacity-0 scale-95 h-0 overflow-hidden mb-0 pb-0 border-0"
-                             id="note-{{ $note->id }}"
-                             class="notification-card group bg-white border rounded-[1.5rem] p-1.5 shadow-sm transition-all duration-300 {{ !$isRead ? 'border-indigo-300 ring-4 ring-indigo-50/50 unread-card' : 'border-slate-200 hover:border-slate-300' }}"
-                             :class="isResolving ? 'ring-0 border-emerald-200 opacity-50 bg-emerald-50/20' : ''">
-                            
-                            {{-- Main Clickable Area --}}
-                            <div @click="expanded = !expanded; playClick()" @mouseenter="playHover()" class="p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-start cursor-pointer rounded-[1.2rem] hover:bg-slate-50 transition-colors relative overflow-hidden">
-                                
-                                {{-- Subtle Active Background Glow --}}
-                                <div class="absolute inset-0 bg-indigo-50/50 opacity-0 transition-opacity duration-300 pointer-events-none" :class="expanded ? 'opacity-100' : ''"></div>
-
-                                {{-- Icon Module --}}
-                                <div class="shrink-0 relative z-10">
-                                    <div class="w-12 h-12 rounded-[1rem] {{ $theme['bg'] }} {{ $theme['color'] }} border {{ $theme['border'] }} flex items-center justify-center text-lg shadow-sm transition-transform duration-300" :class="expanded ? 'scale-110' : 'group-hover:scale-110'">
-                                        <i class="fa-solid {{ $theme['icon'] }}"></i>
-                                    </div>
-                                    {{-- Unread Pulse Dot --}}
-                                    <div id="unread-dot-{{ $note->id }}" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 border-[3px] border-white rounded-full shadow-sm transition-transform duration-500 {{ $isRead ? 'scale-0' : 'scale-100 animate-pulse' }}"></div>
-                                </div>
-
-                                {{-- Content Module --}}
-                                <div class="flex-1 w-full relative z-10">
-                                    <div class="flex flex-col sm:flex-row justify-between items-start gap-2 mb-1.5">
-                                        <h3 class="text-base font-bold text-slate-900 leading-snug pr-4 transition-colors" :class="expanded ? 'text-indigo-700' : ''">{{ $message }}</h3>
-                                        <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap uppercase tracking-widest flex items-center gap-1.5"><i class="fa-regular fa-clock"></i> {{ $time }}</span>
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-2 mt-2">
-                                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest {{ $theme['bg'] }} {{ $theme['color'] }} border {{ $theme['border'] }}">
-                                            {{ ucfirst($rawType) }}
-                                        </span>
-                                        @if($priority === 'high')
-                                            <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-200 shadow-sm">
-                                                <i class="fa-solid fa-bolt text-rose-500 mr-0.5"></i> Urgent
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                                
-                                {{-- Expand Chevron --}}
-                                <div class="shrink-0 flex items-center gap-3 relative z-10 mt-2 sm:mt-0">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 bg-white border border-slate-200 shadow-sm transition-all duration-300" :class="expanded ? 'bg-indigo-50 border-indigo-200 text-indigo-600 rotate-180' : 'group-hover:bg-slate-100'">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Expanded Focus Drawer (Master-Detail UI) --}}
-                            <div x-show="expanded" x-collapse.duration.300ms>
-                                <div class="p-5 border-t border-slate-100 bg-slate-50/50 rounded-b-[1.2rem] mt-1 flex flex-col lg:flex-row gap-6">
-                                    
-                                    {{-- Left: alert details (real fields only) --}}
-                                    <dl class="flex-1 bg-white rounded-[1.25rem] border border-slate-200 p-5 grid sm:grid-cols-2 gap-4 text-sm">
-                                        <div class="sm:col-span-2"><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Message</dt><dd class="mt-1 font-semibold text-slate-800">{{ $message }}</dd></div>
-                                        <div><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Type</dt><dd class="mt-1 font-semibold text-slate-800">{{ ucfirst($rawType) }}</dd></div>
-                                        <div><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Priority</dt><dd class="mt-1 font-semibold text-slate-800">{{ ucfirst($priority) }}</dd></div>
-                                        <div class="sm:col-span-2"><dt class="text-[11px] font-black text-slate-400 uppercase tracking-widest">When</dt><dd class="mt-1 font-semibold text-slate-800">{{ $fullTime }}</dd></div>
-                                    </dl>
-                                    {{-- Right: Actions & Resolution --}}
-                                    <div class="w-full lg:w-64 shrink-0 flex flex-col gap-3">
-                                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 border-b border-slate-200 pb-2">Resolution Actions</h4>
-                                        
-                                        @if($canMarkRead)
-                                            <form method="POST" action="{{ route('user.notifications.read', $note->id) }}" class="m-0" @submit.prevent="optimisticMarkRead($event, {{ $note->id }})">
-                                                @csrf
-                                                <button type="submit" id="btn-read-{{ $note->id }}" @mouseenter="playHover()" class="w-full px-4 py-3.5 rounded-xl text-xs font-bold transition-all shadow-sm focus:outline-none flex items-center justify-center gap-2 {{ $isRead ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-[0_5px_15px_rgba(79,70,229,0.3)] hover:-translate-y-0.5' }}" {{ $isRead ? 'disabled' : '' }}>
-                                                    <i class="fa-solid fa-check"></i> <span>{{ $isRead ? 'Acknowledged' : 'Mark as Read' }}</span>
-                                                </button>
-                                            </form>
-                                        @endif
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        {{-- Empty State Handled by Alpine --}}
-                    @endforelse
-
-                    {{-- Alpine JS Empty State for Search or 0 Items --}}
-                    <div x-show="visibleCount === 0" style="display: none;" class="py-32 text-center flex flex-col items-center justify-center animate-fade-in-up">
-                        <div class="relative w-32 h-32 mb-8">
-                            <div class="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl"></div>
-                            <div class="w-24 h-24 bg-white border border-slate-100 rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.05)] flex items-center justify-center relative z-10 mx-auto rotate-12 hover:rotate-0 transition-transform duration-500">
-                                <i class="fa-solid fa-mug-hot text-indigo-400 text-5xl"></i>
-                            </div>
-                        </div>
-                        <h4 class="text-slate-900 font-black text-3xl tracking-tight mb-3">Inbox Zero</h4>
-                        <p class="text-slate-500 font-medium text-lg max-w-md mx-auto leading-relaxed" x-text="search !== '' ? 'No telemetry records match your cryptographic search query.' : 'You are all caught up on system alerts. No anomalies detected.'"></p>
-                        
-                        <button x-show="search !== ''" @click="search = ''; playClick()" @mouseenter="playHover()" class="mt-8 px-8 py-3.5 bg-white border border-slate-200 text-indigo-600 rounded-xl font-bold text-sm shadow-sm hover:bg-indigo-50 hover:border-indigo-300 hover:-translate-y-0.5 transition-all focus:outline-none">
-                            <i class="fa-solid fa-rotate-left mr-2"></i> Clear Filters
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Pagination Placeholder --}}
-                @if(method_exists($notifications, 'hasPages') && $notifications->hasPages())
-                <div class="px-8 py-5 bg-white/95 backdrop-blur-md border-t border-slate-200 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                    {{ $notifications->appends(request()->query())->links('pagination::tailwind') }}
-                </div>
-                @endif
-            </div>
-        </div>
-
+    {{-- This month at a glance --}}
+    <div class="grid grid-cols-3 gap-3">
+        <x-admin.stat label="In this month" :value="$inr($thisMonthIncome)" tone="emerald" icon="fa-arrow-trend-up" />
+        <x-admin.stat label="Out this month" :value="$inr($thisMonthExpense)" tone="rose" icon="fa-arrow-trend-down" />
+        <x-admin.stat label="Kept" :value="$thisMonthIncome > 0 ? round($savingRate) . '%' : '—'" tone="indigo" icon="fa-piggy-bank" :hint="$thisMonthIncome > 0 ? 'of this month’s income' : 'No income this month yet'" />
     </div>
-</div>
 
-{{-- Notification Toast --}}
-<div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 backdrop-blur-xl text-white px-6 py-3.5 rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none border border-slate-700">
-    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
-    <span id="toastMsg" class="text-sm font-bold tracking-wide">Action completed</span>
-</div>
+    <x-admin.card title="Insights" flush>
+        <x-slot name="action">
+            <span class="text-xs text-zinc-500" x-text="unread ? unread + ' unread' : 'All read'">{{ $unread ? $unread . ' unread' : 'All read' }}</span>
+        </x-slot>
+        @if($insights->isEmpty())
+            <x-admin.empty icon="fa-face-smile" title="Nothing needs your attention" text="We’ll flag things like overspending or a drop in income here." />
+        @else
+            <ul class="divide-y divide-zinc-100">
+                @foreach($insights as $n)
+                    @php [$icon, $iconTone, $edge] = $tones[$n->tone] ?? $tones['info']; @endphp
+                    <li class="relative flex gap-4 border-l-2 px-4 py-4 transition-colors sm:px-5"
+                        :class="read[{{ $n->id }}] ? 'border-l-transparent' : '{{ $edge }} bg-zinc-50/50'"
+                        @mouseenter.once="setTimeout(() => markRead({{ $n->id }}), 1500)">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $iconTone }}"><i class="fa-solid {{ $icon }} text-sm" aria-hidden="true"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-3">
+                                <p class="text-sm font-semibold text-zinc-900">{{ $n->title }}</p>
+                                <span x-show="!read[{{ $n->id }}]" class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500" aria-label="Unread"></span>
+                            </div>
+                            <p class="mt-1 text-sm text-zinc-600">{{ $n->message }}</p>
+                            <div class="mt-3 flex flex-wrap items-center gap-3">
+                                @if($n->action_url)
+                                    <a href="{{ $n->action_url }}" @click="markRead({{ $n->id }})" class="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200 px-2.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50">{{ $n->action_label }} <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i></a>
+                                @endif
+                                <button type="button" x-show="!read[{{ $n->id }}]" @click="markRead({{ $n->id }})" class="text-xs font-medium text-zinc-500 hover:text-zinc-900">Mark as read</button>
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-admin.card>
 
+    <x-admin.card title="Alerts" description="Messages saved to your account" flush>
+        @if($storedAlerts->isEmpty())
+            <p class="px-5 py-6 text-sm text-zinc-500">No alerts yet.</p>
+        @else
+            <ul class="divide-y divide-zinc-100">
+                @foreach($storedAlerts as $alert)
+                    <li class="flex gap-4 px-4 py-3.5 sm:px-5">
+                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full {{ $alert->is_read ? 'bg-zinc-200' : 'bg-indigo-500' }}" aria-hidden="true"></span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm text-zinc-800">{{ $alert->message }}</p>
+                            <p class="mt-0.5 text-xs text-zinc-500">{{ ucfirst($alert->type ?? 'alert') }} · <time datetime="{{ $alert->created_at?->toIso8601String() }}" title="{{ $alert->created_at }}">{{ $alert->created_at?->diffForHumans() }}</time></p>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-admin.card>
+</div>
 @endsection
-
-@push('styles')
-<style>
-    /* Premium Scrollbars */
-    .scrollbar-custom::-webkit-scrollbar { width: 6px; }
-    .scrollbar-custom::-webkit-scrollbar-track { background: transparent; }
-    .scrollbar-custom::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    .scrollbar-custom:hover::-webkit-scrollbar-thumb { background: #94a3b8; }
-
-    /* Animations */
-    @keyframes swing { 20% { transform: rotate(15deg); } 40% { transform: rotate(-10deg); } 60% { transform: rotate(5deg); } 80% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
-    .animate-swing { transform-origin: top center; animation: swing 1s ease-in-out infinite; }
-    
-    @keyframes waveform { 0%, 100% { height: 20%; } 50% { height: 100%; } }
-    .animate-waveform { animation: waveform 1s ease-in-out infinite; }
-
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-    .transform-style-3d { transform-style: preserve-3d; perspective: 1000px; }
-    .translate-z-20 { transform: translateZ(20px); }
-    .translate-z-30 { transform: translateZ(30px); }
-</style>
-@endpush
-
-@push('scripts')
-<script>
-// ================= AUDIO ENGINE =================
-window.audioEngine = {
-    ctx: null, lastHover: 0,
-    init() { if(!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if(AC) this.ctx = new AC(); } },
-    playClick() {
-        this.init(); if(!this.ctx) return; if(this.ctx.state === 'suspended') this.ctx.resume();
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-        osc.connect(gain); gain.connect(this.ctx.destination); osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(800, this.ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.05);
-        gain.gain.setValueAtTime(0.1, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
-    },
-    playHover() {
-        const now = Date.now(); if(now - this.lastHover < 50) return; this.lastHover = now;
-        this.init(); if(!this.ctx) return; if(this.ctx.state === 'suspended') this.ctx.resume();
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-        osc.connect(gain); gain.connect(this.ctx.destination); osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(400, this.ctx.currentTime); gain.gain.setValueAtTime(0.015, this.ctx.currentTime); 
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03); osc.start(); osc.stop(this.ctx.currentTime + 0.03);
-    },
-    playSuccess() {
-        this.init(); if(!this.ctx) return; if(this.ctx.state === 'suspended') this.ctx.resume();
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-        osc.connect(gain); gain.connect(this.ctx.destination); osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(600, this.ctx.currentTime); osc.frequency.setValueAtTime(900, this.ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.05, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.3);
-    }
-};
-
-document.addEventListener('alpine:init', () => {
-    Alpine.data('inboxController', () => ({
-        search: '',
-        filter: 'all', 
-        totalUnread: {{ $unreadCount }},
-        totalCount: {{ $totalCount }},
-        visibleCount: {{ $totalCount }},
-        init() {
-            setTimeout(() => this.updateVisibleCount(), 100);
-        },
-        playClick() { if (window.audioEngine) window.audioEngine.playClick(); },
-        playHover() { if (window.audioEngine) window.audioEngine.playHover(); },
-
-        // JSON Syntax Highlighter
-        syntaxHighlight(json) {
-            if (typeof json != 'string') json = JSON.stringify(json, undefined, 2);
-            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-                var cls = 'text-sky-400'; // number
-                if (/^"/.test(match)) {
-                    if (/:$/.test(match)) cls = 'text-indigo-300'; // key
-                    else cls = 'text-emerald-400'; // string
-                } else if (/true|false/.test(match)) cls = 'text-rose-400'; // boolean
-                else if (/null/.test(match)) cls = 'text-slate-500'; // null
-                return '<span class="' + cls + '">' + match + '</span>';
-            });
-        },
-
-        matchesSearch(msg) {
-            if (this.search === '') return true;
-            return msg.toLowerCase().includes(this.search.toLowerCase());
-        },
-
-        matchesFilter(isRead, category) {
-            if (this.filter === 'all') return true;
-            if (this.filter === 'unread') return !isRead;
-            return this.filter === category;
-        },
-
-        updateVisibleCount() {
-            setTimeout(() => {
-                const cards = document.querySelectorAll('.notification-card');
-                let count = 0;
-                cards.forEach(card => { if (card.style.display !== 'none') count++; });
-                this.visibleCount = count;
-            }, 50);
-        },
-
-        copyToClipboard(text, successMsg = "Copied to clipboard") {
-            this.playClick();
-            navigator.clipboard.writeText(text).then(() => {
-                this.$dispatch('notify', { message: successMsg, type: 'success' });
-            });
-        },
-
-        // Optimistic Update + Zen Auto-Hide
-        optimisticMarkRead(event, id) {
-            const form = event.target;
-            const btn = document.getElementById('btn-read-' + id);
-            const card = document.getElementById('note-' + id);
-            const dot = document.getElementById('unread-dot-' + id);
-
-            this.playClick();
-
-            // 1. Visual Acknowledge
-            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-700">Acknowledged</span>';
-            btn.className = 'w-full px-4 py-3.5 rounded-xl text-xs font-bold transition-all shadow-inner focus:outline-none flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 cursor-not-allowed';
-            btn.disabled = true;
-
-            card.classList.remove('border-indigo-300', 'ring-4', 'ring-indigo-50/50', 'unread-card');
-            card.classList.add('border-emerald-200', 'bg-emerald-50/10');
-            
-            if(dot) {
-                dot.classList.remove('scale-100', 'animate-pulse');
-                dot.classList.add('scale-0');
-            }
-
-            if (this.totalUnread > 0) {
-                this.totalUnread--;
-                document.getElementById('unreadCountText').innerText = this.totalUnread;
-            }
-
-            this.$dispatch('notify', { message: 'Alert officially acknowledged.', type: 'success' });
-
-            // 2. ZEN MODE (Auto Hide)
-            setTimeout(() => {
-                // Determine if we need to set Alpine visibility to false based on filters
-                // If filter is 'unread', marking it read means it should disappear.
-                if(this.filter === 'unread' || this.filter === 'all') {
-                    // Let Alpine handle the scale down & fade out via x-show binding
-                    // But we must update Alpine's internal data state for this item so `isVisible` flips to false
-                    const elData = Alpine.$data(card);
-                    if(elData) elData.isVisible = false;
-                    
-                    setTimeout(() => { this.updateVisibleCount(); }, 350);
-                }
-            }, 1500);
-
-            // 3. Save the change on the server
-            if(form.action && form.action !== window.location.href) {
-                fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .catch(err => console.error("Sync failed", err));
-            }
-        },
-
-        // Optimistic Batch Update
-        markAllReadBatch() {
-            const btn = document.getElementById('btnMarkAllRead');
-            if(btn) btn.disabled = true;
-            this.playClick();
-            this.$dispatch('notify', { message: 'Acknowledging all visible alerts...', type: 'info' });
-
-            const unreadForms = document.querySelectorAll('.unread-card form');
-            unreadForms.forEach(form => { form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); });
-
-            if(unreadForms.length === 0) {
-                 this.$dispatch('notify', { message: 'No pending alerts to acknowledge.', type: 'info' });
-                 if(btn) btn.disabled = false;
-            }
-        },
-
-    }));
-
-    // Toast Listener
-    window.addEventListener('notify', (e) => {
-        const toast = document.getElementById('toast');
-        const icon = document.getElementById('toastIcon');
-        document.getElementById('toastMsg').innerText = e.detail.message;
-        
-        if(e.detail.type === 'error') {
-            icon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-lg";
-        } else if(e.detail.type === 'info') {
-            icon.className = "fa-solid fa-circle-info text-sky-400 text-lg";
-        } else {
-            icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
-        }
-
-        toast.classList.remove('translate-y-20', 'opacity-0');
-        setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
-    });
-});
-</script>
-@endpush

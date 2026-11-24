@@ -1,159 +1,120 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Services\ReportService;
+use App\Models\Expense;
+use App\Models\Income;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
 
+/**
+ * Personal reports for a chosen period. Every figure is read from the user's
+ * own personal records; there is no demo or placeholder data.
+ */
 class ReportController extends Controller
 {
+    private const PRESETS = [
+        'this_month' => 'This month',
+        'last_month' => 'Last month',
+        '3m'         => 'Last 3 months',
+        '6m'         => 'Last 6 months',
+        'ytd'        => 'This year',
+        '12m'        => 'Last 12 months',
+    ];
+
     public function __construct()
     {
         $this->middleware('auth');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MAIN DASHBOARD (Financial Intelligence)
-    |--------------------------------------------------------------------------
-    */
-    public function index(Request $request, ReportService $service): View
+    public function index(Request $request): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         abort_unless($user instanceof User, 403);
 
-        [$from, $to] = $this->resolveDates($request);
+        [$from, $to, $preset] = $this->resolveRange($request);
 
-        try {
-            // Attempt to fetch data from the external service
-            $data = $service->summary($user, $from, $to);
+        // Previous period of equal length, for comparison
+        $days = $from->diffInDays($to) + 1;
+        $prevTo = $from->copy()->subDay()->endOfDay();
+        $prevFrom = $prevTo->copy()->subDays($days - 1)->startOfDay();
 
-            // 🚨 ENTERPRISE GUARD: Ensure chart variables exist even if service omits them
-            $data['trendLabels']  = $data['trendLabels'] ?? $this->generateDefaultLabels();
-            $data['trendIncome']  = $data['trendIncome'] ?? collect([0, 0, 0, 0, 0, 0]);
-            $data['trendExpense'] = $data['trendExpense'] ?? collect([0, 0, 0, 0, 0, 0]);
-            $data['totalIncome']  = (float) ($data['totalIncome'] ?? 0);
-            $data['totalExpense'] = (float) ($data['totalExpense'] ?? 0);
+        $income = fn () => Income::where('user_id', $user->id)->where('is_personal', true)->whereNull('family_id');
+        $expense = fn () => Expense::where('user_id', $user->id)->where('is_personal', true)->whereNull('family_id');
 
-            // 🔥 PRESENTATION GUARD: If user has absolutely zero data, inject realistic mock data 
-            // This ensures your UI never looks empty (₹0) during a demo or presentation.
-            if ($data['totalIncome'] == 0 && $data['totalExpense'] == 0) {
-                $data = [
-                    'totalIncome'  => 425000.00,
-                    'totalExpense' => 215000.00,
-                    'trendLabels'  => $this->generateDefaultLabels(),
-                    'trendIncome'  => collect([310000, 320000, 340000, 380000, 410000, 425000]),
-                    'trendExpense' => collect([190000, 180000, 240000, 210000, 205000, 215000]),
-                    'isDemo'       => true,
-                ];
-            }
+        $totalIncome  = (float) $income()->whereBetween('income_date', [$from, $to])->sum('amount');
+        $totalExpense = (float) $expense()->whereBetween('expense_date', [$from, $to])->sum('amount');
+        $prevIncome   = (float) $income()->whereBetween('income_date', [$prevFrom, $prevTo])->sum('amount');
+        $prevExpense  = (float) $expense()->whereBetween('expense_date', [$prevFrom, $prevTo])->sum('amount');
+        $incomeCount  = $income()->whereBetween('income_date', [$from, $to])->count();
+        $expenseCount = $expense()->whereBetween('expense_date', [$from, $to])->count();
 
-        } catch (Throwable $e) {
-            // 🚨 FIX: Log the actual error so you can debug it in production!
-            Log::error("ReportController Index Error for User {$user->id}: " . $e->getMessage());
-
-            // 🚨 FIX: Bulletproof fallback data that exactly matches the Blade UI requirements
-            $data = [
-                'totalIncome'  => 0.0,
-                'totalExpense' => 0.0,
-                'trendLabels'  => $this->generateDefaultLabels(),
-                'trendIncome'  => collect([0, 0, 0, 0, 0, 0]),
-                'trendExpense' => collect([0, 0, 0, 0, 0, 0]),
-                'error'        => 'Unable to load real-time report data. Displaying safe defaults.',
-            ];
+        // Month-by-month series covering the whole range
+        $incByMonth = $income()->whereBetween('income_date', [$from, $to])
+            ->selectRaw("DATE_FORMAT(income_date, '%Y-%m') as ym, SUM(amount) as total")->groupBy('ym')->pluck('total', 'ym');
+        $expByMonth = $expense()->whereBetween('expense_date', [$from, $to])
+            ->selectRaw("DATE_FORMAT(expense_date, '%Y-%m') as ym, SUM(amount) as total")->groupBy('ym')->pluck('total', 'ym');
+        $monthly = [];
+        for ($m = $from->copy()->startOfMonth(); $m->lte($to); $m->addMonth()) {
+            $key = $m->format('Y-m');
+            $monthly[] = ['label' => $m->format('M Y'), 'income' => (float) ($incByMonth[$key] ?? 0), 'expense' => (float) ($expByMonth[$key] ?? 0)];
         }
 
-        return view('user.reports.index', array_merge($data, [
-            'from' => $from,
-            'to'   => $to,
-        ]));
-    }
+        $expenseCategories = $expense()->whereBetween('expense_date', [$from, $to])
+            ->select(DB::raw("COALESCE(NULLIF(category, ''), 'Uncategorized') as category"), DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as n'))
+            ->groupBy('category')->orderByDesc('total')->get();
+        $incomeCategories = $income()->whereBetween('income_date', [$from, $to])
+            ->select(DB::raw("COALESCE(NULLIF(category, ''), 'Uncategorized') as category"), DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as n'))
+            ->groupBy('category')->orderByDesc('total')->get();
 
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORY REPORT (Diversification Matrix)
-    |--------------------------------------------------------------------------
-    */
-    public function categories(Request $request, ReportService $service): View
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        abort_unless($user instanceof User, 403);
+        $largestExpenses = $expense()->whereBetween('expense_date', [$from, $to])->orderByDesc('amount')->limit(5)->get();
+        $largestIncome   = $income()->whereBetween('income_date', [$from, $to])->orderByDesc('amount')->limit(5)->get();
 
-        [$from, $to] = $this->resolveDates($request);
-
-        try {
-            $categories = $service->categoryBreakdown($user, $from, $to);
-        } catch (Throwable $e) {
-            Log::error("ReportController Categories Error for User {$user->id}: " . $e->getMessage());
-            $categories = collect();
-        }
-
-        return view('user.reports.categories', [
-            'categories' => $categories,
-            'from'       => $from,
-            'to'         => $to,
+        return view('user.reports.index', [
+            'from' => $from, 'to' => $to, 'preset' => $preset, 'presets' => self::PRESETS,
+            'prevFrom' => $prevFrom, 'prevTo' => $prevTo,
+            'totalIncome' => $totalIncome, 'totalExpense' => $totalExpense,
+            'prevIncome' => $prevIncome, 'prevExpense' => $prevExpense,
+            'incomeCount' => $incomeCount, 'expenseCount' => $expenseCount,
+            'monthly' => $monthly,
+            'expenseCategories' => $expenseCategories, 'incomeCategories' => $incomeCategories,
+            'largestExpenses' => $largestExpenses, 'largestIncome' => $largestIncome,
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATE RESOLVER (SAFE)
-    |--------------------------------------------------------------------------
-    */
-    private function resolveDates(Request $request): array
-    {
-        try {
-            $from = $request->filled('from')
-                ? Carbon::parse($request->input('from'))->startOfDay()
-                : now()->subDays(30)->startOfDay();
-
-            $to = $request->filled('to')
-                ? Carbon::parse($request->input('to'))->endOfDay()
-                : now()->endOfDay();
-
-            // 🚨 FIX: Prevent logical errors where 'from' is after 'to'
-            if ($from->gt($to)) {
-                $from = $to->copy()->subDays(30)->startOfDay();
-            }
-
-        } catch (Throwable $e) {
-            // Fallback if invalid input (e.g., user types text into the date URL parameter)
-            $from = now()->subDays(30)->startOfDay();
-            $to   = now()->endOfDay();
-        }
-
-        return [$from, $to];
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | UI HELPER: DEFAULT CHART LABELS
-    |--------------------------------------------------------------------------
-    */
     /**
-     * Generates a continuous 6-month trailing array of labels (e.g., Oct, Nov, Dec, Jan, Feb, Mar)
-     * so the UI charts never break or render without an X-axis.
+     * @return array{0: Carbon, 1: Carbon, 2: string}
      */
-    private function generateDefaultLabels()
+    private function resolveRange(Request $request): array
     {
-        return collect([
-            now()->subMonths(5)->format('M'), 
-            now()->subMonths(4)->format('M'), 
-            now()->subMonths(3)->format('M'), 
-            now()->subMonths(2)->format('M'), 
-            now()->subMonths(1)->format('M'), 
-            now()->format('M')
-        ]);
+        $now = now();
+        $preset = $request->input('range');
+
+        if ($request->filled('from') || $request->filled('to')) {
+            try {
+                $from = $request->filled('from') ? Carbon::parse($request->input('from'))->startOfDay() : $now->copy()->subMonths(5)->startOfMonth();
+                $to = $request->filled('to') ? Carbon::parse($request->input('to'))->endOfDay() : $now->copy()->endOfDay();
+                if ($from->gt($to)) { [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()]; }
+                return [$from, $to, 'custom'];
+            } catch (Throwable $e) {
+                // fall through to the default preset on invalid input
+            }
+        }
+
+        switch ($preset) {
+            case 'this_month': return [$now->copy()->startOfMonth(), $now->copy()->endOfDay(), $preset];
+            case 'last_month': return [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth(), $preset];
+            case '3m':         return [$now->copy()->subMonths(2)->startOfMonth(), $now->copy()->endOfDay(), $preset];
+            case 'ytd':        return [$now->copy()->startOfYear(), $now->copy()->endOfDay(), $preset];
+            case '12m':        return [$now->copy()->subMonths(11)->startOfMonth(), $now->copy()->endOfDay(), $preset];
+            default:           return [$now->copy()->subMonths(5)->startOfMonth(), $now->copy()->endOfDay(), '6m'];
+        }
     }
 }

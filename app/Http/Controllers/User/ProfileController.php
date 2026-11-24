@@ -43,7 +43,8 @@ class ProfileController extends Controller
         $savings      = $totalIncome - $totalExpense;
 
         // 2. Cryptographic Audit Log
-        $activities = Activity::where('causer_id', $user->id)
+        // The app logs user actions in its own activities table (user_id, description)
+        $activities = \App\Models\Activity::where('user_id', $user->id)
             ->latest('id')
             ->limit(15)
             ->get();
@@ -61,7 +62,7 @@ class ProfileController extends Controller
                         'device'   => $this->parseDevice($session->user_agent),
                         'browser'  => $this->parseBrowser($session->user_agent),
                         'ip'       => $session->ip_address,
-                        'location' => 'Encrypted Node', // Can be replaced with GeoIP package
+                        'location' => null,
                         'active'   => $isActive,
                         'time'     => Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
                         'icon'     => str_contains(strtolower($session->user_agent), 'mobi') ? 'fa-mobile-screen' : 'fa-laptop',
