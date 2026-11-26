@@ -158,7 +158,7 @@ final class BudgetService
             . "Rules: one or two sentences, at most 200 characters, plain text (no markdown, no emoji, no greeting). Mention the percentage and days left, "
             . "and give one practical tip for {$cat} spending. Use the ₹ sign.";
 
-        $ai = $this->gemini->complete($prompt, 400, 0.5, 6);
+        $ai = $this->gemini->complete($prompt, 1024, 0.5, 6);
         $text = $ai['success'] ? trim(preg_replace('/\s+/', ' ', preg_replace('/[*_#`]+/', '', $ai['content']))) : '';
 
         // Accept the AI text only if it is short enough and mentions the real percentage.

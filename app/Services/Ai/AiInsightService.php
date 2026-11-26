@@ -71,7 +71,7 @@ final class AiInsightService
             ];
         }
 
-        $key = 'ai.summary.' . $user->id . '.' . md5(json_encode($d));
+        $key = 'ai.summary.v2.' . $user->id . '.' . md5(json_encode($d));
 
         return Cache::remember($key, now()->addHours(6), function () use ($d, $user) {
             $prompt = "You are FinanceAI, a friendly personal finance advisor for people in India.\n"
@@ -81,8 +81,8 @@ final class AiInsightService
                 . "User's first name: " . Str::of($user->name)->before(' ') . "\n"
                 . $this->describeMonth($d);
 
-            $ai = $this->gemini->complete($prompt, 1024, 0.4, 12);
-            $text = $ai['success'] ? $this->plain($ai['content']) : '';
+            $ai = $this->gemini->complete($prompt, 2048, 0.4, 12);
+            $text = $ai['success'] ? $this->wholeSentences($this->plain($ai['content'])) : '';
 
             return $text !== ''
                 ? ['text' => $text, 'source' => 'gemini']
@@ -437,8 +437,27 @@ final class AiInsightService
     private function plain(string $text): string
     {
         $text = preg_replace('/[*_#`>]+/', '', $text);
-        $text = trim(preg_replace('/\s+/', ' ', $text));
-        return Str::limit($text, 600);
+        return trim(preg_replace('/\s+/', ' ', $text));
+    }
+
+    /**
+     * Keep only complete sentences, so a summary never ends mid-sentence ("…₹4,420. You saved").
+     * Returns '' when there is no complete sentence, and the caller then uses the rule-based text.
+     */
+    private function wholeSentences(string $text, int $maxChars = 600): string
+    {
+        $text = trim($text);
+        if (mb_strlen($text) > $maxChars) {
+            $text = mb_substr($text, 0, $maxChars);
+        }
+        if (preg_match('/[.!?]["”’)]*$/u', $text)) {
+            return $text;
+        }
+        // Cut back to the last sentence end. A dot inside an amount (₹1,234.50) is not a sentence end.
+        if (preg_match('/^.*[.!?]["”’)]*(?=\s)/us', $text, $m)) {
+            return trim($m[0]);
+        }
+        return '';
     }
 
     private function toHtml(string $markdown): string

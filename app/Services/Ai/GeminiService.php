@@ -133,9 +133,16 @@ final class GeminiService
 
             if ($response->successful()) {
                 $data = $response->json();
-                $content = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                if (($data['candidates'][0]['finishReason'] ?? '') === 'MAX_TOKENS') {
-                    Log::info("Gemini {$model} stopped at the token limit (" . ($data['usageMetadata']['thoughtsTokenCount'] ?? 0) . ' thinking tokens)');
+                // The answer can arrive split over several parts; join them all (skipping "thought" parts).
+                $content = collect($data['candidates'][0]['content']['parts'] ?? [])
+                    ->reject(fn ($p) => !empty($p['thought']))
+                    ->pluck('text')->filter()->implode('');
+                $finish = $data['candidates'][0]['finishReason'] ?? '';
+
+                // A reply that stopped early (token limit, safety, etc.) ends mid-sentence — never show it.
+                if ($finish !== '' && $finish !== 'STOP') {
+                    Log::info("Gemini {$model} reply was cut off ({$finish}, " . ($data['usageMetadata']['thoughtsTokenCount'] ?? 0) . ' thinking tokens)');
+                    return ['success' => false, 'content' => '', 'tokens_used' => 0, 'model' => $model, 'error' => 'incomplete_' . strtolower($finish), 'retryable' => true];
                 }
 
                 if ($content === '') {
