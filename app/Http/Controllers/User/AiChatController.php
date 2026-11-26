@@ -84,8 +84,8 @@ class AiChatController extends Controller
         // Build real context data for sidebar
         $snapshot = $user->financial_snapshot;
         $context = [
-            'net_worth'    => '₹' . number_format($snapshot['net_worth'], 0),
-            'monthly_burn' => '₹' . number_format($snapshot['monthly_expense'], 0),
+            'net_worth'    => '₹' . inr_number($snapshot['net_worth'], 0),
+            'monthly_burn' => '₹' . inr_number($snapshot['monthly_expense'], 0),
             'saving_rate'  => $snapshot['saving_rate'] . '%',
             'risk_status'  => $this->getHealthLabel($snapshot['saving_rate']),
             'runway'       => $snapshot['runway_months'] . ' mo',
@@ -379,15 +379,15 @@ class AiChatController extends Controller
 
                 $table = "Here is your **Live Financial Telemetry** for the trailing 30 days:\n\n" .
                     "| Metric | Amount | Status |\n|---|---|---|\n" .
-                    "| **Inflow** | ₹" . number_format($snapshot['monthly_income'], 2) . " | 📈 |\n" .
-                    "| **Outflow** | ₹" . number_format($snapshot['monthly_expense'], 2) . " | 📉 |\n" .
-                    "| **Net Margin** | ₹" . number_format($snapshot['monthly_income'] - $snapshot['monthly_expense'], 2) . " | {$healthStatus} |\n\n" .
-                    "**Global Net Asset Value:** ₹" . number_format($snapshot['net_worth'], 2);
+                    "| **Inflow** | ₹" . inr_number($snapshot['monthly_income'], 2) . " | 📈 |\n" .
+                    "| **Outflow** | ₹" . inr_number($snapshot['monthly_expense'], 2) . " | 📉 |\n" .
+                    "| **Net Margin** | ₹" . inr_number($snapshot['monthly_income'] - $snapshot['monthly_expense'], 2) . " | {$healthStatus} |\n\n" .
+                    "**Global Net Asset Value:** ₹" . inr_number($snapshot['net_worth'], 2);
 
                 if (!empty($snapshot['top_categories'])) {
                     $table .= "\n\n**Top Expense Categories (30d):**\n";
                     foreach ($snapshot['top_categories'] as $cat => $amount) {
-                        $table .= "- **" . ucfirst($cat) . "**: ₹" . number_format((float)$amount, 2) . "\n";
+                        $table .= "- **" . ucfirst($cat) . "**: ₹" . inr_number((float)$amount, 2) . "\n";
                     }
                 }
 
@@ -399,21 +399,21 @@ class AiChatController extends Controller
                 $gap = $idealSaving - $currentSaving;
 
                 $response = "**Rolling 30-Day Budget Strategy**\n\n";
-                $response .= "Standard models suggest retaining **20%** of inflow. Your target: **₹" . number_format($idealSaving, 2) . "**\n\n";
+                $response .= "Standard models suggest retaining **20%** of inflow. Your target: **₹" . inr_number($idealSaving, 2) . "**\n\n";
 
                 if ($currentSaving >= $idealSaving) {
-                    $response .= "🚀 **Excellent!** You're exceeding your savings target by **₹" . number_format($currentSaving - $idealSaving, 2) . "**.\n\n";
+                    $response .= "🚀 **Excellent!** You're exceeding your savings target by **₹" . inr_number($currentSaving - $idealSaving, 2) . "**.\n\n";
                     $response .= "Consider allocating surplus into:\n";
                     $response .= "- **Index Funds (NIFTY 50)** — Long-term growth\n";
                     $response .= "- **PPF/NPS** — Tax-efficient retirement savings\n";
                     $response .= "- **Liquid Funds** — Emergency buffer";
                 } else {
-                    $response .= "⚠️ **Gap: ₹" . number_format(abs($gap), 2) . "** short of the 20% benchmark.\n\n";
+                    $response .= "⚠️ **Gap: ₹" . inr_number(abs($gap), 2) . "** short of the 20% benchmark.\n\n";
                     $response .= "**Recommendations:**\n";
                     if (!empty($snapshot['top_categories'])) {
                         $topCat = array_key_first($snapshot['top_categories']);
                         $topAmt = reset($snapshot['top_categories']);
-                        $response .= "- Audit **" . ucfirst($topCat) . "** (₹" . number_format((float)$topAmt, 2) . "/mo) — your #1 spend\n";
+                        $response .= "- Audit **" . ucfirst($topCat) . "** (₹" . inr_number((float)$topAmt, 2) . "/mo) — your #1 spend\n";
                     }
                     $response .= "- Review recurring subscriptions\n";
                     $response .= "- Set up auto-transfer to savings account";
@@ -429,10 +429,10 @@ class AiChatController extends Controller
 
                 return "**Risk Assessment & Runway Model**\n\n" .
                     "| Metric | Value |\n|---|---|\n" .
-                    "| **30-Day Burn Rate** | ₹" . number_format($snapshot['monthly_expense'], 2) . " |\n" .
+                    "| **30-Day Burn Rate** | ₹" . inr_number($snapshot['monthly_expense'], 2) . " |\n" .
                     "| **Financial Runway** | {$snapshot['runway_months']} months |\n" .
-                    "| **Emergency Reserve Target (6 Mo)** | ₹" . number_format($idealEmergency, 2) . " |\n" .
-                    "| **Current Net Worth** | ₹" . number_format($snapshot['net_worth'], 2) . " |\n" .
+                    "| **Emergency Reserve Target (6 Mo)** | ₹" . inr_number($idealEmergency, 2) . " |\n" .
+                    "| **Current Net Worth** | ₹" . inr_number($snapshot['net_worth'], 2) . " |\n" .
                     "| **Savings Rate** | {$snapshot['saving_rate']}% |\n\n" .
                     ($snapshot['runway_months'] < 3
                         ? "⚠️ **Warning:** Your runway is below the recommended 3-month minimum. Build your emergency fund before investing."
@@ -450,16 +450,16 @@ class AiChatController extends Controller
                     $amount = (float) str_replace(',', '', $matches[1]);
                 }
 
-                return "**Investment Allocation for ₹" . number_format($amount) . "**\n\n" .
+                return "**Investment Allocation for ₹" . inr_number($amount) . "**\n\n" .
                     "Based on your profile: **{$allocation['label']}**\n\n" .
                     "| Asset Class | Allocation | Amount |\n|---|---|---|\n" .
-                    "| **Equity (NIFTY Index Funds)** | {$allocation['equity']}% | ₹" . number_format($amount * $allocation['equity'] / 100) . " |\n" .
-                    "| **Debt (PPF / Debt MFs)** | {$allocation['debt']}% | ₹" . number_format($amount * $allocation['debt'] / 100) . " |\n" .
-                    "| **Gold (Gold ETF / SGBs)** | {$allocation['gold']}% | ₹" . number_format($amount * $allocation['gold'] / 100) . " |\n" .
-                    "| **Liquid (Savings / Liquid MF)** | {$allocation['liquid']}% | ₹" . number_format($amount * $allocation['liquid'] / 100) . " |\n\n" .
+                    "| **Equity (NIFTY Index Funds)** | {$allocation['equity']}% | ₹" . inr_number($amount * $allocation['equity'] / 100) . " |\n" .
+                    "| **Debt (PPF / Debt MFs)** | {$allocation['debt']}% | ₹" . inr_number($amount * $allocation['debt'] / 100) . " |\n" .
+                    "| **Gold (Gold ETF / SGBs)** | {$allocation['gold']}% | ₹" . inr_number($amount * $allocation['gold'] / 100) . " |\n" .
+                    "| **Liquid (Savings / Liquid MF)** | {$allocation['liquid']}% | ₹" . inr_number($amount * $allocation['liquid'] / 100) . " |\n\n" .
                     "**Key Considerations:**\n" .
                     "- Your emergency runway: **{$snapshot['runway_months']} months**\n" .
-                    "- Monthly savings capacity: **₹" . number_format(max(0, $snapshot['monthly_income'] - $snapshot['monthly_expense'])) . "**\n\n" .
+                    "- Monthly savings capacity: **₹" . inr_number(max(0, $snapshot['monthly_income'] - $snapshot['monthly_expense'])) . "**\n\n" .
                     ($snapshot['runway_months'] < 3
                         ? "⚠️ **Priority:** Build emergency fund (3-6 months) before investing in equity.\n\n"
                         : "") .
@@ -480,7 +480,7 @@ class AiChatController extends Controller
                 $table = "**🎯 Your Active Financial Goals**\n\n| Goal | Progress | Target | Monthly Needed |\n|---|---|---|---|\n";
                 foreach ($goals as $g) {
                     $status = $g->isOnTrack() ? '✅' : '⚠️';
-                    $table .= "| {$status} {$g->title} | {$g->progress_percent}% | ₹" . number_format($g->target_amount) . " | ₹" . number_format($g->monthly_required ?? 0) . " |\n";
+                    $table .= "| {$status} {$g->title} | {$g->progress_percent}% | ₹" . inr_number($g->target_amount) . " | ₹" . inr_number($g->monthly_required ?? 0) . " |\n";
                 }
                 return $table;
 
@@ -511,8 +511,8 @@ class AiChatController extends Controller
         return "👋 **Welcome to FinanceAI, {$firstName}.**\n\n" .
                "I've synchronized with your financial ledger. Here's your quick snapshot:\n\n" .
                "| Metric | Value |\n|---|---|\n" .
-               "| **Net Worth** | ₹" . number_format($snapshot['net_worth'], 2) . " |\n" .
-               "| **Monthly Savings** | ₹" . number_format(max(0, $snapshot['monthly_income'] - $snapshot['monthly_expense']), 2) . " |\n" .
+               "| **Net Worth** | ₹" . inr_number($snapshot['net_worth'], 2) . " |\n" .
+               "| **Monthly Savings** | ₹" . inr_number(max(0, $snapshot['monthly_income'] - $snapshot['monthly_expense']), 2) . " |\n" .
                "| **Savings Rate** | {$snapshot['saving_rate']}% |\n" .
                "| **Financial Health** | {$health} |\n\n" .
                "**AI Engine**: {$aiMode} · **Plan**: {$user->current_plan_name}\n\n" .

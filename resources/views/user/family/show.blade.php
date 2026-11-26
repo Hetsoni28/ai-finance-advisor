@@ -4,8 +4,8 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
-    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
+    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . inr_number(abs((float) $v), 0);
     $me = auth()->user();
     $canManage = $me->can('update', $family);
     $myRole = strtolower(optional($members->firstWhere('id', $me->id))->pivot->role ?? 'member');

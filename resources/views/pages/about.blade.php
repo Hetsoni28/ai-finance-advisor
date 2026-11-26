@@ -17,7 +17,7 @@
         ['T', 'Head of Technology', 'Infrastructure', 'Keeping the platform fast, secure and reliable.'],
         ['G', 'Head of Growth', 'Users & Partnerships', 'Bringing FinanceAI to more households and listening to what they need next.'],
     ];
-    $fmt = fn ($n) => number_format((int) $n);
+    $fmt = fn ($n) => inr_number((int) $n);
 @endphp
 <div class="paper">
 

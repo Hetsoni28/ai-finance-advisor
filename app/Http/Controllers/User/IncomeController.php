@@ -155,7 +155,7 @@ class IncomeController extends Controller
                     'user_id'     => $user->id,
                     'description' => ($isPersonal ? 'Personal' : 'Family') . 
                                      " income added: {$income->source} (+₹" . 
-                                     number_format($income->amount, 2) . ")",
+                                     inr_number($income->amount, 2) . ")",
                 ]);
             });
 
@@ -215,7 +215,7 @@ class IncomeController extends Controller
                 Activity::create([
                     'user_id'     => $user->id,
                     'description' => "Income record modified: {$income->source} (+₹" . 
-                                     number_format($income->amount, 2) . ")",
+                                     inr_number($income->amount, 2) . ")",
                 ]);
             });
 

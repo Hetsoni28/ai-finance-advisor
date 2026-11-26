@@ -64,7 +64,7 @@ class Plan extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return $this->isFree() ? 'Free' : '₹' . number_format((float)$this->price, 0);
+        return $this->isFree() ? 'Free' : '₹' . inr_number((float)$this->price, 0);
     }
 
     /*

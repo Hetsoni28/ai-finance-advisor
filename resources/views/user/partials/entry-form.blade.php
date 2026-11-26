@@ -20,7 +20,7 @@
     $families = $cfg['families'] ?? collect();
     $accent = $isIncome ? 'emerald' : 'rose';
     $noun = $isIncome ? 'income' : 'expense';
-    $inr = fn ($v) => '₹' . number_format((float) $v, 0);
+    $inr = fn ($v) => '₹' . inr_number((float) $v, 0);
 @endphp
 
 <div class="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">

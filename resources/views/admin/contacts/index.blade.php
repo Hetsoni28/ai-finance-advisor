@@ -14,9 +14,9 @@
     <x-admin.flash />
 
     <div class="grid grid-cols-3 gap-3">
-        <x-admin.stat label="Total messages" :value="number_format($totalCount)" icon="fa-envelope" tone="indigo" />
-        <x-admin.stat label="Unread" :value="number_format($unreadCount)" icon="fa-envelope-open" tone="amber" />
-        <x-admin.stat label="Received today" :value="number_format($todayCount)" icon="fa-calendar-day" tone="sky" />
+        <x-admin.stat label="Total messages" :value="inr_number($totalCount)" icon="fa-envelope" tone="indigo" />
+        <x-admin.stat label="Unread" :value="inr_number($unreadCount)" icon="fa-envelope-open" tone="amber" />
+        <x-admin.stat label="Received today" :value="inr_number($todayCount)" icon="fa-calendar-day" tone="sky" />
     </div>
 
     <x-admin.card flush>
@@ -69,7 +69,7 @@
                 @endforeach
             </ul>
             <div class="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                <span>Showing {{ $contacts->firstItem() }}–{{ $contacts->lastItem() }} of {{ number_format($contacts->total()) }}</span>
+                <span>Showing {{ $contacts->firstItem() }}–{{ $contacts->lastItem() }} of {{ inr_number($contacts->total()) }}</span>
                 @if($contacts->hasPages())<div>{{ $contacts->links('pagination::simple-tailwind') }}</div>@endif
             </div>
         @endif

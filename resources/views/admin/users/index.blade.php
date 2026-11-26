@@ -34,11 +34,11 @@
 
     <div class="grid gap-3 lg:grid-cols-5">
         <div class="grid grid-cols-2 gap-3 lg:col-span-3">
-            <x-admin.stat label="Total users" :value="number_format($stats['total'])" icon="fa-users" tone="indigo" />
-            <x-admin.stat label="Active" :value="number_format($stats['active'])" icon="fa-user-check" tone="emerald"
+            <x-admin.stat label="Total users" :value="inr_number($stats['total'])" icon="fa-users" tone="indigo" />
+            <x-admin.stat label="Active" :value="inr_number($stats['active'])" icon="fa-user-check" tone="emerald"
                 :hint="$stats['total'] ? round($stats['active'] / $stats['total'] * 100) . '% of users' : null" />
-            <x-admin.stat label="Suspended" :value="number_format($stats['blocked'])" icon="fa-user-lock" tone="rose" />
-            <x-admin.stat label="Admins" :value="number_format($stats['admins'])" icon="fa-user-shield" tone="amber" />
+            <x-admin.stat label="Suspended" :value="inr_number($stats['blocked'])" icon="fa-user-lock" tone="rose" />
+            <x-admin.stat label="Admins" :value="inr_number($stats['admins'])" icon="fa-user-shield" tone="amber" />
         </div>
         <x-admin.card class="lg:col-span-2" title="Sign-ups" description="New accounts per week · last 8 weeks">
             <div class="relative h-[150px]">
@@ -62,7 +62,7 @@
                    @if($curStatus === $key) aria-current="page" @endif
                    class="-mb-px inline-flex items-center gap-2 border-b-2 px-3 pb-2.5 pt-1.5 text-sm font-medium {{ $curStatus === $key ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-800' }}">
                     {{ $label }}
-                    <span class="rounded-full px-1.5 text-[11px] tabular-nums {{ $curStatus === $key ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600' }}">{{ number_format($count) }}</span>
+                    <span class="rounded-full px-1.5 text-[11px] tabular-nums {{ $curStatus === $key ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600' }}">{{ inr_number($count) }}</span>
                 </a>
             @endforeach
         </nav>
@@ -120,7 +120,7 @@
                                 <td class="px-4 py-3">@if($u->isAdmin())<x-admin.badge tone="indigo">Admin</x-admin.badge>@else<x-admin.badge>User</x-admin.badge>@endif</td>
                                 <td class="px-4 py-3">@if($u->is_blocked)<x-admin.badge tone="rose" dot>Suspended</x-admin.badge>@else<x-admin.badge tone="emerald" dot>Active</x-admin.badge>@endif</td>
                                 <td class="px-4 py-3 text-zinc-700">{{ $u->current_plan_name }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums text-zinc-700" title="{{ $u->incomes_count }} income · {{ $u->expenses_count }} expense">{{ number_format($u->incomes_count + $u->expenses_count) }}</td>
+                                <td class="px-4 py-3 text-right tabular-nums text-zinc-700" title="{{ $u->incomes_count }} income · {{ $u->expenses_count }} expense">{{ inr_number($u->incomes_count + $u->expenses_count) }}</td>
                                 <td class="px-4 py-3 text-zinc-500" title="{{ $u->created_at }}">{{ $u->created_at?->format('d M Y') }}</td>
                                 <td class="px-4 py-3 sm:px-5">
                                     @if($isMe)
@@ -150,7 +150,7 @@
                 </table>
             </div>
             <div class="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                <span>Showing {{ $users->firstItem() }}–{{ $users->lastItem() }} of {{ number_format($users->total()) }}</span>
+                <span>Showing {{ $users->firstItem() }}–{{ $users->lastItem() }} of {{ inr_number($users->total()) }}</span>
                 @if($users->hasPages())<div>{{ $users->links('pagination::simple-tailwind') }}</div>@endif
             </div>
         @endif

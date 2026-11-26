@@ -11,7 +11,7 @@
         'success' => ['fa-circle-check', 'bg-emerald-50 text-emerald-600', 'border-l-emerald-500'],
     ];
     $unread = $insights->where('is_read', false)->count();
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
 @endphp
 
 <div class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"

@@ -154,7 +154,7 @@ class ExpenseController extends Controller
                     'user_id'     => $user->id,
                     'description' => ($isPersonal ? 'Personal' : 'Family') . 
                                      ' expense recorded: ' . $expense->title . 
-                                     ' (₹' . number_format($expense->amount, 2) . ')',
+                                     ' (₹' . inr_number($expense->amount, 2) . ')',
                 ]);
             });
 

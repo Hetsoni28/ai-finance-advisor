@@ -26,7 +26,7 @@
             <dl class="flex flex-wrap gap-x-10 gap-y-3 font-mono text-xs uppercase tracking-wider">
                 <div class="flex gap-2"><dt class="text-slate-400">Plans:</dt><dd class="text-slate-200">{{ $plans->count() }}</dd></div>
                 @if($paidFrom)
-                    <div class="flex gap-2"><dt class="text-slate-400">Paid from:</dt><dd class="text-slate-200">₹{{ number_format($paidFrom) }}/mo</dd></div>
+                    <div class="flex gap-2"><dt class="text-slate-400">Paid from:</dt><dd class="text-slate-200">₹{{ inr_number($paidFrom) }}/mo</dd></div>
                 @endif
                 <div class="flex gap-2"><dt class="text-slate-400">Card to start:</dt><dd class="text-slate-200">Not needed</dd></div>
             </dl>
@@ -59,7 +59,7 @@
                                 @else
                                     <p class="flex items-end gap-1">
                                         <span class="text-2xl font-bold mb-1.5 text-slate-400">₹</span>
-                                        <span class="text-6xl font-black tracking-tighter tabular-nums {{ $hl ? 'text-white' : 'text-slate-900' }}">{{ number_format((float) $plan->price) }}</span>
+                                        <span class="text-6xl font-black tracking-tighter tabular-nums {{ $hl ? 'text-white' : 'text-slate-900' }}">{{ inr_number((float) $plan->price) }}</span>
                                         <span class="text-sm font-semibold mb-2 text-slate-400">/month</span>
                                     </p>
                                     <p class="mt-3 text-sm {{ $hl ? 'text-slate-400' : 'text-slate-500' }}">Renews every {{ $plan->duration_days ?: 30 }} days. Cancel any time.</p>

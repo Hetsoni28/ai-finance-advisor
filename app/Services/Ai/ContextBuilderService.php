@@ -59,11 +59,11 @@ final class ContextBuilderService
         $lines = [
             "## User Financial Profile",
             "- **Name**: " . explode(' ', $user->name ?? 'User')[0],
-            "- **Net Worth (all time)**: ₹" . number_format($snapshot['net_worth'], 2),
-            "- **Lifetime Income**: ₹" . number_format($snapshot['total_income'], 2),
-            "- **Lifetime Expenses**: ₹" . number_format($snapshot['total_expense'], 2),
-            "- **Monthly Income (30d)**: ₹" . number_format($snapshot['monthly_income'], 2),
-            "- **Monthly Expenses (30d)**: ₹" . number_format($snapshot['monthly_expense'], 2),
+            "- **Net Worth (all time)**: ₹" . inr_number($snapshot['net_worth'], 2),
+            "- **Lifetime Income**: ₹" . inr_number($snapshot['total_income'], 2),
+            "- **Lifetime Expenses**: ₹" . inr_number($snapshot['total_expense'], 2),
+            "- **Monthly Income (30d)**: ₹" . inr_number($snapshot['monthly_income'], 2),
+            "- **Monthly Expenses (30d)**: ₹" . inr_number($snapshot['monthly_expense'], 2),
             "- **Savings Rate**: {$snapshot['saving_rate']}%",
             "- **Financial Runway**: {$snapshot['runway_months']} months",
             "- **Risk Tolerance**: {$snapshot['risk_tolerance']}",
@@ -74,7 +74,7 @@ final class ContextBuilderService
         if (!empty($snapshot['top_categories'])) {
             $lines[] = "\n### Top Expense Categories (Last 30 Days)";
             foreach ($snapshot['top_categories'] as $cat => $amount) {
-                $lines[] = "- **" . ucfirst($cat) . "**: ₹" . number_format((float) $amount, 2);
+                $lines[] = "- **" . ucfirst($cat) . "**: ₹" . inr_number((float) $amount, 2);
             }
         }
 
@@ -109,11 +109,11 @@ final class ContextBuilderService
         foreach ($goals as $goal) {
             $status = $goal->isOnTrack() ? '✅ On Track' : '⚠️ Behind Schedule';
             $lines[] = "- **{$goal->title}** ({$goal->category}): ₹" .
-                       number_format($goal->current_amount) . " / ₹" .
-                       number_format($goal->target_amount) .
+                       inr_number($goal->current_amount) . " / ₹" .
+                       inr_number($goal->target_amount) .
                        " ({$goal->progress_percent}% — {$status})";
             if ($goal->monthly_required) {
-                $lines[] = "  → Needs ₹" . number_format($goal->monthly_required) . "/month to stay on track";
+                $lines[] = "  → Needs ₹" . inr_number($goal->monthly_required) . "/month to stay on track";
             }
         }
 

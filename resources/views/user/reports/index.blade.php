@@ -4,8 +4,8 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
-    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
+    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . inr_number(abs((float) $v), 0);
     $pct = fn ($now, $prev) => $prev > 0 ? round(($now - $prev) / $prev * 100) : null;
     $net = $totalIncome - $totalExpense;
     $prevNet = $prevIncome - $prevExpense;

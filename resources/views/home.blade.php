@@ -648,7 +648,7 @@
                         @if($featured)<span class="font-mono text-[11px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md bg-gradient-to-br from-indigo-600 to-violet-600">Popular</span>@endif
                     </div>
                     <p class="mt-6 flex items-baseline gap-1.5">
-                        <span class="text-5xl font-black tracking-tight tabular-nums">₹{{ number_format((float) $plan->price) }}</span>
+                        <span class="text-5xl font-black tracking-tight tabular-nums">₹{{ inr_number((float) $plan->price) }}</span>
                         <span class="text-sm {{ $featured ? 'text-slate-400' : 'text-slate-500' }}">{{ $paid ? '/ ' . ($plan->duration_days ?: 30) . ' days' : 'forever' }}</span>
                     </p>
                     <div class="my-7 h-px {{ $featured ? 'bg-white/10' : 'bg-slate-200' }}"></div>

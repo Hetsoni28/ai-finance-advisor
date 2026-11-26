@@ -20,7 +20,7 @@
     }
     $monthKept   = $monthIn - $monthOut;
     $spentShare  = $monthIn > 0 ? min(100, round($monthOut / $monthIn * 100)) : ($monthOut > 0 ? 100 : 0);
-    $inr = fn ($v) => '₹' . number_format(abs($v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs($v), 0);
 
     $groups = [
         'Money' => [

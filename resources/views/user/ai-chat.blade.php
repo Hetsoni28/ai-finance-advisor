@@ -122,7 +122,7 @@
                     @forelse($activeGoals as $g)
                         @php $p = $g->target_amount > 0 ? min(100, round($g->current_amount / $g->target_amount * 100)) : 0; @endphp
                         <li>
-                            <div class="flex justify-between gap-2 text-sm"><span class="truncate font-medium text-zinc-800">{{ $g->title }}</span><span class="shrink-0 tabular-nums text-zinc-500">₹{{ number_format($g->target_amount) }}</span></div>
+                            <div class="flex justify-between gap-2 text-sm"><span class="truncate font-medium text-zinc-800">{{ $g->title }}</span><span class="shrink-0 tabular-nums text-zinc-500">₹{{ inr_number($g->target_amount) }}</span></div>
                             <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100"><div class="h-full rounded-full bg-emerald-500" style="width: {{ $p }}%"></div></div>
                         </li>
                     @empty

@@ -419,7 +419,7 @@ final class AiInsightService
 
     private function inr(float $v): string
     {
-        return ($v < 0 ? '-' : '') . '₹' . number_format(abs($v), 0);
+        return ($v < 0 ? '-' : '') . '₹' . inr_number(abs($v), 0);
     }
 
     private function pct(float $now, float $before): string

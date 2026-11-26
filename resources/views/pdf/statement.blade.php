@@ -40,7 +40,7 @@
     </tr>
     <tr>
         <td class="k">Period covered</td><td class="v">{{ $period }}</td>
-        <td class="k">Entries</td><td class="v">{{ number_format($summary['count']) }}</td>
+        <td class="k">Entries</td><td class="v">{{ inr_number($summary['count']) }}</td>
     </tr>
 </table>
 
@@ -50,7 +50,7 @@
 
 <table class="cards">
     <tr>
-        <td class="card"><div class="k">Total {{ $isExpense ? 'spent' : 'received' }}</div><div class="v">{{ $inr($summary['total']) }}</div><div class="n">{{ number_format($summary['count']) }} entries</div></td>
+        <td class="card"><div class="k">Total {{ $isExpense ? 'spent' : 'received' }}</div><div class="v">{{ $inr($summary['total']) }}</div><div class="n">{{ inr_number($summary['count']) }} entries</div></td>
         <td class="card"><div class="k">This month</div><div class="v">{{ $inr($summary['thisMonth']) }}</div><div class="n">{{ now()->format('F Y') }}</div></td>
         <td class="card"><div class="k">Average entry</div><div class="v">{{ $inr($summary['average']) }}</div><div class="n">per {{ strtolower($label) }}</div></td>
         <td class="card"><div class="k">Largest entry</div><div class="v">{{ $inr($summary['highest']) }}</div><div class="n">{{ \Illuminate\Support\Str::limit($summary['highestTitle'], 26) }}</div></td>
@@ -67,11 +67,11 @@
             <td><strong>{{ $c->category ?: 'Others' }}</strong></td>
             <td class="r">{{ $c->entries }}</td>
             <td class="r">{{ $inr($c->total) }}</td>
-            <td class="r">{{ $summary['total'] > 0 ? number_format($c->total / $summary['total'] * 100, 1) : '0.0' }}%</td>
+            <td class="r">{{ $summary['total'] > 0 ? inr_number($c->total / $summary['total'] * 100, 1) : '0.0' }}%</td>
             <td><div class="bar {{ $isExpense ? '' : 'green' }}"><div style="width: {{ round($c->total / $maxCat * 100) }}%"></div></div></td>
         </tr>
     @endforeach
-        <tr class="total"><td>Total</td><td class="r">{{ number_format($summary['count']) }}</td><td class="r">{{ $inr($summary['total']) }}</td><td class="r">100%</td><td></td></tr>
+        <tr class="total"><td>Total</td><td class="r">{{ inr_number($summary['count']) }}</td><td class="r">{{ $inr($summary['total']) }}</td><td class="r">100%</td><td></td></tr>
     </tbody>
 </table>
 </div>
@@ -87,7 +87,7 @@
             <td><strong>{{ \Carbon\Carbon::create($m->y, $m->m, 1)->format('F Y') }}</strong></td>
             <td class="r">{{ $m->entries }}</td>
             <td class="r">{{ $inr($m->total) }}</td>
-            <td class="r">@if ($chg === null)<span class="muted">—</span>@elseif (round($chg) == 0)<span class="muted">0%</span>@else<span class="{{ ($chg > 0) === $isExpense ? 'neg' : 'pos' }}">{{ $chg > 0 ? '+' : '' }}{{ number_format($chg, 0) }}%</span>@endif</td>
+            <td class="r">@if ($chg === null)<span class="muted">—</span>@elseif (round($chg) == 0)<span class="muted">0%</span>@else<span class="{{ ($chg > 0) === $isExpense ? 'neg' : 'pos' }}">{{ $chg > 0 ? '+' : '' }}{{ inr_number($chg, 0) }}%</span>@endif</td>
             <td><div class="bar {{ $isExpense ? '' : 'green' }}"><div style="width: {{ round($m->total / $maxMonth * 100) }}%"></div></div></td>
         </tr>
     @endforeach
@@ -115,7 +115,7 @@
             </tr>
         @endforeach
     @endforeach
-        <tr class="total"><td colspan="4">Total {{ $isExpense ? 'spent' : 'received' }} ({{ number_format($rows->count()) }} entries shown)</td><td class="r">{{ $inr($rows->sum('amount')) }}</td></tr>
+        <tr class="total"><td colspan="4">Total {{ $isExpense ? 'spent' : 'received' }} ({{ inr_number($rows->count()) }} entries shown)</td><td class="r">{{ $inr($rows->sum('amount')) }}</td></tr>
     </tbody>
 </table>
 

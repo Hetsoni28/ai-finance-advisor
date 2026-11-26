@@ -16,10 +16,10 @@
     <x-admin.page-header title="Activity log" :description="'Everything users and admins did in the last ' . ($ranges[$days] ?? $days . ' days') . '.'" />
 
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <x-admin.stat label="Events" :value="number_format($a['totalLogs'] ?? 0)" icon="fa-list-check" tone="indigo" />
-        <x-admin.stat label="Changes" :value="number_format($a['updateCount'] ?? 0)" icon="fa-pen" tone="amber" hint="Edits and updates" />
-        <x-admin.stat label="Deletions" :value="number_format($a['deleteCount'] ?? 0)" icon="fa-trash-can" tone="rose" />
-        <x-admin.stat label="Blocks & failures" :value="number_format($a['criticalCount'] ?? 0)" icon="fa-triangle-exclamation" tone="rose" />
+        <x-admin.stat label="Events" :value="inr_number($a['totalLogs'] ?? 0)" icon="fa-list-check" tone="indigo" />
+        <x-admin.stat label="Changes" :value="inr_number($a['updateCount'] ?? 0)" icon="fa-pen" tone="amber" hint="Edits and updates" />
+        <x-admin.stat label="Deletions" :value="inr_number($a['deleteCount'] ?? 0)" icon="fa-trash-can" tone="rose" />
+        <x-admin.stat label="Blocks & failures" :value="inr_number($a['criticalCount'] ?? 0)" icon="fa-triangle-exclamation" tone="rose" />
     </div>
 
     <x-admin.card flush>
@@ -90,7 +90,7 @@
                 </table>
             </div>
             <div class="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                <span>Showing {{ $activities->firstItem() }}–{{ $activities->lastItem() }} of {{ number_format($activities->total()) }}</span>
+                <span>Showing {{ $activities->firstItem() }}–{{ $activities->lastItem() }} of {{ inr_number($activities->total()) }}</span>
                 @if($activities->hasPages())<div>{{ $activities->links('pagination::simple-tailwind') }}</div>@endif
             </div>
         @endif

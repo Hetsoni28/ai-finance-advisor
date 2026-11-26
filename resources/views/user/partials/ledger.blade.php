@@ -5,7 +5,7 @@
     All figures are queried from the user's own personal records.
 --}}
 @php
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
     $isIncome = $cfg['type'] === 'income';
     $model = $cfg['model'];
     $dateCol = $cfg['dateCol'];
@@ -54,7 +54,7 @@
         <x-admin.stat :label="'This month'" :value="$inr($thisMonth)" :icon="$isIncome ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'" :tone="$accent"
             :spark="$chartValues" :delta="$delta" :goodWhen="$isIncome ? 'up' : 'down'"
             :hint="$delta === null ? now()->format('F Y') : null" />
-        <x-admin.stat label="All time" :value="$inr($allTotal)" icon="fa-layer-group" tone="zinc" :hint="number_format($allCount) . ' ' . \Illuminate\Support\Str::plural('record', $allCount)" />
+        <x-admin.stat label="All time" :value="$inr($allTotal)" icon="fa-layer-group" tone="zinc" :hint="inr_number($allCount) . ' ' . \Illuminate\Support\Str::plural('record', $allCount)" />
         <x-admin.stat label="Average entry" :value="$allCount ? $inr($allTotal / $allCount) : '—'" icon="fa-divide" tone="sky" />
         <x-admin.stat label="Top category" :value="$byCategory->first()->category ?? '—'" icon="fa-crown" tone="amber"
             :hint="$byCategory->isNotEmpty() && $catTotal > 0 ? round($byCategory->first()->total / $catTotal * 100) . '% of total' : null" />
@@ -165,7 +165,7 @@
                 </table>
             </div>
             <div class="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                <span>Showing {{ $cfg['items']->firstItem() }}–{{ $cfg['items']->lastItem() }} of {{ number_format($cfg['items']->total()) }}@if($filtered) · filtered total {{ $inr($cfg['filteredTotal']) }}@endif</span>
+                <span>Showing {{ $cfg['items']->firstItem() }}–{{ $cfg['items']->lastItem() }} of {{ inr_number($cfg['items']->total()) }}@if($filtered) · filtered total {{ $inr($cfg['filteredTotal']) }}@endif</span>
                 @if($cfg['items']->hasPages())<div>{{ $cfg['items']->links('pagination::simple-tailwind') }}</div>@endif
             </div>
         @endif

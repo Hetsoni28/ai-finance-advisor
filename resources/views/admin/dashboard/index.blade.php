@@ -4,8 +4,8 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format((float) $v, 0);
-    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number((float) $v, 0);
+    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . inr_number(abs((float) $v), 0);
     // % change; null when there is no previous value to compare against (avoids a fake "+100%")
     $pct = fn ($now, $prev) => $prev > 0 ? round(($now - $prev) / $prev * 100) : null;
 
@@ -53,22 +53,22 @@
                 </p>
             </div>
 
-            <dl class="grid grid-cols-3 gap-4 border-t border-white/10 pt-6 lg:col-span-4 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <dl class="grid grid-cols-3 gap-x-6 gap-y-4 border-t border-white/10 pt-6 lg:col-span-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
                 <div>
                     <dt class="text-xs text-zinc-400">In · {{ now()->format('M') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold tabular-nums text-emerald-300">{{ $inr($thisMonthIncome) }}</dd>
+                    <dd class="mt-1 whitespace-nowrap text-base font-semibold tabular-nums xl:text-lg text-emerald-300">{{ $inr($thisMonthIncome) }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs text-zinc-400">Out · {{ now()->format('M') }}</dt>
-                    <dd class="mt-1 text-lg font-semibold tabular-nums text-rose-300">{{ $inr($thisMonthExpenses) }}</dd>
+                    <dd class="mt-1 whitespace-nowrap text-base font-semibold tabular-nums xl:text-lg text-rose-300">{{ $inr($thisMonthExpenses) }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs text-zinc-400">Kept</dt>
-                    <dd class="mt-1 text-lg font-semibold tabular-nums">{{ $signed($monthKept) }}</dd>
+                    <dd class="mt-1 whitespace-nowrap text-base font-semibold tabular-nums xl:text-lg">{{ $signed($monthKept) }}</dd>
                 </div>
             </dl>
 
-            <div class="lg:col-span-4 lg:pl-4">
+            <div class="lg:col-span-3 lg:pl-4">
                 <p class="text-xs text-zinc-400">Net per month</p>
                 <div class="mt-3 flex h-20 items-center gap-2" role="img" aria-label="Net income minus expenses for each of the last 6 months">
                     @foreach($monthlyNet as $i => $v)
@@ -89,10 +89,10 @@
 
     {{-- KPIs --}}
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <x-admin.stat label="Users" :value="number_format($totalUsers)" icon="fa-users" tone="indigo" :href="route('admin.users.index')"
+        <x-admin.stat label="Users" :value="inr_number($totalUsers)" icon="fa-users" tone="indigo" :href="route('admin.users.index')"
             :spark="$monthlySignups" :delta="$pct($newUsersThisMonth, $usersPrev30)" deltaLabel="sign-ups vs prior 30 days"
-            :hint="$pct($newUsersThisMonth, $usersPrev30) === null ? number_format($newUsersThisMonth) . ' new in 30 days' : null" />
-        <x-admin.stat label="Paid subscribers" :value="number_format($paidSubscribers)" icon="fa-credit-card" tone="emerald"
+            :hint="$pct($newUsersThisMonth, $usersPrev30) === null ? inr_number($newUsersThisMonth) . ' new in 30 days' : null" />
+        <x-admin.stat label="Paid subscribers" :value="inr_number($paidSubscribers)" icon="fa-credit-card" tone="emerald"
             :hint="$totalUsers > 0 ? round($paidSubscribers / $totalUsers * 100) . '% of all users' : 'No users yet'" />
         <x-admin.stat label="Income this month" :value="$inr($thisMonthIncome)" icon="fa-arrow-trend-up" tone="emerald"
             :spark="$monthlyIncome" :delta="$pct($thisMonthIncome, $lastMonthIncome)"
@@ -128,7 +128,7 @@
                 <div class="relative mx-auto h-40 w-40">
                     <canvas id="planChart" role="img" aria-label="Share of users on each plan"></canvas>
                     <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-2xl font-semibold tabular-nums text-zinc-900">{{ number_format($totalUsers) }}</span>
+                        <span class="text-2xl font-semibold tabular-nums text-zinc-900">{{ inr_number($totalUsers) }}</span>
                         <span class="text-[11px] text-zinc-500">users</span>
                     </div>
                 </div>
@@ -137,13 +137,13 @@
                         <li class="flex items-center gap-2.5 text-sm">
                             <span class="h-2.5 w-2.5 rounded-sm" style="background: {{ $planColors[$i % count($planColors)] }}"></span>
                             <span class="flex-1 text-zinc-700">{{ $plan['name'] }} <span class="text-xs text-zinc-400">{{ $plan['price'] > 0 ? $inr($plan['price']) . '/mo' : 'Free' }}</span></span>
-                            <span class="font-medium tabular-nums text-zinc-900">{{ number_format($plan['count']) }}</span>
+                            <span class="font-medium tabular-nums text-zinc-900">{{ inr_number($plan['count']) }}</span>
                         </li>
                     @endforeach
                 </ul>
                 <div class="mt-5 grid grid-cols-2 gap-3 border-t border-zinc-100 pt-4 text-sm">
-                    <div><p class="text-xs text-zinc-500">Active</p><p class="font-semibold tabular-nums text-zinc-900">{{ number_format($activeUsers) }}</p></div>
-                    <div><p class="text-xs text-zinc-500">Suspended</p><p class="font-semibold tabular-nums {{ $blockedUsers ? 'text-rose-600' : 'text-zinc-900' }}">{{ number_format($blockedUsers) }}</p></div>
+                    <div><p class="text-xs text-zinc-500">Active</p><p class="font-semibold tabular-nums text-zinc-900">{{ inr_number($activeUsers) }}</p></div>
+                    <div><p class="text-xs text-zinc-500">Suspended</p><p class="font-semibold tabular-nums {{ $blockedUsers ? 'text-rose-600' : 'text-zinc-900' }}">{{ inr_number($blockedUsers) }}</p></div>
                 </div>
             @endif
         </x-admin.card>
@@ -230,7 +230,7 @@
         {{-- Inbox --}}
         <x-admin.card title="Messages" description="From the website contact form">
             <div class="flex items-baseline gap-2">
-                <p class="text-4xl font-semibold tabular-nums text-zinc-900">{{ number_format($unreadMessages) }}</p>
+                <p class="text-4xl font-semibold tabular-nums text-zinc-900">{{ inr_number($unreadMessages) }}</p>
                 <p class="text-sm text-zinc-500">unread</p>
             </div>
             <p class="mt-2 text-sm text-zinc-500">
@@ -240,7 +240,7 @@
                 Open inbox <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
             </a>
             <dl class="mt-5 grid grid-cols-2 gap-3 border-t border-zinc-100 pt-4 text-sm">
-                <div><dt class="text-xs text-zinc-500">Family hubs</dt><dd class="font-semibold tabular-nums text-zinc-900">{{ number_format($familyCount) }}</dd></div>
+                <div><dt class="text-xs text-zinc-500">Family hubs</dt><dd class="font-semibold tabular-nums text-zinc-900">{{ inr_number($familyCount) }}</dd></div>
                 <div><dt class="text-xs text-zinc-500" title="Income plus expenses recorded by all users">Money tracked</dt><dd class="font-semibold tabular-nums text-zinc-900">{{ $inr($totalIncome + $totalExpenses) }}</dd></div>
             </dl>
         </x-admin.card>

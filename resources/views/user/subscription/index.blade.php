@@ -5,7 +5,7 @@
 @section('content')
 @php
     $user = auth()->user();
-    $inr = fn ($v) => '₹' . number_format((float) $v, 0);
+    $inr = fn ($v) => '₹' . inr_number((float) $v, 0);
     $isFree = ($currentPlanSlug ?? 'free') === 'free';
     $current = $currentPlan ?? $plans->firstWhere('slug', 'free');
     $history = \App\Models\UserSubscription::with('plan')->where('user_id', $user->id)->latest()->limit(12)->get();
@@ -49,8 +49,8 @@
             @endif
         </div>
         <dl class="grid grid-cols-2 gap-4 border-t border-white/10 pt-6 lg:col-span-3 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-            <div><dt class="text-xs text-zinc-400">AI messages</dt><dd class="mt-1 text-xl font-semibold tabular-nums">{{ number_format($aiThisMonth) }}</dd><dd class="text-[11px] text-zinc-500">this month</dd></div>
-            <div><dt class="text-xs text-zinc-400">Records added</dt><dd class="mt-1 text-xl font-semibold tabular-nums">{{ number_format($recordsThisMonth) }}</dd><dd class="text-[11px] text-zinc-500">this month</dd></div>
+            <div><dt class="text-xs text-zinc-400">AI messages</dt><dd class="mt-1 text-xl font-semibold tabular-nums">{{ inr_number($aiThisMonth) }}</dd><dd class="text-[11px] text-zinc-500">this month</dd></div>
+            <div><dt class="text-xs text-zinc-400">Records added</dt><dd class="mt-1 text-xl font-semibold tabular-nums">{{ inr_number($recordsThisMonth) }}</dd><dd class="text-[11px] text-zinc-500">this month</dd></div>
         </dl>
     </section>
 

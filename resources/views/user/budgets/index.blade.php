@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
     $badges = [
         'ok'   => ['On track', 'bg-emerald-50 text-emerald-700 ring-emerald-200'],
         'pace' => ['Spending fast', 'bg-amber-50 text-amber-700 ring-amber-200'],

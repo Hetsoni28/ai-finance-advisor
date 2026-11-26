@@ -93,7 +93,7 @@ class NotificationController extends Controller
 
         /* ================= 5. INSIGHTS FROM THE USER'S OWN RECORDS ================= */
         // Each insight is calculated now from real data. They are not stored events, so they carry no fake timestamps.
-        $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
+        $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
         $insights = collect();
         $add = function (int $id, string $tone, string $title, string $message, ?string $actionLabel = null, ?string $actionUrl = null) use (&$insights, $readAlerts) {
             $insights->push((object) [

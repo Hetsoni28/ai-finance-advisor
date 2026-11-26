@@ -52,10 +52,10 @@
 <h2>Money recorded by all users</h2>
 <table class="cards">
     <tr>
-        <td class="card"><div class="k">Total income</div><div class="v pos">{{ $inr($money['income'], 0) }}</div><div class="n">{{ number_format($money['incomeRows']) }} entries</div></td>
-        <td class="card"><div class="k">Total expenses</div><div class="v neg">{{ $inr($money['expenses'], 0) }}</div><div class="n">{{ number_format($money['expenseRows']) }} entries</div></td>
+        <td class="card"><div class="k">Total income</div><div class="v pos">{{ $inr($money['income'], 0) }}</div><div class="n">{{ inr_number($money['incomeRows']) }} entries</div></td>
+        <td class="card"><div class="k">Total expenses</div><div class="v neg">{{ $inr($money['expenses'], 0) }}</div><div class="n">{{ inr_number($money['expenseRows']) }} entries</div></td>
         <td class="card"><div class="k">Net saved</div><div class="v">{{ $inr($money['net'], 0) }}</div><div class="n">income minus expenses</div></td>
-        <td class="card"><div class="k">Savings rate</div><div class="v">{{ number_format($money['rate'], 1) }}%</div><div class="n">of income kept</div></td>
+        <td class="card"><div class="k">Savings rate</div><div class="v">{{ inr_number($money['rate'], 1) }}%</div><div class="n">of income kept</div></td>
     </tr>
 </table>
 
@@ -91,9 +91,9 @@
     @forelse ($categories as $i => $c)
         <tr class="{{ $i % 2 ? 'alt' : '' }}">
             <td><strong>{{ $c->category ?: 'Others' }}</strong></td>
-            <td class="r">{{ number_format($c->entries) }}</td>
+            <td class="r">{{ inr_number($c->entries) }}</td>
             <td class="r">{{ $inr($c->total, 0) }}</td>
-            <td class="r">{{ $catTotal > 0 ? number_format($c->total / $catTotal * 100, 1) : '0.0' }}%</td>
+            <td class="r">{{ $catTotal > 0 ? inr_number($c->total / $catTotal * 100, 1) : '0.0' }}%</td>
             <td><div class="bar"><div style="width: {{ round($c->total / $maxCat * 100) }}%"></div></div></td>
         </tr>
     @empty

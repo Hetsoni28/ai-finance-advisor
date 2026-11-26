@@ -4,8 +4,8 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
-    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
+    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . inr_number(abs((float) $v), 0);
     $rate = $totalIncome > 0 ? round($savings / $totalIncome * 100, 1) : null;
     $planSlug = $user->current_plan_slug ?? 'free';
     $activityByDay = $activities->groupBy(fn ($a) => $a->created_at?->isToday() ? 'Today' : ($a->created_at?->isYesterday() ? 'Yesterday' : $a->created_at?->format('d M Y')));
@@ -48,8 +48,8 @@
         <dl class="grid grid-cols-2 border-t border-zinc-100 text-sm sm:grid-cols-4">
             <div class="border-r border-zinc-100 px-5 py-4 sm:px-6"><dt class="text-xs text-zinc-500">Member since</dt><dd class="mt-0.5 font-medium text-zinc-900">{{ $user->created_at?->format('d M Y') }}</dd></div>
             <div class="px-5 py-4 sm:border-r sm:border-zinc-100 sm:px-6"><dt class="text-xs text-zinc-500">Last updated</dt><dd class="mt-0.5 font-medium text-zinc-900">{{ $user->updated_at?->diffForHumans() }}</dd></div>
-            <div class="border-r border-t border-zinc-100 px-5 py-4 sm:border-t-0 sm:px-6"><dt class="text-xs text-zinc-500">Records</dt><dd class="mt-0.5 font-medium tabular-nums text-zinc-900">{{ number_format($user->incomes()->count() + $user->expenses()->count()) }}</dd></div>
-            <div class="border-t border-zinc-100 px-5 py-4 sm:border-t-0 sm:px-6"><dt class="text-xs text-zinc-500">Family hubs</dt><dd class="mt-0.5 font-medium tabular-nums text-zinc-900">{{ number_format($user->families()->count()) }}</dd></div>
+            <div class="border-r border-t border-zinc-100 px-5 py-4 sm:border-t-0 sm:px-6"><dt class="text-xs text-zinc-500">Records</dt><dd class="mt-0.5 font-medium tabular-nums text-zinc-900">{{ inr_number($user->incomes()->count() + $user->expenses()->count()) }}</dd></div>
+            <div class="border-t border-zinc-100 px-5 py-4 sm:border-t-0 sm:px-6"><dt class="text-xs text-zinc-500">Family hubs</dt><dd class="mt-0.5 font-medium tabular-nums text-zinc-900">{{ inr_number($user->families()->count()) }}</dd></div>
         </dl>
     </section>
 

@@ -112,18 +112,18 @@ final class MarketDataService
             $lines[] = "\n### Cryptocurrency Prices";
             foreach ($crypto['coins'] as $coin) {
                 $changeIcon = $coin['change_24h'] >= 0 ? '📈' : '📉';
-                $lines[] = "- **{$coin['name']}**: ₹" . number_format($coin['price_inr'], 0) .
+                $lines[] = "- **{$coin['name']}**: ₹" . inr_number($coin['price_inr'], 0) .
                            " ({$changeIcon} " . ($coin['change_24h'] >= 0 ? '+' : '') .
-                           number_format($coin['change_24h'], 2) . "% 24h)";
+                           inr_number($coin['change_24h'], 2) . "% 24h)";
             }
         }
 
         if ($gold['available'] && $gold['price_inr']) {
             $changeIcon = ($gold['change_24h'] ?? 0) >= 0 ? '📈' : '📉';
             $lines[] = "\n### Gold";
-            $lines[] = "- **Gold (XAUT)**: ₹" . number_format($gold['price_inr'], 0) .
+            $lines[] = "- **Gold (XAUT)**: ₹" . inr_number($gold['price_inr'], 0) .
                        " ({$changeIcon} " . ($gold['change_24h'] >= 0 ? '+' : '') .
-                       number_format($gold['change_24h'], 2) . "% 24h)";
+                       inr_number($gold['change_24h'], 2) . "% 24h)";
         }
 
         $lines[] = "\n*Source: CoinGecko API (free tier). Data may have 1-5 min delay.*";
@@ -150,13 +150,13 @@ final class MarketDataService
             foreach ($crypto['coins'] as $coin) {
                 if ($coin['id'] === 'bitcoin') {
                     $sidebar['btc'] = [
-                        'price'  => '₹' . number_format($coin['price_inr'], 0),
+                        'price'  => '₹' . inr_number($coin['price_inr'], 0),
                         'change' => round($coin['change_24h'], 1),
                     ];
                 }
                 if ($coin['id'] === 'ethereum') {
                     $sidebar['eth'] = [
-                        'price'  => '₹' . number_format($coin['price_inr'], 0),
+                        'price'  => '₹' . inr_number($coin['price_inr'], 0),
                         'change' => round($coin['change_24h'], 1),
                     ];
                 }
@@ -166,7 +166,7 @@ final class MarketDataService
         $gold = $this->getGoldPrice();
         if ($gold['available'] && $gold['price_inr']) {
             $sidebar['gold'] = [
-                'price'  => '₹' . number_format($gold['price_inr'], 0),
+                'price'  => '₹' . inr_number($gold['price_inr'], 0),
                 'change' => round($gold['change_24h'] ?? 0, 1),
             ];
         }

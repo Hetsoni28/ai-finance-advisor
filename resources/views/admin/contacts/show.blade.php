@@ -65,7 +65,7 @@
                     <div>
                         <dt class="text-xs text-zinc-500">Location (shared by sender)</dt>
                         <dd class="mt-1 text-zinc-800">
-                            {{ $contact->location_label ?: number_format((float) $contact->latitude, 4) . ', ' . number_format((float) $contact->longitude, 4) }}
+                            {{ $contact->location_label ?: inr_number((float) $contact->latitude, 4) . ', ' . inr_number((float) $contact->longitude, 4) }}
                             @if($contact->latitude && $contact->longitude)
                                 <a href="https://www.google.com/maps?q={{ $contact->latitude }},{{ $contact->longitude }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-xs font-medium text-indigo-600 hover:text-indigo-700">Map</a>
                             @endif

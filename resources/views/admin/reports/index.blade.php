@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format((float) $v, 0);
+    $inr = fn ($v) => '₹' . inr_number((float) $v, 0);
     $net = $totalIncome - $totalExpenses;
     $rate = $totalIncome > 0 ? round($net / $totalIncome * 100, 1) : null;
     $catTotal = array_sum($categorySeries);
@@ -30,8 +30,8 @@
         <x-admin.stat label="Total expenses" :value="$inr($totalExpenses)" icon="fa-arrow-trend-down" tone="rose" hint="All users, all time" :spark="$monthlyExpenses" />
         <x-admin.stat label="Net" :value="($net < 0 ? '−' : '') . $inr(abs($net))" icon="fa-scale-balanced" tone="indigo"
             :hint="$rate !== null ? $rate . '% of income kept' : 'No income recorded yet'" />
-        <x-admin.stat label="Users" :value="number_format($totalUsers)" icon="fa-users" tone="sky"
-            :hint="number_format($activeUsers) . ' joined in the last 30 days'" />
+        <x-admin.stat label="Users" :value="inr_number($totalUsers)" icon="fa-users" tone="sky"
+            :hint="inr_number($activeUsers) . ' joined in the last 30 days'" />
     </div>
 
     <div class="grid gap-6 lg:grid-cols-3">

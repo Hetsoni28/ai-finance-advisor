@@ -189,7 +189,7 @@ class Income extends Model
      */
     public function getFormattedAmountAttribute(): string
     {
-        return '+₹' . number_format((float) $this->amount, 2);
+        return '+₹' . inr_number((float) $this->amount, 2);
     }
 
     /*

@@ -144,7 +144,7 @@ final class BudgetService
     /** Short alert written by Gemini from the real figures; falls back to a template. Max 240 chars. */
     private function writeAlert(User $user, string $cat, float $limit, float $spent, int $pct, int $daysLeft): string
     {
-        $inr = fn ($v) => '₹' . number_format(abs($v), 0);
+        $inr = fn ($v) => '₹' . inr_number(abs($v), 0);
         $over = $spent - $limit;
 
         $template = $pct >= 100

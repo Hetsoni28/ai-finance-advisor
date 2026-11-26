@@ -3,6 +3,23 @@
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+if (!function_exists('inr_number')) {
+    /**
+     * number_format() with Indian digit grouping: 1960614 -> "19,60,614".
+     */
+    function inr_number($number, int $decimals = 0): string
+    {
+        $n = (float) $number;
+        $s = number_format(abs($n), $decimals, '.', '');
+        [$int, $frac] = array_pad(explode('.', $s, 2), 2, '');
+        if (strlen($int) > 3) {
+            $int = preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', substr($int, 0, -3)) . ',' . substr($int, -3);
+        }
+        $out = $int . ($decimals > 0 ? '.' . $frac : '');
+        return ($n < 0 && (float) $s != 0.0 ? '-' : '') . $out;
+    }
+}
+
 if (!function_exists('generateChart')) {
     /**
      * Safely generates a Base64 encoded chart image via QuickChart API.

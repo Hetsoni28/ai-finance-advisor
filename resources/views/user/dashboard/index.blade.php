@@ -4,8 +4,8 @@
 
 @section('content')
 @php
-    $inr = fn ($v) => '₹' . number_format(abs((float) $v), 0);
-    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . number_format(abs((float) $v), 0);
+    $inr = fn ($v) => '₹' . inr_number(abs((float) $v), 0);
+    $signed = fn ($v) => ($v < 0 ? '−' : '') . '₹' . inr_number(abs((float) $v), 0);
     $pct = fn ($now, $prev) => $prev > 0 ? round(($now - $prev) / $prev * 100) : null;
 
     $firstName = explode(' ', trim(auth()->user()->name ?? ''))[0] ?: 'there';
@@ -149,7 +149,7 @@
         <x-admin.stat label="Total expenses" :value="$inr($totalExpense)" icon="fa-arrow-trend-down" tone="rose" :spark="$monthlyExpense" :href="route('user.expenses.index')" hint="All time" />
         <x-admin.stat label="Net saved" :value="$signed($allNet)" icon="fa-piggy-bank" tone="indigo"
             :hint="$totalIncome > 0 ? round($allNet / $totalIncome * 100, 1) . '% of income kept' : 'All time'" />
-        <x-admin.stat label="Emergency runway" :value="$hasAnyData ? number_format((float) ($stability['runway'] ?? 0), 1) . ' mo' : '—'" icon="fa-life-ring" tone="sky"
+        <x-admin.stat label="Emergency runway" :value="$hasAnyData ? inr_number((float) ($stability['runway'] ?? 0), 1) . ' mo' : '—'" icon="fa-life-ring" tone="sky"
             hint="Months your savings would cover your usual spending" />
     </div>
 
