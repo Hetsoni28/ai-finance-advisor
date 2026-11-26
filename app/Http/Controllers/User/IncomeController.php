@@ -269,46 +269,66 @@ class IncomeController extends Controller
     */
     public function exportPdf()
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         abort_unless($user instanceof User, 403);
 
         try {
-            $baseQuery = $user->incomes()->personal();
+            $base = $user->incomes()->personal();
 
-            $stats = (clone $baseQuery)->selectRaw('
-                COUNT(*) as count,
-                SUM(amount) as total,
-                AVG(amount) as average,
-                MAX(amount) as highest
-            ')->first();
+            $rows = (clone $base)
+                ->orderByDesc('income_date')->orderByDesc('id')
+                ->limit(1000)
+                ->get(['source', 'category', 'amount', 'income_date'])
+                ->map(fn ($r) => (object) [
+                    'date'     => \Illuminate\Support\Carbon::parse($r->income_date),
+                    'title'    => $r->source,
+                    'category' => $r->category,
+                    'amount'   => (float) $r->amount,
+                ]);
 
-            $topCategory = (clone $baseQuery)->selectRaw('category, SUM(amount) as total')
-                ->groupBy('category')
-                ->orderByDesc('total')
-                ->value('category');
+            $stats = (clone $base)->selectRaw('COUNT(*) as entries, COALESCE(SUM(amount), 0) as total, COALESCE(AVG(amount), 0) as average, MIN(income_date) as first_date, MAX(income_date) as last_date')->first();
+            $highest = (clone $base)->orderByDesc('amount')->first(['source', 'amount']);
+
+            $byCategory = (clone $base)
+                ->selectRaw('category, COUNT(*) as entries, SUM(amount) as total')
+                ->groupBy('category')->orderByDesc('total')->get();
+
+            $byMonth = (clone $base)
+                ->selectRaw('YEAR(income_date) as y, MONTH(income_date) as m, COUNT(*) as entries, SUM(amount) as total')
+                ->groupBy('y', 'm')->orderByDesc('y')->orderByDesc('m')
+                ->limit(12)->get()->values();
 
             $summary = [
-                'total'       => (float) ($stats->total ?? 0),
-                'count'       => (int) ($stats->count ?? 0),
-                'average'     => (float) ($stats->average ?? 0),
-                'highest'     => (float) ($stats->highest ?? 0),
-                'topCategory' => $topCategory ?? 'Uncategorized',
+                'count'        => (int) $stats->entries,
+                'total'        => (float) $stats->total,
+                'average'      => (float) $stats->average,
+                'highest'      => (float) ($highest->amount ?? 0),
+                'highestTitle' => $highest->source ?? '',
+                'thisMonth'    => (float) (clone $base)->whereYear('income_date', now()->year)->whereMonth('income_date', now()->month)->sum('amount'),
+                'partialMonth' => (bool) $byMonth->first(fn ($m) => (int) $m->y === now()->year && (int) $m->m === now()->month),
             ];
 
-            // Limit to top 100 for PDF performance
-            $incomes = (clone $baseQuery)->latest('income_date')->limit(100)->get();
-            $reportId = 'FA-INC-' . now()->format('YmdHis');
+            $period = $stats->first_date
+                ? \Illuminate\Support\Carbon::parse($stats->first_date)->format('d M Y') . ' to ' . \Illuminate\Support\Carbon::parse($stats->last_date)->format('d M Y')
+                : '—';
 
-            $pdf = Pdf::loadView(
-                'user.income.pdf', 
-                compact('incomes', 'summary', 'reportId')
-            )->setPaper('a4', 'portrait');
+            $pdf = Pdf::loadView('pdf.statement', [
+                'kind'        => 'income',
+                'user'        => $user,
+                'rows'        => $rows,
+                'byCategory'  => $byCategory,
+                'byMonth'     => $byMonth,
+                'summary'     => $summary,
+                'period'      => $period,
+                'statementNo' => 'INC-' . $user->id . '-' . now()->format('ymd-His'),
+                'generatedAt' => now()->format('d M Y, h:i A'),
+            ])->setPaper('a4', 'portrait');
 
-            return $pdf->download('FinanceAI_Income_Ledger_' . now()->format('Ymd') . '.pdf');
+            return $pdf->download('FinanceAI_Income_Statement_' . now()->format('Y-m-d') . '.pdf');
 
         } catch (Throwable $e) {
-            Log::error('Income PDF Export Error: ' . $e->getMessage());
+            Log::error('Income PDF export failed: ' . $e->getMessage(), ['user_id' => $user->id]);
             return back()->with('error', 'We couldn’t create the PDF. Please try again in a moment.');
         }
     }

@@ -89,107 +89,100 @@ class ReportController extends Controller
 
     public function exportPdf()
     {
-        ini_set('max_execution_time', '300');
-        ini_set('memory_limit', '512M');
-
         try {
-            $totalUsers    = User::count();
-            $activeUsers   = User::where('created_at', '>=', now()->subDays(30))->count();
-            $totalIncome   = (float) Income::sum('amount');
-            $totalExpenses = (float) Expense::sum('amount');
-            $savings       = $totalIncome - $totalExpenses;
+            $now = now();
 
-            // 🚨 FIX: Re-instated the strict financial math required by the Charts & Blade view
-            $savingRate   = $totalIncome > 0 ? round(($savings / $totalIncome) * 100, 1) : 0;
-            $expenseRatio = $totalIncome > 0 ? round(($totalExpenses / $totalIncome) * 100, 1) : 0;
-            $score        = (int) max(0, min(100, ($savingRate * 0.6) + ((100 - $expenseRatio) * 0.3) + ($savings > 0 ? 10 : 0)));
+            // People
+            $users = User::query()
+                ->withCount(['incomes', 'expenses'])
+                ->with(['activeSubscription.plan:id,name'])
+                ->orderByDesc('created_at')
+                ->limit(300)
+                ->get(['id', 'name', 'email', 'role', 'is_admin', 'is_blocked', 'created_at']);
 
-            $topSpenders = Expense::selectRaw("user_id, SUM(amount) as total")
-                ->with('user:id,name')
-                ->groupBy('user_id')
-                ->orderByDesc('total')
-                ->limit(5)
-                ->get();
+            $people = [
+                'total'     => User::count(),
+                'suspended' => User::where('is_blocked', true)->count(),
+                'admins'    => User::where(fn ($q) => $q->where('role', 'admin')->orWhere('is_admin', true))->count(),
+                'new30'     => User::where('created_at', '>=', $now->copy()->subDays(30))->count(),
+            ];
+            $people['active'] = $people['total'] - $people['suspended'];
 
-            $incCol = \Illuminate\Support\Facades\Schema::hasColumn('incomes', 'income_date') ? 'income_date' : 'created_at';
-            $expCol = \Illuminate\Support\Facades\Schema::hasColumn('expenses', 'expense_date') ? 'expense_date' : 'created_at';
-            
-            $recentIncomes  = Income::latest($incCol)->limit(10)->get();
-            $recentExpenses = Expense::latest($expCol)->limit(10)->get();
+            // Money recorded by all users
+            $income   = (float) Income::sum('amount');
+            $expenses = (float) Expense::sum('amount');
+            $money = [
+                'income'      => $income,
+                'expenses'    => $expenses,
+                'net'         => $income - $expenses,
+                'rate'        => $income > 0 ? ($income - $expenses) / $income * 100 : 0,
+                'incomeRows'  => Income::count(),
+                'expenseRows' => Expense::count(),
+            ];
 
-            [$labels, $incomeSeries, $expenseSeries] = $this->getMonthlyData();
-            [$categoryLabels, $categorySeries] = $this->getCategoryData();
+            // Last six months, by transaction date
+            $months = collect(range(5, 0))->map(function ($ago) use ($now) {
+                $d = $now->copy()->startOfMonth()->subMonthsNoOverflow($ago);
+                $inc = (float) Income::whereYear('income_date', $d->year)->whereMonth('income_date', $d->month)->sum('amount');
+                $exp = (float) Expense::whereYear('expense_date', $d->year)->whereMonth('expense_date', $d->month)->sum('amount');
+                return (object) [
+                    'label'    => $d->format('F Y'),
+                    'income'   => $inc,
+                    'expenses' => $exp,
+                    'net'      => $inc - $exp,
+                    'signups'  => User::whereYear('created_at', $d->year)->whereMonth('created_at', $d->month)->count(),
+                ];
+            });
 
-            // ========================================================================
-            // SERVER-SIDE CHART PRE-RENDERING (Bypasses DomPDF URL Crashing)
-            // ========================================================================
-            
-            $gaugeImg = $this->fetchChartBase64([
-                "type" => "radialGauge",
-                "data" => [ "datasets" => [[ "data" => [$score], "backgroundColor" => $score >= 60 ? '#4f46e5' : '#f43f5e' ]] ],
-                "options" => [ "centerPercentage" => 75, "roundedCorners" => true, "centerArea" => [ "text" => "$score/100", "fontColor" => "#0f172a", "fontSize" => 30, "fontWeight" => "bold" ] ]
-            ], 200, 200);
+            $categories = Expense::selectRaw('category, COUNT(*) as entries, SUM(amount) as total')
+                ->groupBy('category')->orderByDesc('total')->get();
 
-            $lineImg = $this->fetchChartBase64([
-                "type" => "line",
-                "data" => [
-                    "labels" => $labels,
-                    "datasets" => [
-                        ["label" => "Inflow", "data" => $incomeSeries, "borderColor" => "#10b981", "backgroundColor" => "rgba(16, 185, 129, 0.15)", "fill" => true, "borderWidth" => 2, "pointRadius" => 0],
-                        ["label" => "Outflow", "data" => $expenseSeries, "borderColor" => "#f43f5e", "backgroundColor" => "rgba(244, 63, 94, 0.15)", "fill" => true, "borderWidth" => 2, "pointRadius" => 0]
-                    ]
-                ],
-                "options" => [ "legend" => ["position" => "top", "align" => "end"], "scales" => [ "yAxes" => [["ticks" => ["beginAtZero" => true]]], "xAxes" => [["gridLines" => ["display" => false]]] ] ]
-            ], 600, 300);
+            // Plans and subscriptions
+            $plans = \App\Models\Plan::orderBy('sort_order')->get(['id', 'name', 'price'])->map(function ($p) use ($now) {
+                $active = \App\Models\UserSubscription::where('plan_id', $p->id)->where('status', 'active')
+                    ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>', $now));
+                return (object) [
+                    'name'    => $p->name,
+                    'price'   => (float) $p->price,
+                    'active'  => (clone $active)->distinct('user_id')->count('user_id'),
+                    'revenue' => (float) \App\Models\UserSubscription::where('plan_id', $p->id)->sum('amount_paid'),
+                    'sold'    => \App\Models\UserSubscription::where('plan_id', $p->id)->count(),
+                ];
+            });
+            $paidUsers = \App\Models\UserSubscription::where('status', 'active')
+                ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>', $now))
+                ->whereHas('plan', fn ($q) => $q->where('price', '>', 0))
+                ->distinct('user_id')->count('user_id');
 
-            $doughnutImg = $this->fetchChartBase64([
-                "type" => "doughnut",
-                "data" => [
-                    "labels" => ["Retained", "Burned"],
-                    "datasets" => [[ "data" => [max(0, $savings), $totalExpenses], "backgroundColor" => ["#10b981", "#f43f5e"], "borderWidth" => 0 ]]
-                ],
-                "options" => [ "legend" => ["position" => "bottom"], "cutoutPercentage" => 70 ]
-            ], 250, 250);
+            $activity = \App\Models\Activity::with('user:id,name')->latest()->limit(15)->get();
+            $messages = [
+                'total'  => \App\Models\Contact::count(),
+                'unread' => \App\Models\Contact::where('is_read', false)->count(),
+            ];
 
-            $generatedAt = now()->format('d F Y, H:i T');
+            $pdf = Pdf::loadView('pdf.admin-report', [
+                'people'      => $people,
+                'paidUsers'   => $paidUsers,
+                'money'       => $money,
+                'months'      => $months,
+                'categories'  => $categories,
+                'plans'       => $plans,
+                'users'       => $users,
+                'activity'    => $activity,
+                'messages'    => $messages,
+                'admin'       => auth()->user(),
+                'reportNo'    => 'ADM-' . $now->format('ymd-His'),
+                'generatedAt' => $now->format('d M Y, h:i A'),
+            ])->setPaper('a4', 'portrait');
 
-            // Render PDF Engine
-            $pdf = Pdf::setOptions([
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled'      => true,
-            ])->loadView('admin.reports.pdf', compact(
-                'totalUsers', 'activeUsers', 'totalIncome', 'totalExpenses', 'savings', 
-                'savingRate', 'expenseRatio', 'score', 'topSpenders', 'recentIncomes', 
-                'recentExpenses', 'labels', 'incomeSeries', 'expenseSeries', 
-                'generatedAt', 'gaugeImg', 'lineImg', 'doughnutImg'
-            ))->setPaper('a4', 'portrait');
-
-            return $pdf->download('FinanceAI_Executive_Summary_' . now()->format('Ymd') . '.pdf');
+            return $pdf->download('FinanceAI_Platform_Report_' . $now->format('Y-m-d') . '.pdf');
 
         } catch (Throwable $e) {
-            Log::error('PDF Compilation Failed: ' . $e->getMessage() . ' on Line: ' . $e->getLine());
-            return back()->with('error', 'Critical failure during PDF generation. Please check system logs.');
+            Log::error('Admin PDF export failed: ' . $e->getMessage() . ' on line ' . $e->getLine());
+            return back()->with('error', 'We couldn’t create the PDF report. Please try again in a moment.');
         }
     }
 
-    private function fetchChartBase64(array $chartConfig, int $width, int $height): ?string
-    {
-        try {
-            $response = Http::timeout(8)->post('https://quickchart.io/chart', [
-                'chart'  => $chartConfig,
-                'width'  => $width,
-                'height' => $height,
-                'format' => 'png',
-            ]);
-
-            if ($response->successful()) {
-                return 'data:image/png;base64,' . base64_encode($response->body());
-            }
-        } catch (Throwable $e) {
-            Log::warning("QuickChart Fetch Failed: " . $e->getMessage());
-        }
-        return null;
-    }
 
     /*
     |--------------------------------------------------------------------------

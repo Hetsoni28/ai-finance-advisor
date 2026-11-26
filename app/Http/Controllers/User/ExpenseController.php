@@ -267,45 +267,61 @@ class ExpenseController extends Controller
         abort_unless($user instanceof User, 403);
 
         try {
-            $baseQuery = $user->expenses()
-                ->where('is_personal', true)
-                ->whereNull('family_id');
+            $base = $user->expenses()->personal();
 
-            // Calculate totals using DB raw instead of pulling everything into RAM
-            $stats = (clone $baseQuery)->selectRaw('
-                COUNT(*) as count,
-                SUM(amount) as total,
-                AVG(amount) as average,
-                MAX(amount) as highest
-            ')->first();
+            $rows = (clone $base)
+                ->orderByDesc('expense_date')->orderByDesc('id')
+                ->limit(1000)
+                ->get(['title', 'category', 'amount', 'expense_date'])
+                ->map(fn ($r) => (object) [
+                    'date'     => \Illuminate\Support\Carbon::parse($r->expense_date),
+                    'title'    => $r->title,
+                    'category' => $r->category,
+                    'amount'   => (float) $r->amount,
+                ]);
 
-            $topCategory = (clone $baseQuery)->selectRaw('category, SUM(amount) as total')
-                ->groupBy('category')
-                ->orderByDesc('total')
-                ->value('category');
+            $stats = (clone $base)->selectRaw('COUNT(*) as entries, COALESCE(SUM(amount), 0) as total, COALESCE(AVG(amount), 0) as average, MIN(expense_date) as first_date, MAX(expense_date) as last_date')->first();
+            $highest = (clone $base)->orderByDesc('amount')->first(['title', 'amount']);
+
+            $byCategory = (clone $base)
+                ->selectRaw('category, COUNT(*) as entries, SUM(amount) as total')
+                ->groupBy('category')->orderByDesc('total')->get();
+
+            $byMonth = (clone $base)
+                ->selectRaw('YEAR(expense_date) as y, MONTH(expense_date) as m, COUNT(*) as entries, SUM(amount) as total')
+                ->groupBy('y', 'm')->orderByDesc('y')->orderByDesc('m')
+                ->limit(12)->get()->values();
 
             $summary = [
-                'total'       => (float) ($stats->total ?? 0),
-                'count'       => (int) ($stats->count ?? 0),
-                'average'     => (float) ($stats->average ?? 0),
-                'highest'     => (float) ($stats->highest ?? 0),
-                'topCategory' => $topCategory ?? 'Uncategorized',
+                'count'        => (int) $stats->entries,
+                'total'        => (float) $stats->total,
+                'average'      => (float) $stats->average,
+                'highest'      => (float) ($highest->amount ?? 0),
+                'highestTitle' => $highest->title ?? '',
+                'thisMonth'    => (float) (clone $base)->whereYear('expense_date', now()->year)->whereMonth('expense_date', now()->month)->sum('amount'),
+                'partialMonth' => (bool) $byMonth->first(fn ($m) => (int) $m->y === now()->year && (int) $m->m === now()->month),
             ];
 
-            // Fetch the top 100 recent for the PDF log to prevent 10,000 page PDFs
-            $expenses = (clone $baseQuery)->latest('expense_date')->limit(100)->get();
+            $period = $stats->first_date
+                ? \Illuminate\Support\Carbon::parse($stats->first_date)->format('d M Y') . ' to ' . \Illuminate\Support\Carbon::parse($stats->last_date)->format('d M Y')
+                : '—';
 
-            $reportId = 'FA-EXP-' . now()->format('YmdHis');
+            $pdf = Pdf::loadView('pdf.statement', [
+                'kind'        => 'expense',
+                'user'        => $user,
+                'rows'        => $rows,
+                'byCategory'  => $byCategory,
+                'byMonth'     => $byMonth,
+                'summary'     => $summary,
+                'period'      => $period,
+                'statementNo' => 'EXP-' . $user->id . '-' . now()->format('ymd-His'),
+                'generatedAt' => now()->format('d M Y, h:i A'),
+            ])->setPaper('a4', 'portrait');
 
-            $pdf = Pdf::loadView(
-                'user.expenses.pdf',
-                compact('expenses', 'summary', 'reportId')
-            )->setPaper('a4', 'portrait');
-
-            return $pdf->download('FinanceAI_Personal_Ledger_' . now()->format('d-m-Y') . '.pdf');
+            return $pdf->download('FinanceAI_Expense_Statement_' . now()->format('Y-m-d') . '.pdf');
 
         } catch (Throwable $e) {
-            Log::error('Expense PDF Export Error: ' . $e->getMessage(), ['user_id' => $user->id]);
+            Log::error('Expense PDF export failed: ' . $e->getMessage(), ['user_id' => $user->id]);
             return back()->with('error', 'We couldn’t create the PDF. Please try again in a moment.');
         }
     }
